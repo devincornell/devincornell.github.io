@@ -18,7 +18,7 @@ post_preview_template = \
 <div class="resume-item d-flex flex-column flex-md-row justify-content-between mb-5">
     <div class="resume-content">
         <h3 class="mb-0"><a data-toggle="collapse" href="#blogCollapse{i}" role="button" aria-expanded="false" aria-controls="blogCollapse{i}"><<<TITLE_GOES_HERE>>></a></h3>
-        <div class="subheading mb-3">By <<<AUTHOR_GOES_HERE>>> on <<<DATE_GOES_HERE>>></div>
+        <div class="subheading mb-3"><<<DATE_GOES_HERE>>></div>
         <<<HEADER_GOES_HERE>>>
         <p><a data-toggle="collapse" href="#blogCollapse{i}" role="button" aria-expanded="false" aria-controls="blogCollapse{i}">Expand full post...</a></p>
         <div class="collapse" id="blogCollapse{i}">
