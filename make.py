@@ -20,7 +20,10 @@ post_preview_template = \
         <h3 class="mb-0"><a href="/posts/<<<NAME_GOES_HERE>>>.html"><<<TITLE_GOES_HERE>>></a></h3>
         <div class="subheading mb-3">By <<<AUTHOR_GOES_HERE>>> on <<<DATE_GOES_HERE>>></div>
         <<<HEADER_GOES_HERE>>>
-        <p><a href="/posts/<<<NAME_GOES_HERE>>>.html">Full post</a></p>
+        <p><a class="btn btn-primary" data-toggle="collapse" href="#blogCollapse{i}" role="button" aria-expanded="false" aria-controls="blogCollapse{i}">Full post</a></p>
+        <div class="collapse" id="blogCollapse{i}">
+            <<<BODY_GOES_HERE>>>
+        </div>
     </div>
     <div class="resume-date text-md-right">
         <span class="text-primary"></span>
