@@ -75,7 +75,7 @@ if __name__ == '__main__':
         post_previews.append(template_replace(post_preview_template, post))
 
     # read template file and replace values with previews
-    with open('index_template.html', 'r') as f:
+    with open('EDIT_ME_index_template.html', 'r') as f:
         index_html = f.read().replace('<<<BLOG_PREVIEWS_HERE>>>', '\n'.join(post_previews))
 
     
