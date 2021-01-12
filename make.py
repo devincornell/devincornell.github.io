@@ -5,7 +5,7 @@ import glob
 import lxml.etree
 
 post_replacement_map = {
-    'name': '<<<NAME_GOES_HERE>>',
+    'name': '<<<NAME_GOES_HERE>>>',
     'title': '<<<TITLE_GOES_HERE>>>',
     'author': '<<<AUTHOR_GOES_HERE>>>',
     'date': '<<<DATE_GOES_HERE>>>',
