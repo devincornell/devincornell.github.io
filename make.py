@@ -46,14 +46,6 @@ def attr(post, name):
     else:
         return post.xpath(f'{name}/text()')[0]
 
-post_template = '''
-<<<TITLE_GOES_HERE>>>
-<<<DATE_GOES_HERE>>>
-<<<HEADER_GOES_HERE>>>
-<<<BODY_GOES_HERE>>>
-'''
-
-
 if __name__ == '__main__':
     fnames = glob.glob('posts/*.xml')
 
@@ -65,12 +57,12 @@ if __name__ == '__main__':
         posts += lxml.etree.fromstring(text).xpath('post')
 
     # create files for individual posts
-    for post in posts:
-        name = attr(post, 'name')
-        fname = f'posts/{name}.html'
-        with open(fname, 'w') as f:
-            f.write(template_replace(post_template, post))
-        print(f'wrote post file: {fname}')
+    #for post in posts:
+    #    name = attr(post, 'name')
+    #    fname = f'posts/{name}.html'
+    #    with open(fname, 'w') as f:
+    #        f.write(template_replace(post_template, post))
+    #    print(f'wrote post file: {fname}')
     
     # create individual post previews
     post_previews = list()
