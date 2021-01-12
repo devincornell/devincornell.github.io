@@ -74,8 +74,8 @@ if __name__ == '__main__':
     
     # create individual post previews
     post_previews = list()
-    for post in posts:
-        post_previews.append(template_replace(post_preview_template, post))
+    for i,post in enumerate(posts):
+        post_previews.append(template_replace(post_preview_template.format(i=i), post))
 
     # read template file and replace values with previews
     with open('EDIT_ME_index_template.html', 'r') as f:
