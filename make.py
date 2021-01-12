@@ -5,7 +5,7 @@ import glob
 import lxml.etree
 
 post_replacement_map = {
-    'name': '<<<NAME_GOES_HERE>>>',
+    'id': '<<<ID_GOES_HERE>>>',
     'title': '<<<TITLE_GOES_HERE>>>',
     'author': '<<<AUTHOR_GOES_HERE>>>',
     'date': '<<<DATE_GOES_HERE>>>',
@@ -17,11 +17,11 @@ post_preview_template = \
 '''
 <div class="resume-item d-flex flex-column flex-md-row justify-content-between mb-5">
     <div class="resume-content">
-        <h3 class="mb-0"><a data-toggle="collapse" href="#blogCollapse{i}" role="button" aria-expanded="false" aria-controls="blogCollapse{i}"><<<TITLE_GOES_HERE>>></a></h3>
+        <h3 class="mb-0"><a data-toggle="collapse" href="#<<<ID_GOES_HERE>>>" role="button" aria-expanded="false" aria-controls="<<<ID_GOES_HERE>>>"><<<TITLE_GOES_HERE>>></a></h3>
         <div class="subheading mb-3"><<<DATE_GOES_HERE>>></div>
         <<<HEADER_GOES_HERE>>>
-        <p><a data-toggle="collapse" href="#blogCollapse{i}" role="button" aria-expanded="false" aria-controls="blogCollapse{i}">Expand full post...</a></p>
-        <div class="collapse" id="blogCollapse{i}">
+        <p><a data-toggle="collapse" href="#<<<ID_GOES_HERE>>>" role="button" aria-expanded="false" aria-controls="<<<ID_GOES_HERE>>>">Expand full post...</a></p>
+        <div class="collapse" id="<<<ID_GOES_HERE>>>">
             <<<BODY_GOES_HERE>>>
         </div>
     </div>
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     # create individual post previews
     post_previews = list()
     for i,post in enumerate(posts):
-        post_previews.append(template_replace(post_preview_template.format(i=i), post))
+        post_previews.append(template_replace(post_preview_template, post))
 
     # read template file and replace values with previews
     with open('EDIT_ME_index_template.html', 'r') as f:
