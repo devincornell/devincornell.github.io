@@ -47,7 +47,7 @@ def attr(post, name):
         return post.xpath(f'{name}/text()')[0]
 
 if __name__ == '__main__':
-    fnames = glob.glob('posts/*.xml')
+    fnames = sorted(glob.glob('posts/*.xml'))
 
     # read and parse xml from posts files
     posts = list()
