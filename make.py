@@ -55,14 +55,6 @@ if __name__ == '__main__':
         with open(fname, 'r') as f:
             text = f.read()
         posts += lxml.etree.fromstring(text).xpath('post')
-
-    # create files for individual posts
-    #for post in posts:
-    #    name = attr(post, 'name')
-    #    fname = f'posts/{name}.html'
-    #    with open(fname, 'w') as f:
-    #        f.write(template_replace(post_template, post))
-    #    print(f'wrote post file: {fname}')
     
     # create individual post previews
     post_previews = list()
