@@ -1,8 +1,8 @@
 
 <posts>
     <post>
-        <id>lessons_from_workshops</id>
-        <title>Lessons learned from creating text analysis workshops</title>
+        <post_id>reflections_on_workshops</post_id>
+        <title>Reflections on creating workshops on text analysis</title>
         <author>Devin J. Cornell</author>
         <date>Jan 12, 2021</date>
         <header>

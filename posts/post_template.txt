@@ -1,6 +1,7 @@
 <posts>
     <post>
-        <title>Lessons from creating "introduction to text analysis" workshops</title>
+        <post_id>reflections_on_workshops</post_id>
+        <title>Lessons learned</title>
         <author>Devin J. Cornell</author>
         <date>Jan 12, 2021</date>
         <header>
