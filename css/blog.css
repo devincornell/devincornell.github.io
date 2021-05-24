@@ -10668,7 +10668,7 @@ footer {
 
 header.masthead {
   position: relative;
-  /*margin-bottom: 3rem;*/ /*modified!*/
+  margin-bottom: 2rem; /*modified!*/
   padding-top: calc(1rem + 57px); /*modified!*/
   padding-bottom: 1rem; /*modified!*/
   background: no-repeat center center;
