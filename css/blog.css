@@ -10732,11 +10732,13 @@ header.masthead .post-heading .meta {
 header.masthead .post-heading .meta a {
   color: #fff;
 }
+
 @media (min-width: 992px) {
+  /*
   header.masthead {
-    /*padding-top: 12.5rem;
-    padding-bottom: 12.5rem;*/
-  }
+    padding-top: 12.5rem;
+    padding-bottom: 12.5rem;
+  }*/
   header.masthead .page-heading h1, header.masthead .page-heading .h1,
 header.masthead .site-heading h1,
 header.masthead .site-heading .h1 {
