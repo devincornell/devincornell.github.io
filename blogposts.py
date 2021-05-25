@@ -2,18 +2,59 @@ import pathlib
 import markdown
 import dateutil.parser
 
+
+
+class Blog:
+    ''' Main blog interface - creates BlogPosts for writing.
+    '''
+    
+    def __init__(self, 
+                    markdown_folder: str, 
+                    post_folder: str,
+                    blogpage_template: str,
+                    blogpost_template: str,
+                    blogroll_template: str
+                ):
+        self.md_path = pathlib.Path(markdown_folder)
+        self.post_path = pathlib.Path(post_folder)
+
+        # read template files (accessed from BlogPost children)
+        self.blogpage_template = pathlib.Path(blogpage_template).read_text()
+        self.blogpost_template = pathlib.Path(blogpost_template).read_text()
+        self.blogroll_template = pathlib.Path(blogroll_template).read_text()
+        
+        # extract markdown files
+        self.posts = [BlogPost(p, self) for p in self.md_path.glob('*.md')]
+
+    def __iter__(self):
+        return iter(self.posts)
+
+    def parse_posts(self):
+        for post in self.posts:
+            post.parse_post()
+
+    def write_posts(self):
+        for post in self.posts:
+            post.write_post()
+
+    def write_blogpage(self, blogfile: str = 'blog.html'):
+        br_html = ''
+        for blog in sorted(self.posts, key=lambda x: x.metadata['date'], reverse=True):
+            br_html += blog.get_blogroll_html()
+        blog_html = self.blogpage_template.format(blogroll=br_html)
+        with open(blogfile, 'w') as f:
+            f.write(blog_html)
+
+
+
+
 class BlogPost:
     ''' Handles parsing of single blog post.
     '''
     # read in template data and read markdown file
-    def __init__(self, 
-                    post_path: pathlib.Path, # path to markdown file
-                    blogpost_template_path: pathlib.Path,
-                    blogroll_template_path: pathlib.Path
-                ):
+    def __init__(self, post_path: pathlib.Path, blog: Blog):
         self.post_path = post_path
-        self.bp_template = blogpost_template_path.read_text()
-        self.br_template = blogroll_template_path.read_text()
+        self.blog = blog
 
         self.md_text = self.post_path.read_text()
 
@@ -29,14 +70,11 @@ class BlogPost:
         # convert markdown to html
         self.post_html = markdown.markdown(self.body)
 
-    def write_post(self, outfolder_path: pathlib.Path):
+    def write_post(self):
         ''' Write post to a file (call .parse_post() first).
         '''
         if not hasattr(self, 'post_html'):
             raise ValueError('Must call .parse_post() before using .write_post().')
-        
-        # write down fname
-        fpath = outfolder_path.joinpath(self.get_fname())
 
         # get blogpost html
         blogpost_html = self.format_blogpost(
@@ -45,7 +83,16 @@ class BlogPost:
             date=self.metadata['date'],
             body=self.post_html
         )
-        fpath.write_text(blogpost_html)
+        self.get_fname().write_text(blogpost_html)
+
+    def get_blogroll_html(self):
+        return self.format_blogroll(
+            path = self.get_fname(),
+            title = self.metadata['title'],
+            subtitle = self.metadata['subtitle'],
+            date = self.metadata['date']
+        )
+
 
     ###################### Parsing Functions ######################
 
@@ -80,12 +127,12 @@ class BlogPost:
     ###################### String Formatting Functions ######################
 
     def get_fname(self):
-        return f"{self.metadata['id']}.html"
+        return self.blog.post_path.joinpath(f"{self.metadata['id']}.html")
 
     def format_blogpost(self, title:str, subtitle:str, date:str, body:str):
         ''' Return blogpost template with values substituted.
         '''
-        return self.bp_template.format(
+        return self.blog.blogpost_template.format(
             title=title,
             subtitle=subtitle,
             date=date,
@@ -95,46 +142,12 @@ class BlogPost:
     def format_blogroll(self, path: str, title: str, subtitle:str, date:str):
         ''' Return blogroll template with values substituted.
         '''
-        return self.bp_template.format(
+        return self.blog.blogroll_template.format(
             path=path,
             title=title,
             subtitle=subtitle,
             date=date,
         )
-
-
-class Blog:
-    ''' Main blog interface - creates BlogPosts for writing.
-    '''
-    
-    def __init__(self, 
-                    markdown_folder: str, 
-                    blogpost_template_fname: str,
-                    blogroll_template_fname: str,
-                    post_folder: str
-                ):
-        self.md_path = pathlib.Path(markdown_folder)
-        self.post_path = pathlib.Path(post_folder)
-        
-        blogpost_template_path = pathlib.Path(blogpost_template_fname)
-        blogroll_template_path = pathlib.Path(blogroll_template_fname)
-
-        
-        # extract markdown files
-        self.posts = [BlogPost(p, blogpost_template_path, blogroll_template_path) 
-                        for p in self.md_path.glob('*.md')]
-
-    def __iter__(self):
-        return iter(self.posts)
-
-    def parse_posts(self):
-        for post in self.posts:
-            post.parse_post()
-
-    def write_posts(self, outfolder_fname: str):
-        outfolder_path = pathlib.Path(outfolder_fname)
-        for post in self.posts:
-            post.write_post(outfolder_path)
 
 
 
