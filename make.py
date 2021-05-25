@@ -16,10 +16,15 @@ if __name__ == '__main__':
         post_folder = 'post'
     )
 
-    #blog.parse_posts()
-    for post in blog:
-        print(type(post.md_text))
-        pprint(post.md_text)
+    blog.parse_posts()
+    blog.write_posts('post')
+    #for post in blog:
+    #    print(post.post_path)
+    #    post.parse_post()
+    #    post.write_post
+    #    pprint(post.metadata)
+        #print(type(post.md_text))
+        #pprint(post.md_text)
 
 
 
