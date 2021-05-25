@@ -34,15 +34,18 @@ class BlogPost:
         '''
         if not hasattr(self, 'post_html'):
             raise ValueError('Must call .parse_post() before using .write_post().')
+        
+        # write down fname
         fpath = outfolder_path.joinpath(self.get_fname())
 
-        blogpost_text = self.format_blogpost(
+        # get blogpost html
+        blogpost_html = self.format_blogpost(
             title=self.metadata['title'],
             subtitle=self.metadata['subtitle'],
             date=self.metadata['date'],
             body=self.post_html
         )
-        fpath.write_text(blogpost_text)
+        fpath.write_text(blogpost_html)
 
     ###################### Parsing Functions ######################
 
@@ -120,6 +123,9 @@ class Blog:
         # extract markdown files
         self.posts = [BlogPost(p, blogpost_template_path, blogroll_template_path) 
                         for p in self.md_path.glob('*.md')]
+
+    def __iter__(self):
+        return iter(self.posts)
 
     def parse_posts(self):
         for post in self.posts:
