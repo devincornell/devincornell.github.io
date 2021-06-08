@@ -39,9 +39,13 @@ class Blog:
 
     def write_blogpage(self, blogfile: str = 'blog.html'):
         br_html = ''
-        for blog in sorted(self.posts, key=lambda x: x.metadata['date'], reverse=True):
+        for blog in sorted(self.posts, key=lambda x: x.metadata['parsed_date'], reverse=True):
+            title, date = blog.metadata['title'], blog.metadata['date']
+            print(f'creating blog page ({date}): {title}')
             br_html += blog.get_blogroll_html()
         blog_html = self.blogpage_template.format(blogroll=br_html)
+        
+        print(f'creating blog main page with {len(self.posts)} posts.')
         with open(blogfile, 'w') as f:
             f.write(blog_html)
 
@@ -55,6 +59,7 @@ class BlogPost:
     def __init__(self, post_path: pathlib.Path, blog: Blog):
         self.post_path = post_path
         self.blog = blog
+        self.parsed_date = None
 
         self.md_text = self.post_path.read_text()
 
@@ -122,6 +127,9 @@ class BlogPost:
                 # remove surrounding double quotes, save value
                 meta[attr] = val[1:-1]
 
+                if attr == 'date':
+                    meta['parsed_date'] = dateutil.parser.parse(meta['date'])
+        
         return meta
 
     ###################### String Formatting Functions ######################
