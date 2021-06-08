@@ -1,7 +1,7 @@
 ---
 title: "Using SQLite to store and manage large Python objects"
 subtitle: "My solution in doctable and some basic benchmark results."
-date: "December 24, 2017"
+date: "June 8, 2021"
 id: "file_storage_types"
 ---
 
