@@ -1,7 +1,7 @@
 ---
 title: "Reflections on creating text analysis workshops"
 subtitle: "Learning these methods is about developing your own design patterns and learning the most fundamental approaches."
-date: "Jan 12, 2021"
+date: "Dec 3, 2019"
 id: "reflections_on_workshops"
 ---
 
