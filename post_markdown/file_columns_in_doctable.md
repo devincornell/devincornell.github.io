@@ -44,17 +44,17 @@ The last measure is the query for the actual payload, which is intended to test 
 This first figure shows the average ammount of time it took to insert 500 objects into an SQLite database on my machine at various data payload sizes. 
 We can see that the file-based solution I implemented shows a ~3x improvement over inserting directly into the database.
 
-![Insert Time](https://storage.googleapis.com/public_data_09324832787/blogpost_filecol_insert_time.png =250x)
+![Insert Time](https://storage.googleapis.com/public_data_09324832787/filecol_insert_time_small.png)
 
 This next figure shows the average ammount of time it took to select just the index column of the table. 
 We can see that the file-based solution is approximately 5x faster than the in-database storage solution.
 
-![Select Index Time](https://storage.googleapis.com/public_data_09324832787/blogpost_filecol_select_index_time.png)
+![Select Index Time](https://storage.googleapis.com/public_data_09324832787/filecol_select_index_time_small.png)
 
 This last figure shows the time it took to load the actual data payload. 
 The file-based solution is much faster than the in-database storage solution, and the multiplier appears to increase with filesize.
 
-![Select Payload Time](https://storage.googleapis.com/public_data_09324832787/blogpost_filecol_select_payload_time.png)
+![Select Payload Time](https://storage.googleapis.com/public_data_09324832787/filecol_select_payload_time_small.png)
 
 ## Conclusion
 

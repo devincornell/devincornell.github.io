@@ -86,13 +86,13 @@ The hypothesis behind this measure is that inserting large quantities of data in
 The last measure is the query for the actual payload, which is intended to test the raw read speed.</p>
 <p>This first figure shows the average ammount of time it took to insert 500 objects into an SQLite database on my machine at various data payload sizes. 
 We can see that the file-based solution I implemented shows a ~3x improvement over inserting directly into the database.</p>
-<p><img alt="Insert Time" src="https://storage.googleapis.com/public_data_09324832787/blogpost_filecol_insert_time.png =250x" /></p>
+<p><img alt="Insert Time" src="https://storage.googleapis.com/public_data_09324832787/filecol_insert_time_small.png" /></p>
 <p>This next figure shows the average ammount of time it took to select just the index column of the table. 
 We can see that the file-based solution is approximately 5x faster than the in-database storage solution.</p>
-<p><img alt="Select Index Time" src="https://storage.googleapis.com/public_data_09324832787/blogpost_filecol_select_index_time.png" /></p>
+<p><img alt="Select Index Time" src="https://storage.googleapis.com/public_data_09324832787/filecol_select_index_time_small.png" /></p>
 <p>This last figure shows the time it took to load the actual data payload. 
 The file-based solution is much faster than the in-database storage solution, and the multiplier appears to increase with filesize.</p>
-<p><img alt="Select Payload Time" src="https://storage.googleapis.com/public_data_09324832787/blogpost_filecol_select_payload_time.png" /></p>
+<p><img alt="Select Payload Time" src="https://storage.googleapis.com/public_data_09324832787/filecol_select_payload_time_small.png" /></p>
 <h2>Conclusion</h2>
 <p>From these results we can see that the file storage-based solution improves performance significantly according to these three measures. 
 Of course, it is difficult to project these results into extreme cases where we are storing extremely large data payloads or a ton of really small payloads, but I think it does provide insight into some reasonable cases. </p>
