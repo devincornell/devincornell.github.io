@@ -11,34 +11,33 @@ There is overhead in the construction of these classes (more for time than memor
 Ideally I could use slots to further reduce memory overhead while maintaining the ability to write custom methods, but the problem is that creating slot-based classes with defaulted parameters like those needed to construct database schemas is not allowed. 
 
 For example, the definition of the following class will result in the exception "`ValueError`: 'a' in __slots__ conflicts with class variable."
-```
-class Test1:
-    __slots__ = ['a']
-    a: int = 5
-```
+
+    class Test1:
+        __slots__ = ['a']
+        a: int = 5
+
 
 Typically the dataclasses I use to define doctable schemas look like the following. 
 Note that the `id` column (typical of database schemas) is listed first and given a default parameter to indicate that it is the primary key and automatically incremented. 
 Thus, all member variables after this are required to have defaulted parameters (which are usually `doctable.Col()` objects) and normally adding `__slots__` to this class would then not be allowed. 
-```
-@dataclasses.dataclass
-class MyRow(doctable.DocTableRow):
-    id: int = doctable.IDCol()
-    payload: int = doctable.Col()
-```
+
+    @dataclasses.dataclass
+    class MyRow(doctable.DocTableRow):
+        id: int = doctable.IDCol()
+        payload: int = doctable.Col()
+
 
 ***My solution*** was to create a [decorator](https://realpython.com/primer-on-python-decorators) that would convert the provided class to a dataclass so that it would add `__init__` (among other dunder methods) with defaulted parameter values. 
 Next, I remove defaulted values from the class definition, and add them as `__slots__`. 
 Finally, I create a new class which inherits from this modified class as well as `DocTableRow` to include methods that doctable schemas require for basic operation. 
 
 For an example of the usage of this decorator (which I called `doctable.row`), this is how we would define a schema under this paradigm:
-```
-@doctable.row
-class MyRow:
-    __slots__ = []
-    id: int = doctable.IDCol()
-    payload: int = doctable.Col()
-```
+
+    @doctable.row
+    class MyRow:
+        __slots__ = []
+        id: int = doctable.IDCol()
+        payload: int = doctable.Col()
 
 Note that we must include `__slots__ = []` so that the end class (which inherits from the original `MyRow`) will be a slot-based class (all inheriting classes must include this in the original definition). 
 The decorator will issue an error if this is not included, but it can be disabled (along with all the advantages of slot classes) using the syntax `@doctable.row(require_slots=False)`. 
