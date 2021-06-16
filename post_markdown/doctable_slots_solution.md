@@ -1,6 +1,6 @@
 ---
 title: "Using Slot Classes in DocTable Schemas"
-subtitle: "The challenge of dynamically creating"
+subtitle: "Allowing for defaulted parameters to slot classes that can be used as doctable schemas."
 date: "June 15, 2021"
 id: "using_slots_with_doctable_schema"
 ---
