@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta name="description" content="" />
         <meta name="author" content="" />
-        <title>Devin J. Cornell: Distributed Processing in Python using _multiprocessing_</title>
+        <title>Devin J. Cornell: Distributed Processing in Python using multiprocessing</title>
         <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
         <!-- Font Awesome icons (free version)-->
         <!--<script src="https://use.fontawesome.com/releases/v5.15.3/js/all.js" crossorigin="anonymous"></script>-->
@@ -40,7 +40,7 @@
                 <div class="row gx-4 gx-lg-5 justify-content-center">
                     <div class="col-md-10 col-lg-8 col-xl-7">
                         <div class="post-heading">
-                            <h1>Distributed Processing in Python using _multiprocessing_</h1>
+                            <h1>Distributed Processing in Python using multiprocessing</h1>
                             <h2 class="subheading">Considerations for constructing custom systems.</h2>
                             <span class="meta">
                                 Posted by
@@ -75,14 +75,25 @@
 I will focus on <em>spawn</em> and <em>fork</em> because they appear to be the most popular. 
 I quoted the official docs and added some additional considerations based on my research.</p>
 <p>I found a good comparison of <em>fork</em> and <em>spawn</em> on a <a href="https://stackoverflow.com/questions/64095876/multiprocessing-fork-vs-spawn">StackOverflow page</a>. 
-The responses indicate that overall, <em>fork</em> is fastest because it simply copies the entire python process</p>
+The responses indicate that overall, <em>fork</em> is fastest because it simply copies the entire python process, along with any information stored globally </p>
 <h4><em>fork</em></h4>
 <blockquote>
-<p>From <a href="https://docs.python.org/3/library/multiprocessing.html#contexts-and-start-methods">docs</a>: _The parent process uses os.fork() to fork the Python interpreter. 
+<p><a href="https://docs.python.org/3/library/multiprocessing.html#contexts-and-start-methods">docs</a>: The parent process uses os.fork() to fork the Python interpreter. 
 The child process, when it begins, is effectively identical to the parent process. 
 All resources of the parent are inherited by the child process. Note that safely forking a multithreaded process is problematic. 
 Available on Unix only. The default on Unix.</p>
 </blockquote>
+<p>This <a href="https://stackoverflow.com/questions/64095876/multiprocessing-fork-vs-spawn">StackOverflow page</a> suggests that <em>fork</em> is default for POSIX systems because it is very fast and uses the kernel to manage memory copying efficiently. 
+When creating a forked process, your OS essentially copies the entire process, including global variables, file handles, and any other connection resources (e.g. database connections) associated with the original process. </p>
+<p>The biggest challenge with this method is the way it manages memory.
+The copy-on-write method used by the OS means that memory pages are only copied when they are modified. 
+In theory this appears to be quite efficient - two processes can use the same memory as long as they don't modify it. 
+Note that this is not the same as shared memory implemented in Python or by your application, but rather a kernel-level implementation of virtual memory paging (as I understand it).
+This would be fine for programs implemented closer to hardware, but in Python memory writes are less predictable - they can even happen simply by iterating over a set of data (for instance, a global variable). 
+In general, accessing a global variable from a thread/process target function would be a bad idea, but either way this could cause some unexpected behavior.</p>
+<p>In fact, <a href="https://bugs.python.org/issue40379">some have suggested</a> that <em>fork</em> be replaced by <em>spawn</em> as the default process spawning method on Unix systems because they can cause thread lockups that are difficult for many people to debug (<a href="https://pythonspeed.com/articles/python-multiprocessing/">this blog post</a> gives more detial). </p>
+<p>More specifically, the OS applies a  </p>
+<p>The responses indicate that overall, <em>fork</em> is fastest because it simply copies the entire python process, along with any information stored globally </p>
 <h4><em>spawn</em></h4>
 <p>From <a href="https://docs.python.org/3/library/multiprocessing.html#contexts-and-start-methods">docs</a>: "The parent process starts a fresh python interpreter process. The child process will only inherit those resources necessary to run the process object’s run() method. In particular, unnecessary file descriptors and handles from the parent process will not be inherited. Starting a process using this method is rather slow compared to using fork or forkserver."</p>
 <p>This method is the default on Windows and Mac</p>
