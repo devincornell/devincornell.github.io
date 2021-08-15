@@ -25,14 +25,16 @@ The [multiprocessing documentation](https://docs.python.org/3/library/multiproce
 I will focus on _spawn_ and _fork_ because they appear to be the most popular. 
 I quoted the official docs and added some additional considerations based on my research.
 
+I found a good comparison of _fork_ and _spawn_ on a [StackOverflow page](https://stackoverflow.com/questions/64095876/multiprocessing-fork-vs-spawn). 
+The responses indicate that overall, _fork_ is fastest because it simply copies the entire python process
+
+
 #### _fork_
 
 > From [docs](https://docs.python.org/3/library/multiprocessing.html#contexts-and-start-methods): _The parent process uses os.fork() to fork the Python interpreter. 
 > The child process, when it begins, is effectively identical to the parent process. 
 > All resources of the parent are inherited by the child process. Note that safely forking a multithreaded process is problematic. 
 > Available on Unix only. The default on Unix.
-
-As the docs note, 
 
 
 #### _spawn_
