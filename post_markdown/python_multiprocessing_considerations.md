@@ -1,5 +1,5 @@
 ---
-title: "Distributed Processing in Python using `multiprocessing`"
+title: "Distributed Processing in Python using _multiprocessing_"
 subtitle: "Considerations for constructing custom systems."
 date: "Aug 15, 2021"
 id: "distributed_processing_using_multiprocessing"
