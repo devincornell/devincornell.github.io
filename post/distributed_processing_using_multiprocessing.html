@@ -84,14 +84,15 @@ The child process, when it begins, is effectively identical to the parent proces
 All resources of the parent are inherited by the child process. Note that safely forking a multithreaded process is problematic. 
 Available on Unix only. The default on Unix."</p>
 </blockquote>
-<p>This <a href="https://stackoverflow.com/questions/64095876/multiprocessing-fork-vs-spawn">StackOverflow page</a> suggests that <em>fork</em> is default for POSIX systems because it is very fast and uses the kernel to manage memory copies efficiently. 
-When creating a forked process, your OS essentially copies the entire process, including global variables, variables defined in __main__, file handles, and any other connection resources (e.g. database connections) referenced in the original process. </p>
+<p>Responses to this <a href="https://stackoverflow.com/questions/64095876/multiprocessing-fork-vs-spawn">StackOverflow question</a> suggests that <em>fork</em> is default for POSIX systems because it is very fast and uses the kernel to manage memory copies efficiently. 
+When creating a forked process, your OS essentially copies the entire process, including global variables, variables defined in __main__, file handles, and any other connection resources (e.g. database connections) referenced in the original process. 
+Whereas otherwise a new Python instance would need to be created and any necessary data passed to it through a pipe, this approach ensures everything is copied quickly.</p>
 <p>The biggest challenge with this method is the way it manages memory.
-The copy-on-write method used by the OS means that memory pages are only copied when they are modified. 
+The <a href="https://en.wikipedia.org/wiki/Copy-on-write">copy-on-write</a> method used by most kernels means that memory pages are only copied when they are modified. 
 In theory this appears to be quite efficient - two processes can use the same memory as long as they don't modify it. 
 (Note that this is not the same as shared memory implemented in Python or by your application, but rather a kernel-level implementation of virtual memory paging.)
-This would be fine for programs implemented closer to hardware, but in Python, memory writes are less predictable - they can even happen simply by iterating over a collection (referenced, for instance, as a global variable) due to reference counting. 
-In general, accessing a global variable from a thread/process target function is bad practice, but even otherwise this approach could cause some unexpected behavior.</p>
+This would be fine for programs implemented closer to hardware, but in Python, memory writes are less predictable - they can, for instance, happen simply by iterating over a collection (referenced, for instance, as a global variable) due to the way reference counting works. 
+In general, accessing a global variable from a thread/process target function is bad practice, but even otherwise this approach could cause some unexpected behavior. </p>
 <h4><em>spawn</em></h4>
 <p><em>spawn</em> is another approach to starting process. </p>
 <p>From <a href="https://docs.python.org/3/library/multiprocessing.html#contexts-and-start-methods">docs</a>: </p>
