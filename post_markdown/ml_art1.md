@@ -11,7 +11,18 @@ I've recently been playing with approaches to generate visual art using machine 
 
 Powered by models trained and released by [OpenAI](https://openai.com/), some early approaches, such as the [DALL-E neural network models](https://openai.com/blog/dall-e/), were created specifically to generate images from text ([see explanation here](https://ml.berkeley.edu/blog/posts/vq-vae/)). In contrast, newer approaches are built on models that were designed to generalize classical image classification and caption generation tasks. Perhaps the most popular of these is the [CLIP model](https://openai.com/blog/clip/). In the process of being trained to solve tasks involving the relationship between images and natural language, the models learn about the complex relationships between the two modalities that can be revealed by trying various combinations of inputs and outputs. Given that these models were not originally designed to create visual art, the results of experiments can be both surprising and interesting - exactly the features that excite visual art creators and enthusiasts. 
 
-My use of the model involves training the last layer of the deep learning network model provided by CLIP, where the objective function is provided by any combination of image and text inputs. The total objective function is a simple linear combination of objective functions produced by each of the text and image inputs, and so in this way I can carefully choose inputs that might produce the images I think are interestign. Through a process of trial and error I've been playing with a number of approaches to image generation that I have found to produce meaningful differences.
+My use of the model involves training the last layer of the deep learning network model provided by CLIP, where the objective function is provided by any combination of image and text inputs. The total objective function is a simple linear combination of objective functions produced by each of the text and image inputs, and so in this way I can carefully choose inputs that might produce the images I think are interesting. Through a process of trial and error I've been playing with a number of approaches to image generation that I have found to produce meaningful differences.
+
+## Model Basics
+
+The simplest use of these models involves using a single text input to generate the objective function for model training.
+
+## Further Experimentation
+
+First, this is a full list of the approaches I found to result in meaningfully different outputs.
+
++ text inputs
++ nonrandom initialization of hidden weights
 
 Starting with the base CLIP model and any combination of image and text inputs, I train an additional neural network hidden layer to produce aoutput
 
