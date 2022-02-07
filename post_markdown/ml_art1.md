@@ -1,7 +1,7 @@
 ---
 title: "Experimentation with Visual Art using CLIP Models"
 subtitle: "Generating visual art using models originally designed to create transcirptions from images."
-date: "April 11, 2019"
+date: "February 6, 2022"
 id: "ucsb_instructional_development_grant"
 ---
 
@@ -25,14 +25,17 @@ Here are a few examples I created:
 
 ![sunset in the city](https://storage.googleapis.com/public_data_09324832787/mlart/text_only03-None-im-text0%3Dsunset_in_the_city-0_final.gif)
 
-This example shows how 
+This example shows how the model clearly has a sense of the set of textures that might be associted with a city at sunset. The consistent appearance of aligning (yet sometimes slightly offset) windows, glow that might appear as reflections of the sun, and even the colors of concrete and steel that you might find in a photo or painting of a cityscape. Keep in mind that the CLIP model used to generate all of these was trained on real images in databases, so it's no surprise that they capture some of the realism we'd see in a regular photo.
 
 
-"orcas in the north pole"
+##### "orcas in the north pole"
 
 ![orcas in the north pole](https://storage.googleapis.com/public_data_09324832787/mlart/text_only03-None-im-text0%3Dorcas_in_the_north_pole-4_final.gif)
 
-"enter the matrix"
+The first thing to note is that the white background and snowy trees clearly capture some aspects of winter in the North Pole. The "orcas" part of the image is less clear though - they appear as random blobs that emulate the curvature and black/white contrast of the animals. We also see small bodies of water spread throughout the image.
+
+
+##### "enter the matrix"
 
 ![enter the matrix](https://storage.googleapis.com/public_data_09324832787/mlart/text_only03-None-im-text0%3Denter_the_matrix-1_final.gif)
 
