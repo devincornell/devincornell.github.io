@@ -50,14 +50,20 @@ Now I will show a way we can use artifacts from the training data to produce sty
 
 Here I re-used one of the previous examples but added the text "on Flickr" at the end. Instead of appearing like the side of buildings in the sunset, this image includes what appear to be power lines, traffic light poles, sides of cars, and even shapes that look suspiciously like people viewed from behind. The implications of these artifacts are really interesting. First, the inclusion of elements like power lines suggests that images from Flicker that are captioned with "city" are more likely to be photos from the ground than from the sky - it makes sense intuitively. Also note that it seems to carry realism styles into the image.
 
-##### "building at sunset in the style of Studio Ghibli"
 
-![Building at Sunset in the Style of Studio Ghibli](https://storage.googleapis.com/public_data_09324832787/mlart/stylized02-None-im-text0%3Dbuilding_at_sunset_in_the_style_of_Studio_Ghibli-0_final.gif)
+##### "sunset in the city Artstation"
 
-I thought this example was particularly cool because it shows how the addition of the text "in the style of Studio Ghibli" brings both stylistic elements and actual objects into the scene. In contrast to the previous city example, this shows rounded roofs like you might see in the era of japan portrayed in a Miyazaki film. It also introduces grass fields and trees into the imagery, clearly drawing inspiration from Ghibli films. While I don't have space to show them here, Studio Ghibli stylizations can contribute an interesting connections between human technology and nature into the resulting scenes.
+![sunset in the city Artstation](https://storage.googleapis.com/public_data_09324832787/mlart/stylized03-None-im-text0%3Dsunset_in_the_city_Artstation-0_final.gif)
+
+I tried "Artstation" because it is another popular website for posting custom art.
 
 
+##### "sunset in the city Ghibli"
 
+![sunset in the city Ghibli](https://storage.googleapis.com/public_data_09324832787/mlart/stylized03-None-im-text0%3Dsunset_in_the_city_Ghibli-1_final.gif)
+
+
+I thought this example was particularly cool because it shows how the addition of the text "Ghibli" brings both stylistic elements and actual objects from movies produced by Studio Ghibli into the scene. In contrast to the previous city example, this shows stylistic elements that you might see in a Miyazaki movie. The sun appears as round globes instead of just reflections off of buildings - unsuprising given that real photographs can rarely capture the sun alongside an actual scene. 
 
 ### Non-random initialization
 
