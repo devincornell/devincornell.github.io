@@ -40,62 +40,19 @@ The first thing to note is that the white background and snowy trees clearly cap
 
 This test clearly demonstrates that the training data used to generate the full CLIP model included images from popular movies like the matrix. In my exploration I found that a lot of other popular media is represented here as well.
 
-#### Stylized text inputs
+### Stylized text inputs
 
-The simplest use of these models involves using a single text input to generate the objective function for model training. Here are a few examples I created:
+Now I will show a way we can use artifacts from the training data to produce stylized versions of the previous examples. I got the idea for this approach from [this blog article](https://ml.berkeley.edu/blog/posts/clip-art/), and extended it by further hypothesizing which kinds of data were included in the training data.
 
-"Thor god of thunder"
-![Thor god of thunder](https://storage.googleapis.com/public_data_09324832787/blogpost_colombia_paz_event.jpg)
+##### "building at sunset in the style of Studio Ghibli"
 
+![Building at Sunset in the Style of Studio Ghibli](https://storage.googleapis.com/public_data_09324832787/mlart/stylized02-None-im-text0%3Dbuilding_at_sunset_in_the_style_of_Studio_Ghibli-0_final.gif)
 
+I though this example was particularly cool because it shows how the addition of the text "in the style of Studio Ghibli" brings both stylistic elements and actual objects into the scene. In contrast to the previous city example, this shows rounded roofs like you might see in the era of japan portrayed in a Miyazaki film. It also introduces grass fields and trees into the imagery, clearly drawing inspiration from Ghibli films. While I don't have space to show them here, Studio Ghibli stylizations can contribute an interesting connections between human technology and nature into scenes.
 
-## Further Experimentation
-
-First, this is a full list of the approaches I found to result in meaningfully different outputs.
-
-+ text inputs
-+ nonrandom initialization of hidden weights
-
-Starting with the base CLIP model and any combination of image and text inputs, I train an additional neural network hidden layer to produce aoutput
-
-this model trains a layer of hidden weights to create some 
-
-
-initialization of the hidden weights that can be based on an image, and any number of texts or images that are 
-
-The models work by accepting any number of texts and images. 
+### Non-random initialization
 
 
 
-https://openai.com/blog/dall-e/
-
-
-Some approaches have been specifically aimed 
-
-Inspired by some blog articles 
-
-I believe that computation in the sciences and the arts offers the possibility to expand the ways we think about solving theoretical and empirical problems. Using a combination of simulations and and learning algorithms, we can begin to ask more open-ended questions about our data and the models we use to understand them. In stead of using on social theory or specific artistic styles 
-
-We are fored to question the language we use and conceptions of the underlying priciples on which products like scientific papers and modern art are based
-
-They force us to question 
-
-
-. In the visual arts, we can start to deconstruct distinctions between asthetics, shapes, strokes, imagery, symbolism 
-
-In the sciences they can help us re-think 
-My MA thesis at UC Santa Barbara was an attempt to take such an approach. I used genetic algorithms to perform a "search" for the particular 
-
-
- to understand the evolution of discursive fields produced by a particular Colombian political party, and I used genetic algorithms to search for the discursive distinctions 
-
-
-I've long been interested in using computation to generate visual and auditory imagery. I think computation in the sciences and the arts offers the possibility to re-think theoretical and empirical problems
-
-Much like the possibilities of using computation for science,
-
-[test](https://ml.berkeley.edu/blog/posts/clip-art/)
-
-
-
+### Image-based objective functions
 

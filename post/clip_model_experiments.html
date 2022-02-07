@@ -73,33 +73,13 @@
 <h5>"enter the matrix"</h5>
 <p><img alt="enter the matrix" src="https://storage.googleapis.com/public_data_09324832787/mlart/text_only03-None-im-text0%3Denter_the_matrix-1_final.gif" /></p>
 <p>This test clearly demonstrates that the training data used to generate the full CLIP model included images from popular movies like the matrix. In my exploration I found that a lot of other popular media is represented here as well.</p>
-<h4>Stylized text inputs</h4>
-<p>The simplest use of these models involves using a single text input to generate the objective function for model training. Here are a few examples I created:</p>
-<p>"Thor god of thunder"
-<img alt="Thor god of thunder" src="https://storage.googleapis.com/public_data_09324832787/blogpost_colombia_paz_event.jpg" /></p>
-<h2>Further Experimentation</h2>
-<p>First, this is a full list of the approaches I found to result in meaningfully different outputs.</p>
-<ul>
-<li>text inputs</li>
-<li>nonrandom initialization of hidden weights</li>
-</ul>
-<p>Starting with the base CLIP model and any combination of image and text inputs, I train an additional neural network hidden layer to produce aoutput</p>
-<p>this model trains a layer of hidden weights to create some </p>
-<p>initialization of the hidden weights that can be based on an image, and any number of texts or images that are </p>
-<p>The models work by accepting any number of texts and images. </p>
-<p>https://openai.com/blog/dall-e/</p>
-<p>Some approaches have been specifically aimed </p>
-<p>Inspired by some blog articles </p>
-<p>I believe that computation in the sciences and the arts offers the possibility to expand the ways we think about solving theoretical and empirical problems. Using a combination of simulations and and learning algorithms, we can begin to ask more open-ended questions about our data and the models we use to understand them. In stead of using on social theory or specific artistic styles </p>
-<p>We are fored to question the language we use and conceptions of the underlying priciples on which products like scientific papers and modern art are based</p>
-<p>They force us to question </p>
-<p>. In the visual arts, we can start to deconstruct distinctions between asthetics, shapes, strokes, imagery, symbolism </p>
-<p>In the sciences they can help us re-think 
-My MA thesis at UC Santa Barbara was an attempt to take such an approach. I used genetic algorithms to perform a "search" for the particular </p>
-<p>to understand the evolution of discursive fields produced by a particular Colombian political party, and I used genetic algorithms to search for the discursive distinctions </p>
-<p>I've long been interested in using computation to generate visual and auditory imagery. I think computation in the sciences and the arts offers the possibility to re-think theoretical and empirical problems</p>
-<p>Much like the possibilities of using computation for science,</p>
-<p><a href="https://ml.berkeley.edu/blog/posts/clip-art/">test</a></p>
+<h3>Stylized text inputs</h3>
+<p>Now I will show a way we can use artifacts from the training data to produce stylized versions of the previous examples. I got the idea for this approach from <a href="https://ml.berkeley.edu/blog/posts/clip-art/">this blog article</a>, and extended it by further hypothesizing which kinds of data were included in the training data.</p>
+<h5>"building at sunset in the style of Studio Ghibli"</h5>
+<p><img alt="Building at Sunset in the Style of Studio Ghibli" src="https://storage.googleapis.com/public_data_09324832787/mlart/stylized02-None-im-text0%3Dbuilding_at_sunset_in_the_style_of_Studio_Ghibli-0_final.gif" /></p>
+<p>I though this example was particularly cool because it shows how the addition of the text "in the style of Studio Ghibli" brings both stylistic elements and actual objects into the scene. In contrast to the previous city example, this shows rounded roofs like you might see in the era of japan portrayed in a Miyazaki film. It also introduces grass fields and trees into the imagery, clearly drawing inspiration from Ghibli films. While I don't have space to show them here, Studio Ghibli stylizations can contribute an interesting connections between human technology and nature into scenes.</p>
+<h3>Non-random initialization</h3>
+<h3>Image-based objective functions</h3>
                     </div>
                 </div>
             </div>
