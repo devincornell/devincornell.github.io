@@ -42,15 +42,26 @@ This test clearly demonstrates that the training data used to generate the full 
 
 ### Stylized text inputs
 
-Now I will show a way we can use artifacts from the training data to produce stylized versions of the previous examples. I got the idea for this approach from [this blog article](https://ml.berkeley.edu/blog/posts/clip-art/), and extended it by further hypothesizing which kinds of data were included in the training data.
+Now I will show a way we can use artifacts from the training data to produce stylized versions of the previous examples. I got the idea for this approach from [this blog article](https://ml.berkeley.edu/blog/posts/clip-art/), and extended it by further hypothesizing which kinds of data were included in the training data. The so-called "artifacts" in the training data are simply the source of the images. For instance, experimentation suggests that some of the training data may consist of images from Flickr, and by including "Flickr" in the text we can ask the model to re-create some stylistic elements from those photos. I also had success experimenting with Deviantart, Unreal Engine, etc. Similarly to our Matrix example, we can also use stylistic elements from certain types of media such as films by Studio Ghibli.
+
+##### "sunset in the city on Flickr"
+
+![sunset in the city on Flickr](https://storage.googleapis.com/public_data_09324832787/mlart/stylized02-None-im-text0%3Dsunset_in_the_city_on_Flickr-1_final.gif)
+
+Here I re-used one of the previous examples but added the text "on Flickr" at the end. Instead of appearing like the side of buildings in the sunset, this image includes what appear to be power lines, traffic light poles, sides of cars, and even shapes that look suspiciously like people viewed from behind. The implications of these artifacts are really interesting. First, the inclusion of elements like power lines suggests that images from Flicker that are captioned with "city" are more likely to be photos from the ground than from the sky - it makes sense intuitively. Also note that it seems to carry realism styles into the image.
 
 ##### "building at sunset in the style of Studio Ghibli"
 
 ![Building at Sunset in the Style of Studio Ghibli](https://storage.googleapis.com/public_data_09324832787/mlart/stylized02-None-im-text0%3Dbuilding_at_sunset_in_the_style_of_Studio_Ghibli-0_final.gif)
 
-I though this example was particularly cool because it shows how the addition of the text "in the style of Studio Ghibli" brings both stylistic elements and actual objects into the scene. In contrast to the previous city example, this shows rounded roofs like you might see in the era of japan portrayed in a Miyazaki film. It also introduces grass fields and trees into the imagery, clearly drawing inspiration from Ghibli films. While I don't have space to show them here, Studio Ghibli stylizations can contribute an interesting connections between human technology and nature into scenes.
+I thought this example was particularly cool because it shows how the addition of the text "in the style of Studio Ghibli" brings both stylistic elements and actual objects into the scene. In contrast to the previous city example, this shows rounded roofs like you might see in the era of japan portrayed in a Miyazaki film. It also introduces grass fields and trees into the imagery, clearly drawing inspiration from Ghibli films. While I don't have space to show them here, Studio Ghibli stylizations can contribute an interesting connections between human technology and nature into the resulting scenes.
+
+
+
 
 ### Non-random initialization
+
+Until now we've been using random initialization to begin the model training, but the coolest outputs from these models come when we actually initialize parameters from an existing image. By giving it an initial image and some text, we can begin to add information to the existing photos which previously did not exist.
 
 
 
