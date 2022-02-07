@@ -15,7 +15,37 @@ My use of the model involves training the last layer of the deep learning networ
 
 ## Model Basics
 
-The simplest use of these models involves using a single text input to generate the objective function for model training.
+### Text inputs only
+
+The simplest use of these models would start with random initialization and use a single text input to generate the objective function. For the examples below, I created gifs where each frame is two training iterations. You can see that they all start with random (but correlated) noise. These images are fairly sensitive to random noise since it is a highly nonconvex objective function.
+
+Here are a few examples I created:
+
+##### "sunset in the city"
+
+![sunset in the city](https://storage.googleapis.com/public_data_09324832787/mlart/text_only03-None-im-text0%3Dsunset_in_the_city-0_final.gif)
+
+This example shows how 
+
+
+"orcas in the north pole"
+
+![orcas in the north pole](https://storage.googleapis.com/public_data_09324832787/mlart/text_only03-None-im-text0%3Dorcas_in_the_north_pole-4_final.gif)
+
+"enter the matrix"
+
+![enter the matrix](https://storage.googleapis.com/public_data_09324832787/mlart/text_only03-None-im-text0%3Denter_the_matrix-1_final.gif)
+
+This image demonstrates that 
+
+#### Stylized text inputs
+
+The simplest use of these models involves using a single text input to generate the objective function for model training. Here are a few examples I created:
+
+"Thor god of thunder"
+![Thor god of thunder](https://storage.googleapis.com/public_data_09324832787/blogpost_colombia_paz_event.jpg)
+
+
 
 ## Further Experimentation
 
