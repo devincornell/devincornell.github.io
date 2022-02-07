@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Devin J. Cornell: Generating Visual Art Using Deep Learning Models</title>
+        <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
+        <!-- Font Awesome icons (free version)-->
+        <!--<script src="https://use.fontawesome.com/releases/v5.15.3/js/all.js" crossorigin="anonymous"></script>-->
+        <!-- Google fonts-->
+        <link href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link href="/css/blog.css" rel="stylesheet" />
+    </head>
+    <body>
+        <!-- Navigation-->
+        <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
+            <div class="container px-4 px-lg-5">
+                <a class="navbar-brand" href="/">devinjcornell.com</a>//<a class="navbar-brand" href="/blog">Blog</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                    Menu
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarResponsive">
+                    <ul class="navbar-nav ms-auto py-4 py-lg-0">
+                        <!--<li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="index.html">Home</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="about.html">About</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="post.html">Sample Post</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="contact.html">Contact</a></li>-->
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <!-- Page Header-->
+        <header class="masthead" style="background-image: url('assets/img/post-bg.jpg')">
+            <div class="container position-relative px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <div class="post-heading">
+                            <h1>Generating Visual Art Using Deep Learning Models</h1>
+                            <h2 class="subheading">Some examples of techniques and approaches I've been using to generate visual art using deep learning models.</h2>
+                            <span class="meta">
+                                Posted by
+                                <a href="/">Devin J. Cornell</a>
+                                on February 6, 2022
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <!-- Post Content-->
+        <article class="mb-4">
+            <div class="container px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <p>I've recently been playing with approaches to generate visual art using machine learning models. Inspired by <a href="https://ml.berkeley.edu/blog/posts/clip-art/">some blog articles</a> on the topic, I extended some code to give me more flexibility over the types of inputs and outputs I can use to alter the asthetics, styles and other aspects of the resulting visual products. Here I wanted to describe some approaches I've been using as well as the resulting products based on custom artwork produced by friends.</p>
+<hr />
+<p>Powered by models trained and released by <a href="https://openai.com/">OpenAI</a>, some early approaches, such as the <a href="https://openai.com/blog/dall-e/">DALL-E neural network models</a>, were created specifically to generate images from text (<a href="https://ml.berkeley.edu/blog/posts/vq-vae/">see explanation here</a>). In contrast, newer approaches are built on models that were designed to generalize classical image classification and caption generation tasks. Perhaps the most popular of these is the <a href="https://openai.com/blog/clip/">CLIP model</a>. In the process of being trained to solve tasks involving the relationship between images and natural language, the models learn about the complex relationships between the two modalities that can be revealed by trying various combinations of inputs and outputs. Given that these models were not originally designed to create visual art, the results of experiments can be both surprising and interesting - exactly the features that excite visual art creators and enthusiasts. </p>
+<p>My use of the model involves training the last layer of the deep learning network model provided by CLIP, where the objective function is provided by any combination of image and text inputs. The total objective function is a simple linear combination of objective functions produced by each of the text and image inputs, and so in this way I can carefully choose inputs that might produce the images I think are interesting. Through a process of trial and error I've been playing with a number of approaches to image generation that I have found to produce meaningful differences.</p>
+<h3>Text inputs only</h3>
+<p>The simplest use of these models would start with random initialization and use a single text input to generate the objective function. For the examples below, I created gifs where each frame is two training iterations. You can see that they all start with random (but correlated) noise. These images are fairly sensitive to random noise since it is a highly nonconvex objective function.</p>
+<p>Here are a few examples I created:</p>
+<h5>"sunset in the city"</h5>
+<p><img alt="sunset in the city" src="https://storage.googleapis.com/public_data_09324832787/mlart/text_only03-None-im-text0%3Dsunset_in_the_city-0_final.gif" /></p>
+<p>This example shows how the model clearly has a sense of the set of textures that might be associted with a city at sunset. The consistent appearance of aligning (yet sometimes slightly offset) windows, glow that might appear as reflections of the sun, and even the colors of concrete and steel that you might find in a photo or painting of a cityscape. Keep in mind that the CLIP model used to generate all of these was trained on real images in databases, so it's no surprise that they capture some of the realism we'd see in a regular photo.</p>
+<h5>"orcas in the north pole"</h5>
+<p><img alt="orcas in the north pole" src="https://storage.googleapis.com/public_data_09324832787/mlart/text_only03-None-im-text0%3Dorcas_in_the_north_pole-4_final.gif" /></p>
+<p>The first thing to note is that the white background and snowy trees clearly capture some aspects of winter in the North Pole. The "orcas" part of the image is less clear though - they appear as random blobs that emulate the curvature and black/white contrast of the animals. We also see small bodies of water spread throughout the image.</p>
+<h5>"enter the matrix"</h5>
+<p><img alt="enter the matrix" src="https://storage.googleapis.com/public_data_09324832787/mlart/text_only03-None-im-text0%3Denter_the_matrix-1_final.gif" /></p>
+<p>This test clearly demonstrates that the training data used to generate the full CLIP model included images from popular movies like the matrix. In my exploration I found that a lot of other popular media is represented here as well.</p>
+<h4>Stylized text inputs</h4>
+<p>The simplest use of these models involves using a single text input to generate the objective function for model training. Here are a few examples I created:</p>
+<p>"Thor god of thunder"
+<img alt="Thor god of thunder" src="https://storage.googleapis.com/public_data_09324832787/blogpost_colombia_paz_event.jpg" /></p>
+<h2>Further Experimentation</h2>
+<p>First, this is a full list of the approaches I found to result in meaningfully different outputs.</p>
+<ul>
+<li>text inputs</li>
+<li>nonrandom initialization of hidden weights</li>
+</ul>
+<p>Starting with the base CLIP model and any combination of image and text inputs, I train an additional neural network hidden layer to produce aoutput</p>
+<p>this model trains a layer of hidden weights to create some </p>
+<p>initialization of the hidden weights that can be based on an image, and any number of texts or images that are </p>
+<p>The models work by accepting any number of texts and images. </p>
+<p>https://openai.com/blog/dall-e/</p>
+<p>Some approaches have been specifically aimed </p>
+<p>Inspired by some blog articles </p>
+<p>I believe that computation in the sciences and the arts offers the possibility to expand the ways we think about solving theoretical and empirical problems. Using a combination of simulations and and learning algorithms, we can begin to ask more open-ended questions about our data and the models we use to understand them. In stead of using on social theory or specific artistic styles </p>
+<p>We are fored to question the language we use and conceptions of the underlying priciples on which products like scientific papers and modern art are based</p>
+<p>They force us to question </p>
+<p>. In the visual arts, we can start to deconstruct distinctions between asthetics, shapes, strokes, imagery, symbolism </p>
+<p>In the sciences they can help us re-think 
+My MA thesis at UC Santa Barbara was an attempt to take such an approach. I used genetic algorithms to perform a "search" for the particular </p>
+<p>to understand the evolution of discursive fields produced by a particular Colombian political party, and I used genetic algorithms to search for the discursive distinctions </p>
+<p>I've long been interested in using computation to generate visual and auditory imagery. I think computation in the sciences and the arts offers the possibility to re-think theoretical and empirical problems</p>
+<p>Much like the possibilities of using computation for science,</p>
+<p><a href="https://ml.berkeley.edu/blog/posts/clip-art/">test</a></p>
+                    </div>
+                </div>
+            </div>
+        </article>
+        <!-- Footer-->
+        <footer class="border-top">
+            <div class="container px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <ul class="list-inline text-center">
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-facebook-f fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                        </ul>
+                        <div class="small text-center text-muted fst-italic">Copyright &copy; Devin J. Cornell 2021</div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        <!-- Bootstrap core JS-->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Core theme JS-->
+        <script src="/js/blog.js"></script>
+    </body>
+</html>

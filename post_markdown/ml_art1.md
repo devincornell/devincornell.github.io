@@ -1,8 +1,8 @@
 ---
-title: "Experimentation with Visual Art using CLIP Models"
-subtitle: "Generating visual art using models originally designed to create transcirptions from images."
+title: "Generating Visual Art Using Deep Learning Models"
+subtitle: "Some examples of techniques and approaches I've been using to generate visual art using deep learning models."
 date: "February 6, 2022"
-id: "ucsb_instructional_development_grant"
+id: "clip_model_experiments"
 ---
 
 I've recently been playing with approaches to generate visual art using machine learning models. Inspired by [some blog articles](https://ml.berkeley.edu/blog/posts/clip-art/) on the topic, I extended some code to give me more flexibility over the types of inputs and outputs I can use to alter the asthetics, styles and other aspects of the resulting visual products. Here I wanted to describe some approaches I've been using as well as the resulting products based on custom artwork produced by friends.
@@ -13,7 +13,6 @@ Powered by models trained and released by [OpenAI](https://openai.com/), some ea
 
 My use of the model involves training the last layer of the deep learning network model provided by CLIP, where the objective function is provided by any combination of image and text inputs. The total objective function is a simple linear combination of objective functions produced by each of the text and image inputs, and so in this way I can carefully choose inputs that might produce the images I think are interesting. Through a process of trial and error I've been playing with a number of approaches to image generation that I have found to produce meaningful differences.
 
-## Model Basics
 
 ### Text inputs only
 
@@ -39,7 +38,7 @@ The first thing to note is that the white background and snowy trees clearly cap
 
 ![enter the matrix](https://storage.googleapis.com/public_data_09324832787/mlart/text_only03-None-im-text0%3Denter_the_matrix-1_final.gif)
 
-This image demonstrates that 
+This test clearly demonstrates that the training data used to generate the full CLIP model included images from popular movies like the matrix. In my exploration I found that a lot of other popular media is represented here as well.
 
 #### Stylized text inputs
 
