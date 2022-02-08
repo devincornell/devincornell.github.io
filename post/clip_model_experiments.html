@@ -80,13 +80,18 @@
 <p>Here I re-used one of the previous examples but added the text "on Flickr" at the end. Instead of appearing like the side of buildings in the sunset, this image includes what appear to be power lines, traffic light poles, sides of cars, and even shapes that look suspiciously like people viewed from behind. The implications of these artifacts are really interesting. First, the inclusion of elements like power lines suggests that images from Flicker that are captioned with "city" are more likely to be photos from the ground than from the sky - it makes sense intuitively. Also note that it seems to carry realism styles into the image.</p>
 <h5>"sunset in the city Artstation"</h5>
 <p><img alt="sunset in the city Artstation" src="https://storage.googleapis.com/public_data_09324832787/mlart/stylized03-None-im-text0%3Dsunset_in_the_city_Artstation-0_final.gif" /></p>
-<p>I tried "Artstation" because it is another popular website for posting custom art.</p>
+<p>I tried "<a href="https://www.artstation.com">Artstation</a>" because it is another popular website for posting user-created art. Note tha variation in building design, the distribution of open space over the scene, and the human body-like objects. It is worth looking at the <a href="https://www.artstation.com">Arstation website</a> to give a sense of what images there look like.</p>
 <h5>"sunset in the city Ghibli"</h5>
 <p><img alt="sunset in the city Ghibli" src="https://storage.googleapis.com/public_data_09324832787/mlart/stylized03-None-im-text0%3Dsunset_in_the_city_Ghibli-1_final.gif" /></p>
-<p>I thought this example was particularly cool because it shows how the addition of the text "Ghibli" brings both stylistic elements and actual objects from movies produced by Studio Ghibli into the scene. In contrast to the previous city example, this shows stylistic elements that you might see in a Miyazaki movie. The sun appears as round globes instead of just reflections off of buildings - unsuprising given that real photographs can rarely capture the sun alongside an actual scene. </p>
-<h3>Non-random initialization</h3>
+<p>I thought this example was particularly cool because it shows how the addition of the text "Ghibli" brings both stylistic elements and actual objects from movies produced by Studio Ghibli into the scene. The sun appears as round globes instead of just reflections off of buildings - unsuprising given that real photographs can rarely capture the sun alongside an actual scene in the way that a cartoon could. Also note the grass and trees that don't appear in the other images. This fits neatly within the realm of the relationship between human technology and nature that we often see in Miyazaki films. The buildings here are not made of square edges as we saw in the last several examples, but rather have rounded roofs and are made of concrete instead of closely packed windows.</p>
+<h2>Nonrandom initialization</h2>
 <p>Until now we've been using random initialization to begin the model training, but the coolest outputs from these models come when we actually initialize parameters from an existing image. By giving it an initial image and some text, we can begin to add information to the existing photos which previously did not exist.</p>
-<h3>Image-based objective functions</h3>
+<h2>Image-based objective functions</h2>
+<p>The real advantage of using these CLIP models is that we can add images to generate the objective function.</p>
+<h3>Symbols</h3>
+<p>Image: <a href="https://www.artstation.com/artwork/mDWZxY">"The Aluren Forest"</a></p>
+<h3>Time-dynamic animations</h3>
+<p>So far I have shown gifs that show each training iteration as the model converges. In addition to giving us an intuition as to how the model is training, it feels like it brings the scenes to life - objects and stylistic elements are constantly moving and changing slightly. This gave me the inspiration to try changing the text and image objective functions while the model trains.</p>
                     </div>
                 </div>
             </div>

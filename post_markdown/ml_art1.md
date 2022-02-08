@@ -55,7 +55,7 @@ Here I re-used one of the previous examples but added the text "on Flickr" at th
 
 ![sunset in the city Artstation](https://storage.googleapis.com/public_data_09324832787/mlart/stylized03-None-im-text0%3Dsunset_in_the_city_Artstation-0_final.gif)
 
-I tried "Artstation" because it is another popular website for posting custom art.
+I tried "[Artstation](https://www.artstation.com)" because it is another popular website for posting user-created art. Note tha variation in building design, the distribution of open space over the scene, and the human body-like objects. It is worth looking at the [Arstation website](https://www.artstation.com) to give a sense of what images there look like.
 
 
 ##### "sunset in the city Ghibli"
@@ -63,13 +63,28 @@ I tried "Artstation" because it is another popular website for posting custom ar
 ![sunset in the city Ghibli](https://storage.googleapis.com/public_data_09324832787/mlart/stylized03-None-im-text0%3Dsunset_in_the_city_Ghibli-1_final.gif)
 
 
-I thought this example was particularly cool because it shows how the addition of the text "Ghibli" brings both stylistic elements and actual objects from movies produced by Studio Ghibli into the scene. In contrast to the previous city example, this shows stylistic elements that you might see in a Miyazaki movie. The sun appears as round globes instead of just reflections off of buildings - unsuprising given that real photographs can rarely capture the sun alongside an actual scene. 
+I thought this example was particularly cool because it shows how the addition of the text "Ghibli" brings both stylistic elements and actual objects from movies produced by Studio Ghibli into the scene. The sun appears as round globes instead of just reflections off of buildings - unsuprising given that real photographs can rarely capture the sun alongside an actual scene in the way that a cartoon could. Also note the grass and trees that don't appear in the other images. This fits neatly within the realm of the relationship between human technology and nature that we often see in Miyazaki films. The buildings here are not made of square edges as we saw in the last several examples, but rather have rounded roofs and are made of concrete instead of closely packed windows.
 
-### Non-random initialization
+## Nonrandom initialization
 
 Until now we've been using random initialization to begin the model training, but the coolest outputs from these models come when we actually initialize parameters from an existing image. By giving it an initial image and some text, we can begin to add information to the existing photos which previously did not exist.
 
 
 
-### Image-based objective functions
+## Image-based objective functions
+
+The real advantage of using these CLIP models is that we can add images to generate the objective function.
+
+### Symbols
+
+Image: ["The Aluren Forest"](https://www.artstation.com/artwork/mDWZxY)
+
+
+
+
+### Time-dynamic animations
+
+So far I have shown gifs that show each training iteration as the model converges. In addition to giving us an intuition as to how the model is training, it feels like it brings the scenes to life - objects and stylistic elements are constantly moving and changing slightly. This gave me the inspiration to try changing the text and image objective functions while the model trains.
+
+
 
