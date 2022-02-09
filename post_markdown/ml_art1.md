@@ -75,7 +75,7 @@ The simplest example I can show
 Initial image: ["Freedom"](https://storage.googleapis.com/public_data_09324832787/mlart/kiersten_freedom_painting_cropped.jpeg)
 Text prompt: "freedom"
 
-![freedom](https://storage.googleapis.com/public_data_09324832787/mlart/peace_and_love_deviantart_step0.05_0_final.gif)
+![freedom](https://storage.googleapis.com/public_data_09324832787/mlart/freedom1.gif)
 
 #### Transcendance
 Initial image: [painting by Varun Nagraj](https://storage.googleapis.com/public_data_09324832787/mlart/varun_painting_1.jpeg)
