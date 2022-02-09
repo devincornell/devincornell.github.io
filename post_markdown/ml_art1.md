@@ -69,6 +69,26 @@ I thought this example was particularly cool because it shows how the addition o
 
 Until now we've been using random initialization to begin the model training, but the coolest outputs from these models come when we actually initialize parameters from an existing image. By giving it an initial image and some text, we can begin to add information to the existing photos which previously did not exist.
 
+The simplest example I can show
+
+#### Freedom
+Initial image: ["Freedom"](https://storage.googleapis.com/public_data_09324832787/mlart/kiersten_freedom_painting_cropped.jpeg)
+Text prompt: "freedom"
+
+![freedom](https://storage.googleapis.com/public_data_09324832787/mlart/peace_and_love_deviantart_step0.05_0_final.gif)
+
+#### Transcendance
+Initial image: [painting by Varun Nagraj](https://storage.googleapis.com/public_data_09324832787/mlart/varun_painting_1.jpeg)
+Text prompt: "Transcendance"
+
+![Transcendance](https://storage.googleapis.com/public_data_09324832787/mlart/varun1.gif)
+
+
+#### Sunset in the mountains
+Initial image: stock photo
+Text prompt: "Sunset in the mountains"
+
+![Sunset in the mountains](https://storage.googleapis.com/public_data_09324832787/mlart/sunset1.gif)
 
 
 ## Image-based objective functions
@@ -77,9 +97,16 @@ The real advantage of using these CLIP models is that we can add images to gener
 
 ### Symbols
 
-Image: ["The Aluren Forest"](https://www.artstation.com/artwork/mDWZxY)
+#### Om
+Text prompt: "peace and love"
+Image prompt: ["The Aluren Forest"](https://www.artstation.com/artwork/mDWZxY)
+
+![peace and love Om](https://storage.googleapis.com/public_data_09324832787/mlart/peace_and_love_deviantart_step0.05_0_final.gif)
 
 
+### Paintings
+
+#### 
 
 
 ### Time-dynamic animations

@@ -86,10 +86,28 @@
 <p>I thought this example was particularly cool because it shows how the addition of the text "Ghibli" brings both stylistic elements and actual objects from movies produced by Studio Ghibli into the scene. The sun appears as round globes instead of just reflections off of buildings - unsuprising given that real photographs can rarely capture the sun alongside an actual scene in the way that a cartoon could. Also note the grass and trees that don't appear in the other images. This fits neatly within the realm of the relationship between human technology and nature that we often see in Miyazaki films. The buildings here are not made of square edges as we saw in the last several examples, but rather have rounded roofs and are made of concrete instead of closely packed windows.</p>
 <h2>Nonrandom initialization</h2>
 <p>Until now we've been using random initialization to begin the model training, but the coolest outputs from these models come when we actually initialize parameters from an existing image. By giving it an initial image and some text, we can begin to add information to the existing photos which previously did not exist.</p>
+<p>The simplest example I can show</p>
+<h4>Freedom</h4>
+<p>Initial image: <a href="https://storage.googleapis.com/public_data_09324832787/mlart/kiersten_freedom_painting_cropped.jpeg">"Freedom"</a>
+Text prompt: "freedom"</p>
+<p><img alt="freedom" src="https://storage.googleapis.com/public_data_09324832787/mlart/peace_and_love_deviantart_step0.05_0_final.gif" /></p>
+<h4>Transcendance</h4>
+<p>Initial image: <a href="https://storage.googleapis.com/public_data_09324832787/mlart/varun_painting_1.jpeg">painting by Varun Nagraj</a>
+Text prompt: "Transcendance"</p>
+<p><img alt="Transcendance" src="https://storage.googleapis.com/public_data_09324832787/mlart/varun1.gif" /></p>
+<h4>Sunset in the mountains</h4>
+<p>Initial image: stock photo
+Text prompt: "Sunset in the mountains"</p>
+<p><img alt="Sunset in the mountains" src="https://storage.googleapis.com/public_data_09324832787/mlart/sunset1.gif" /></p>
 <h2>Image-based objective functions</h2>
 <p>The real advantage of using these CLIP models is that we can add images to generate the objective function.</p>
 <h3>Symbols</h3>
-<p>Image: <a href="https://www.artstation.com/artwork/mDWZxY">"The Aluren Forest"</a></p>
+<h4>Om</h4>
+<p>Text prompt: "peace and love"
+Image prompt: <a href="https://www.artstation.com/artwork/mDWZxY">"The Aluren Forest"</a></p>
+<p><img alt="peace and love Om" src="https://storage.googleapis.com/public_data_09324832787/mlart/peace_and_love_deviantart_step0.05_0_final.gif" /></p>
+<h3>Paintings</h3>
+<h4></h4>
 <h3>Time-dynamic animations</h3>
 <p>So far I have shown gifs that show each training iteration as the model converges. In addition to giving us an intuition as to how the model is training, it feels like it brings the scenes to life - objects and stylistic elements are constantly moving and changing slightly. This gave me the inspiration to try changing the text and image objective functions while the model trains.</p>
                     </div>
