@@ -65,6 +65,13 @@ I tried "[Artstation](https://www.artstation.com)" because it is another popular
 
 I thought this example was particularly cool because it shows how the addition of the text "Ghibli" brings both stylistic elements and actual objects from movies produced by Studio Ghibli into the scene. The sun appears as round globes instead of just reflections off of buildings - unsuprising given that real photographs can rarely capture the sun alongside an actual scene in the way that a cartoon could. Also note the grass and trees that don't appear in the other images. This fits neatly within the realm of the relationship between human technology and nature that we often see in Miyazaki films. The buildings here are not made of square edges as we saw in the last several examples, but rather have rounded roofs and are made of concrete instead of closely packed windows.
 
+##### "Angel's Landing Artstation"
+
+![Angel's Landing Artstation](https://storage.googleapis.com/public_data_09324832787/mlart/Angels_Landing_artstation_4_iter1004.png)
+
+
+
+
 ## Nonrandom initialization
 
 Until now we've been using random initialization to begin the model training, but the coolest outputs from these models come when we actually initialize parameters from an existing image. By giving it an initial image and some text, we can begin to add information to the existing photos which previously did not exist.
@@ -72,7 +79,9 @@ Until now we've been using random initialization to begin the model training, bu
 The simplest example I can show
 
 #### Freedom
+
 Initial image: ["Freedom"](https://storage.googleapis.com/public_data_09324832787/mlart/kiersten_freedom_painting_cropped.jpeg)
+
 Text prompt: "freedom"
 
 ![freedom](https://storage.googleapis.com/public_data_09324832787/mlart/freedom1.gif)
@@ -87,7 +96,9 @@ Text prompt: "transcendance"
 
 
 #### Sunset in the mountains
+
 Initial image: stock photo
+
 Text prompt: "Sunset in the mountains"
 
 ![Sunset in the mountains](https://storage.googleapis.com/public_data_09324832787/mlart/sunset1.gif)
@@ -102,7 +113,9 @@ The real advantage of using these CLIP models is that we can add images to gener
 The image-based objective functions can add complex textures to even the simplest initial images. I have only tried it on a few starting images so far though.
 
 #### Om
+
 Text prompt: "peace and love"
+
 Image prompt: ["The Aluren Forest"](https://www.artstation.com/artwork/mDWZxY)
 
 Initial image:
@@ -110,6 +123,7 @@ Initial image:
 ![Om](https://storage.googleapis.com/public_data_09324832787/mlart/Aum_Om_black.png)
 
 "Peace and Love Deviantart"
+
 ![peace and love Om](https://storage.googleapis.com/public_data_09324832787/mlart/peace_and_love_deviantart_step0.05_0_final.png)
 
 
@@ -121,7 +135,43 @@ Original image:
 
 ![angela's garden](https://storage.googleapis.com/public_data_09324832787/mlart/angela_garden1.jpg)
 
+Image prompt: ["The Aluren Forest"](https://www.artstation.com/artwork/mDWZxY)
 
+Text prompt: "garden"
+
+![garden](https://storage.googleapis.com/public_data_09324832787/mlart/angela04_garden-garden--angela_garden1-angela_garden1.sunset_forest-0_final.png)
+
+
+Text prompt: "lush green forest with flowers"
+
+![garden](https://storage.googleapis.com/public_data_09324832787/mlart/angela04_garden-lush_green_forest_with_flowers--angela_garden1-angela_garden1.sunset_forest-0_final.png)
+
+
+Text prompt: "flowers at sunset"
+
+![flowers at sunset](https://storage.googleapis.com/public_data_09324832787/mlart/angela04_garden-flowers_at_sunset--angela_garden1-angela_garden1.sunset_forest-0_final.png)
+
+Animation:
+
+![flowers at sunset animation](https://storage.googleapis.com/public_data_09324832787/mlart/angela04_garden-flowers_at_sunset--angela_garden1-angela_garden1.sunset_forest-0_final.gif)
+
+
+#### Campfire in the night
+
+
+![sujaya](https://storage.googleapis.com/public_data_09324832787/mlart/sujaya_camping.jpg)
+
+##### "campfire starry night"
+
+![sujaya](https://storage.googleapis.com/public_data_09324832787/mlart/sujaya12_campfire_starrynight-campfire_in_starry_night--sujaya_camping-sujaya_camping.starry_night-0_final.png)
+
+##### "forest at sunset"
+
+![sujaya](https://storage.googleapis.com/public_data_09324832787/mlart/sujaya13_campfire_sunset-forest_at_sunset--sujaya_camping-sujaya_camping.sunset_forest-0_final.png)
+
+##### "Stars in the Sky Ghibli"
+
+![sujaya](https://storage.googleapis.com/public_data_09324832787/mlart/sujaya10_campfire-stars_in_the_sky-ghibli-sujaya_camping-sujaya_camping.cosmos_stock-0_final.png)
 
 
 ### Time-dynamic animations
