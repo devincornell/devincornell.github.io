@@ -88,8 +88,7 @@ Text prompt: "freedom"
 
 #### Transcendance
 
-Initial image:
-![varun original](https://storage.googleapis.com/public_data_09324832787/mlart/varun_painting_1.jpeg)
+Initial image: "[peace and transcendance](https://storage.googleapis.com/public_data_09324832787/mlart/varun_painting_1.jpeg)"
 
 Text prompt: "transcendance"
 ![Transcendance](https://storage.googleapis.com/public_data_09324832787/mlart/varun1.gif)
@@ -118,9 +117,7 @@ Text prompt: "peace and love"
 
 Image prompt: ["The Aluren Forest"](https://www.artstation.com/artwork/mDWZxY)
 
-Initial image:
-
-![Om](https://storage.googleapis.com/public_data_09324832787/mlart/Aum_Om_black.png)
+Initial image: [Om symbol](https://storage.googleapis.com/public_data_09324832787/mlart/Aum_Om_black.png)
 
 "Peace and Love Deviantart"
 
@@ -131,9 +128,7 @@ Initial image:
 
 #### "Our Garden"
 
-Original image:
-
-![angela's garden](https://storage.googleapis.com/public_data_09324832787/mlart/angela_garden1.jpg)
+Original image: "[Angela's garden](https://storage.googleapis.com/public_data_09324832787/mlart/angela_garden1.jpg)"
 
 Image prompt: ["The Aluren Forest"](https://www.artstation.com/artwork/mDWZxY)
 
@@ -159,7 +154,7 @@ Animation:
 #### Campfire in the night
 
 
-![sujaya](https://storage.googleapis.com/public_data_09324832787/mlart/sujaya_camping.jpg)
+Original image: [campfire scene](https://storage.googleapis.com/public_data_09324832787/mlart/sujaya_camping.jpg)
 
 ##### "campfire starry night"
 
@@ -172,6 +167,11 @@ Animation:
 ##### "Stars in the Sky Ghibli"
 
 ![sujaya](https://storage.googleapis.com/public_data_09324832787/mlart/sujaya10_campfire-stars_in_the_sky-ghibli-sujaya_camping-sujaya_camping.cosmos_stock-0_final.png)
+
+
+
+
+
 
 
 ### Time-dynamic animations
