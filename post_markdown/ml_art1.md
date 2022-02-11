@@ -78,9 +78,11 @@ Text prompt: "freedom"
 ![freedom](https://storage.googleapis.com/public_data_09324832787/mlart/freedom1.gif)
 
 #### Transcendance
-Initial image: [painting by Varun Nagraj](https://storage.googleapis.com/public_data_09324832787/mlart/varun_painting_1.jpeg)
-Text prompt: "Transcendance"
 
+Initial image:
+![varun original](https://storage.googleapis.com/public_data_09324832787/mlart/varun_painting_1.jpeg)
+
+Text prompt: "transcendance"
 ![Transcendance](https://storage.googleapis.com/public_data_09324832787/mlart/varun1.gif)
 
 
@@ -97,16 +99,29 @@ The real advantage of using these CLIP models is that we can add images to gener
 
 ### Symbols
 
+The image-based objective functions can add complex textures to even the simplest initial images. I have only tried it on a few starting images so far though.
+
 #### Om
 Text prompt: "peace and love"
 Image prompt: ["The Aluren Forest"](https://www.artstation.com/artwork/mDWZxY)
 
-![peace and love Om](https://storage.googleapis.com/public_data_09324832787/mlart/peace_and_love_deviantart_step0.05_0_final.gif)
+Initial image:
+
+![Om](https://storage.googleapis.com/public_data_09324832787/mlart/Aum_Om_black.png)
+
+"Peace and Love Deviantart"
+![peace and love Om](https://storage.googleapis.com/public_data_09324832787/mlart/peace_and_love_deviantart_step0.05_0_final.png)
 
 
 ### Paintings
 
-#### 
+#### "Our Garden"
+
+Original image:
+
+![angela's garden](https://storage.googleapis.com/public_data_09324832787/mlart/angela_garden1.jpg)
+
+
 
 
 ### Time-dynamic animations
