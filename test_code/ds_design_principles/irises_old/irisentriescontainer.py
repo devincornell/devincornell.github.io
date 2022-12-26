@@ -3,6 +3,7 @@ from __future__ import annotations
 import pandas as pd
 import typing
 from .irisentry import IrisEntry
+from .ids import IrisEntryID
 
 class IrisEntriesContainer:
     def __init__(self, entries: typing.List[IrisEntry]):
@@ -20,7 +21,7 @@ class IrisEntriesContainer:
     @classmethod
     def from_dataframe(cls, df: pd.DataFrame):
         # add type hint by hinting at returned variable
-        new_entries: cls = cls([IrisEntry.from_dataframe_row(row) for ind,row in df.iterrows()])
+        new_entries: cls = cls([IrisEntry.from_dataframe_row(ind, row) for ind,row in df.iterrows()])
         return new_entries
         
     def group_by_species(self) -> typing.Dict[str, IrisEntriesContainer]:

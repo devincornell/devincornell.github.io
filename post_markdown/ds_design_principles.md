@@ -1,6 +1,6 @@
 ---
 title: "Data Science Software Design Principles"
-subtitle: "I wanted to propose some basic principles for engineering your data science codebases."
+subtitle: "I propose some basic software design principles that will improve the flexibility, reproducibility, and error-tolerance of your data science code and then give some concrete design patterns that you can start using today."
 date: "December 26, 2022"
 id: "data_science_design_principles"
 ---
@@ -29,7 +29,8 @@ Now I will show an example in Python. Lets start with the iris dataset as a pand
     import pandas as pd
     import typing
 
-    iris_df = pd.read_csv('https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv')
+    url = 'https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv'
+    iris_df = pd.read_csv(url)
     print(iris_df.head())
 
     sepal_length  sepal_width  petal_length  petal_width species
@@ -44,37 +45,31 @@ Now we want to create a Python object that will represent a single row from the 
 
     @dataclasses.dataclass(frozen=True)
     class IrisEntryDataclass:
-        idx: str
         sepal_length: int
         sepal_width: int
-        petal_length: int
-        petal_width: int
         species: str
         
-        # class method constructors are great btw
+        # class constructors are great btw
         @classmethod
-        def from_dataframe_row(cls, idx: str, row: pd.Series):            
-            # create intermediate variable with type hint to indicate
-            # this function will return whatever type it is
+        def from_dataframe_row(cls, row: pd.Series):
+            '''Class method constructor from dataframe row.'''
             new_obj: cls = cls(
-                idx=idx,
                 sepal_length = row['sepal_length'],
                 sepal_width = row['sepal_width'],
-                petal_length = row['petal_length'],
-                petal_width = row['petal_width'],
                 species = row['species'],
             )
             return new_obj
-    
+        
         def sepal_area(self) -> float:
             return self.sepal_length * self.sepal_width
 
+
 And then you can create a function to make a list of these objects from a dataframe.
 
-    def dataframe_to_entries(df: pd.DataFrame) -> typing.List[IrisEntryDataclass]:
+    def dataframe_to_entries(df: pd.DataFrame, EntryType: type) -> typing.List:
         entries = list()
-        for ind, row in iris_df.iterrows():
-            new_iris = IrisEntryDataclass.from_dataframe_row(ind, row)
+        for ind, row in df.iterrows():
+            new_iris = EntryType.from_dataframe_row(row)
             entries.append(new_iris)
         return entries
 
@@ -89,59 +84,37 @@ I implement validation using several methods. I use the `converter` parameter of
 
     @attr.s(frozen=True, slots=True)
     class IrisEntry:
-        idx: str = attrs.field()
-        
-        # these are all measurements in the attrs dataframe
+        '''Represents a single iris.'''
         sepal_length: int = attrs.field(converter=float)
         sepal_width: int = attrs.field(converter=float)
-        petal_length: int = attrs.field(converter=float)
-        petal_width: int = attrs.field(converter=float)
-
-        # adding converter=str makes sure that the property is a string (and string convertable)
-        # these will both be validated later using the species_validator method.
         species: str = attrs.field(converter=str) 
-
-    # class constructors are great btw
-    @classmethod
-    def from_dataframe_row(cls, idx: IrisEntryID, row: pd.Series):
-        '''Class constructor from dataframe row.'''
         
-        # create intermediate variable with type hint to indicate
-        # this function will return whatever type it is
-        new_obj: cls = cls(
-            idx=idx,
-            sepal_length = row['sepal_length'],
-            sepal_width = row['sepal_width'],
-            petal_length = row['petal_length'],
-            petal_width = row['petal_width'],
-            species = row['species'],
-        )
-        return new_obj
-
-    ################### Validator Methods ###################
-    # validates the length of names
-    @species.validator
-    def species_validator(self, attr, value) -> None:
-        if not len(value) > 0:
-            raise ValueError(f'Attribute {attr} must be a '
-                'string larger than 0 characters.')
+        @classmethod
+        def from_dataframe_row(cls, row: pd.Series):
+            '''Class method constructor from dataframe row.'''
+            new_obj: cls = cls(
+                sepal_length = row['sepal_length'],
+                sepal_width = row['sepal_width'],
+                species = row['species'],
+            )
+            return new_obj
         
-    # this can act as a validator for all of these attributes by adding the decorators
-    @sepal_length.validator
-    @sepal_width.validator
-    @petal_length.validator
-    @petal_width.validator
-    def meas_validator(self, attr, value) -> None:
-        if not value > 0:
-            raise ValueError(f'Attribute {attr.name} was {value}, but it must be larger than zero.')
+        @species.validator
+        def species_validator(self, attr, value) -> None:
+            if not len(value) > 0:
+                raise ValueError(f'Attribute {attr.name} must be a '
+                    'string larger than 0 characters.')
+        
+        @sepal_length.validator
+        @sepal_width.validator
+        def meas_validator(self, attr, value) -> None:
+            if not value > 0:
+                raise ValueError(f'Attribute {attr.name} was '
+                    f'{value}, but it must be larger than zero.')
+        
+        def sepal_area(self) -> float:
+            return self.sepal_length * self.sepal_width
 
-    ################### Methods ###################
-    def sepal_area(self) -> float:
-        '''Get '''
-        return self.sepal_length * self.sepal_width
-    
-    def petal_area(self) -> float:
-        return self.petal_length * self.petal_width
 
 This class provides gaurantees about the structure of your data - if your class method constructor runs without errors, you know that your data structure will have the required data early in your pipeline. Furthermore, all validation and data structuring is done as part of the object - you won't need to write an additional validation script to verify that the data meets some assumed criteria. Multiple methods for producing the same dataset can be implemented in the same class. In this way, all checks and gaurantees about your data exists in this single class. If you want to change assumptions or structure of the data, it will appear here.
 
@@ -154,15 +127,15 @@ In this example, I create a class method constructor `from_dataframe` that itera
         @classmethod
         def from_dataframe(cls, df: pd.DataFrame):
             # add type hint by hinting at returned variable
-            new_entries: cls = cls([IrisEntry.from_dataframe_row(ind, row) for ind,row in df.iterrows()])
+            elist = [IrisEntry.from_dataframe_row(row) for ind,row in df.iterrows()]
+            new_entries: cls = cls(elist)
             return new_entries
         
         def as_dataframe(self) -> pd.DataFrame:
             return pd.DataFrame({
                 'sepal_length': [e.sepal_length for e in self],
                 'sepal_width': [e.sepal_width for e in self],
-                'petal_length': [e.petal_length for e in self],
-                'petal_width': [e.petal_width for e in self],
+                'species': [e.species for e in self],
             })
         
         def group_by_species(self) -> typing.Dict[str, IrisEntriesList]:
@@ -173,7 +146,8 @@ In this example, I create a class method constructor `from_dataframe` that itera
             return groups
 
         def filter_sepal_area(self, sepal_area: float):
-            entries: self.__class__ = self.__class__([e for e in self if e.sepal_area() >= sepal_area])
+            elist = [e for e in self if e.sepal_area() >= sepal_area]
+            entries: self.__class__ = self.__class__(elist)
             return entries
 
 
