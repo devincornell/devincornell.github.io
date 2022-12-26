@@ -1,7 +1,7 @@
 ---
 title: "Data Science Software Design Principles"
 subtitle: "I wanted to propose some basic principles for engineering your data science codebases."
-date: "June 15, 2021"
+date: "December 26, 2022"
 id: "using_slots_with_doctable_schema"
 ---
 
