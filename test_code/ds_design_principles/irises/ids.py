@@ -1,0 +1,5 @@
+
+
+class IrisEntryID(str):
+    pass
+
