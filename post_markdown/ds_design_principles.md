@@ -9,7 +9,7 @@ I wanted to reflect on a few design principles for software design of your data 
 
 1. ***The structure of your data should be explicit.*** Avoid dataframes or nested iterables when possible, use object-oriented designs, implement data validation upon ingestion and throughout your pipeline, and use custom exceptions for missing data. This approach will give you some built-in data validation and make it easier to extend later. I provide some Python-based recipes that might illustrate these points.
 
-2. ***Version almost everything.*** Version both your code and data files/databases. While this can (and will) lead to a high level of code rot, it will be critical for keeping track of which pipelines and settings were used to generate each intermediary or final piece of data. This is especially important when you try different parameter sets and need to know exactly which settings were used to generate each result. Git is the bare minimum here, although using the releases features there could be a good temporary substitute. While following this in every situation might be overkill, I recommend doing it for especially critical parts of your code - particularly for your final (or communicated) result result files.
+2. ***Version almost everything.*** Version both your code and data files/databases. While this can (and will) lead to a high level of code rot, it will be critical for keeping track of which pipelines and settings were used to generate each intermediary or final piece of data. This is especially important when you try different parameter sets and need to know exactly which parameters were used to generate each result. Git is the bare minimum here, although using the releases features there could be a good temporary substitute. While following this in every situation might be overkill, I recommend doing it for especially critical parts of your code - particularly for your final (or communicated) result result files.
 
 3. ***Create param objects files that live in your code.*** Create explicit param objects to store parameters used to generate each intermediary or final dataset in your project. This follows directly from the previous two points, and it will make it easy to identify which parameters were used to create each set of files. I have found this to be a more common issue than I expected.
 
@@ -224,7 +224,7 @@ When you save the files, you could integrate the name of the class into the file
 
 Of course every case is unique and I don't recommend using this everywhere, but I have found it to be useful in scenarios where I am getting a lot of client feedback and I need to refer to old code when I'm trying to explain differences between results figures or intermediate data.
 
-# Create settings objects files that live in your code
+# Create parameter objects that live in your code
 
 Building off of the previous two examples, I recommend creating parameter objects that you can use to keep track of results created with different parameters. This essentially follows from the previous two examples, but further introduces the possibility that you may generate results from many different parameter sets over the lifetime of your project. Ideally the defined parameter set will be used at every step of your data pipeline to make it perfectly reproducable. Lets see the example below.
 
