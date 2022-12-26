@@ -2,7 +2,7 @@
 title: "Data Science Software Design Principles"
 subtitle: "I wanted to propose some basic principles for engineering your data science codebases."
 date: "December 26, 2022"
-id: "using_slots_with_doctable_schema"
+id: "data_science_design_principles"
 ---
 
 I wanted to reflect on a few design principles for software design of your data science pipeline that I have come to after doing data analysis for research and consulting over the last 7 years. Some of these projects were quick and simple, while others started out that way and quickly became cumbersome. It is the latter category of projects that encouraged me to propose these principles. While some are derived directly from accepted software design principles, others directly contradict them - in these cases, I relied on my own experience on the patterns we fall into and the needs of data science projects to propose alternative approaches. First I list the principles, then I go into more details.
