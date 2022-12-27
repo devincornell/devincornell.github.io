@@ -1,7 +1,7 @@
 import pathlib
 import markdown
 import dateutil.parser
-
+import jinja2
 
 
 class Blog:
@@ -19,9 +19,10 @@ class Blog:
         self.post_path = pathlib.Path(post_folder)
 
         # read template files (accessed from BlogPost children)
-        self.blogpage_template = pathlib.Path(blogpage_template).read_text()
-        self.blogpost_template = pathlib.Path(blogpost_template).read_text()
-        self.blogroll_template = pathlib.Path(blogroll_template).read_text()
+        environment = jinja2.Environment()        
+        self.blogpage_template = environment.from_string(pathlib.Path(blogpage_template).read_text())
+        self.blogpost_template = environment.from_string(pathlib.Path(blogpost_template).read_text())
+        self.blogroll_template = environment.from_string(pathlib.Path(blogroll_template).read_text())
         
         # extract markdown files
         self.posts = [BlogPost(p, self) for p in self.md_path.glob('*.md')]
@@ -43,7 +44,7 @@ class Blog:
             title, date = blog.metadata['title'], blog.metadata['date']
             print(f'creating blog page ({date}): {title}')
             br_html += blog.get_blogroll_html()
-        blog_html = self.blogpage_template.format(blogroll=br_html)
+        blog_html = self.blogpage_template.render(blogroll=br_html)
         
         print(f'creating blog main page with {len(self.posts)} posts.')
         with open(blogfile, 'w') as f:
@@ -140,7 +141,7 @@ class BlogPost:
     def format_blogpost(self, title:str, subtitle:str, date:str, body:str):
         ''' Return blogpost template with values substituted.
         '''
-        return self.blog.blogpost_template.format(
+        return self.blog.blogpost_template.render(
             title=title,
             subtitle=subtitle,
             date=date,
@@ -150,7 +151,7 @@ class BlogPost:
     def format_blogroll(self, path: str, title: str, subtitle:str, date:str):
         ''' Return blogroll template with values substituted.
         '''
-        return self.blog.blogroll_template.format(
+        return self.blog.blogroll_template.render(
             path=path,
             title=title,
             subtitle=subtitle,
