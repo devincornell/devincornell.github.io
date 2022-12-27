@@ -15,6 +15,10 @@ I wanted to reflect on a few design principles for software design of your data 
 
 4. ***Make I/O explicit in your top-level scripts.*** Read and write functions should always appear in the files you run directly (e.g. main file or toplevel script) and it should be clear which type of data you are reading/writing. By this principle I mean that it should be easy to tell which types of data are being ingested and which types are being saved through a quick scan of your script. I further suggest this should apply to everything.
 
+5. ***Write custom exceptions to handle missing data (among other things).*** When 
+
+Custom exceptions create a lot of flexibility when working with missing data. 
+
 # The structure of your data should be explicit
 
 By this I mean that the structure of your data should be explicitly defined as part of your code. While it is tempting to pass dataframes from csv viles or nested iterables (e.g. lists of dictionaries) from json format through your data pipeline, these data structures can be error-prone and will make it more difficult to make changes once your data structures become sufficiently complicated. I recommend creating objects to represent each piece of data that you ingest. For instance, if you read in a csv file as a dataframe, consider creating a class definition that represents a single row of that dataframe and include the code to parse that data within the same class. 
