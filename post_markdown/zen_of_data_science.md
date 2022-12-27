@@ -1,6 +1,6 @@
 ---
 title: "The Zen of Data Science"
-subtitle: "Akin to the [Zen of Python](https://peps.python.org/pep-0020/), here I propose a set of design principles that can improve the flexibility, reproducibility, and risk of errors in code you write for data science projects."
+subtitle: "Akin to the Zen of Python, here I propose a set of design principles that can improve the flexibility, reproducibility, and risk of errors in code you write for data science projects."
 date: "December 26, 2022"
 id: "zen_of_data_science"
 ---
