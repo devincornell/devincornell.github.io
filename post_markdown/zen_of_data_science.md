@@ -21,11 +21,85 @@ Custom exceptions create a lot of flexibility when working with missing data.
 
 # The structure of your data should be explicit
 
-By this I mean that the structure of your data should be explicitly defined as part of your code. While it is tempting to pass dataframes from csv viles or nested iterables (e.g. lists of dictionaries) from json format through your data pipeline, these data structures can be error-prone and will make it more difficult to make changes once your data structures become sufficiently complicated. I recommend creating objects to represent each piece of data that you ingest. For instance, if you read in a csv file as a dataframe, consider creating a class definition that represents a single row of that dataframe and include the code to parse that data within the same class. 
+By this I mean that the structure of your input and intermediate data should be explicitly defined in your code. While it is tempting to pass dataframes (often from csv files) or nested iterables (e.g. lists of dictionaries generated from raw json data) through your data pipeline, these data structures can be error-prone and will make it more difficult to read or make changes once your data structures become sufficiently complicated. They often encourage you to examine data through introspection at intermediary points in your pipeline, and make it difficult for Intellisense or other code validators to keep track of the structure of that data at each point. In data science it is particularly important to be able to trace data pipelines to track down the procedures used to produce a given result, and building more explicit structure into that pipeline can make it easier to understand and change later.
+
+## The problem with implicit data structures
+
+For illustration, I created a diagram with two linear data pipelines depicting the transformation of the input data into an intermediate data structure which is changed into the final data to be shared with the customer (a table or figure, let's say). Almost every part of your data analysis pipeline will look something like this. In the top example, we do not keep track of the structure of the input or intermediate data in our code explicitly, wheras in the bottom pipeline we represent them as objects A, B, and C. The idea is that pipelines with explicit references to data structure in the code make it easier to understand what each transformation is doing - in theory, we (and the static analyzer in your IDE) could understand the entire pipeline without ever running our code.
+
+![data science pipeline overview](https://storage.googleapis.com/public_data_09324832787/pipeline_structures.svg)
+
+As a hypothetical, let's say you are seeing a potential issue in your final data structure - a figure, let's say - and you want to investigate why you observe a given value. First you hypothesize that the issue may have been with function/script 2, and so we first need to understand the structure of the intermediary data which it transformed. There are three approaches to understanding the intermediate data structure when we have not been explicit in our code: 
+
+1. remember the structure of that data - generally a terrible idea in software design because you may be looking at this years later or someone else may be looking at it;
+2. run the first pipeline component and use some runtime introspection tool (breakpoints, print statements, debuggers, etc) to look at the data - possible but clunky and time-consuming; or 
+3. do some mental bookkeeping to trace the original input data (which may also require introspection) through the pipeline - also a time-consuming activity. If, however, you had built explicit object definitions into your code, you would know the structure of the data exactly without looking at the code used to generate it. Thus, it separates the logic of your operations from the structure of your data.
+
+
+Instead, I recommend creating objects to represent atomic or higher-order pieces of data that you ingest as a starting point. As an exampl, use 
+
+For example, if you read in a csv file as a dataframe, consider creating a class definition that represents a single row of that dataframe and include the code to parse that data within the same class. While json data may be more heirarchical, there are almost always equivalent data units at various levels - you can create a data structure for each level. Using this approach, you can know the structure of your data at any point in your pipeline and your IDE's static analyzer can identify any downstream issues that arise from a change in that data structure. This can be an invaluable tool for 
+
+### Case Against Dataframes
+While dataframes are important data structures that a large suite of languages and packages have been built around, I have two primary concerns about using them as a central feature of your data pipelines: (1) all of the problems we observe above, and (2) they are often the wrong tools for the job (performance-wise) - even though they may be fine for many tasks involving small datasets.
+
+The first point appears to be acceptable for many data scientists given that it is common to use Jupyter or R Markdown notebooks to write large portions of code. Except in initial development or in your toplevel scripts, I recommend using project file structures that are recommended for your language of choice - in Python, this means separating functions and classes (including the data containers) into modules, but there are equivalent recommended project structures for most langauges. Data science projects in particular tend to grow in scope or change in structure often, so modular project structures are especially important. The more complex your code becomes, the more important this is.
+
+More concretely, lets assume we load a csv file as a dataframe in Python. We access a column of that data using a subscript or through a property of `.c`:
+
+    df['my_property']
+    df.c.my_property
+
+Or, similarly in R:
+
+    df[:,'my_property']
+    df$my_property
+
+The problem with this is that you have no gaurantees that this property exists with this name in your input data. Even though the R and Python versions are both written as if these are object properties, they are not - they are simply syntactic sugar used to make it feel like they are - the reader, and your static analyzer, cannot gaurantee it except in runtime.
+
+Sure, you could run a verification or transformation function that selects/orders columns and does some validation, but this code is implemented as part of the script loading the data, not in the definition of the data itself.
+
+    df = df[['propertyA', 'propertyB', 'propertyC']]
+    assert((df['propertyA']>0).sum() == df.shape[0])
+
+In short, there are no gaurantees that a property will exist in runtime (assuming, as in the case of weakly typed languages, you follow the hints/gaurantees that you yourself provided).
+
+I a also caution against using dataframes for performance reasons. Traditional data structures like `set`s, `dict`s (any kind of map), or `list`s (arrays) in Python all have implementations that are akin to different tasks. If you want to store an unordered set of unique elements, use a `set` object. If you want to perform lookups from a string or other hashable object to another object directly (i.e. in O(1) time), use a `dict`. If you want to store an ordered sequence of elements that can be indexed by their order in the sequence, use a `list`.
+
+As an example of this issue, lets say that you want to perform a join on a two unindexed dataframes A with `n` rows and B with `m` rows that have a many-to-one relationship: that is there are zero or more rows of A that correspond to a single row of B. Because dataframe columns are implemented as sequential elements, the time it will take for this join to complete will be proportional to `n*m`: you would iterate through every element of A to find the associated row in B (note that this is worst case: `O(n*m)`). This is the wrong tool for the job because it could be done faster with a dictionary or hash map that allows you to look up the associated row in dataframe B instantly, so the time would be proportional to `O(n)`.
+
+Note that indexing dataframes is an operation that would allow for faster joins (typically through binary search, which is `O(n*log(m))`), indexing and multiindexing implementations are somewhat clunky to use and often involve explicit indexing between transformations.
+
+Dataframes can also be more memory intensive because joins and most other operations often create copies of data - even when it may be unnessecary.
+
+As an alternative, I recommend creating an object to represent each row of your dataset, and parsing each row using a factory method - I will give some examples later.
+
+### Case Against Nested Iterables
+
+It may also be tempting to use nested iterables like `set`s, `dict`s, or `list`s either because they follow directly from the structure of the input data (especially json data) or because they solve the second issue I have with dataframes - you can use the right tool for the job. My main concern with these structures is that they can get very complicated with high levels of nesting and requre missing data/error handling at every point of usage.
+
+
+    [
+        {
+            "sepal_length": 5.1, 
+            "sepal_width": 3.5, 
+            "petal_length": 1.4, 
+            "petal_width": 0.2, 
+            "species": "setosa"
+        }, 
+        {
+            "sepal_length": 4.9, 
+            "sepal_width": 3.0, 
+            "petal_length": 1.4, 
+            "petal_width": 0.2, 
+            "species": "setosa"
+        },
+        ...
+    ]
 
 Creating an explicit object definition for your data will provide built-in validation because you are making gaurantees for what your data will look like and how you will access its attributes downstream. Consistent with broader motivations for using OOP, you could build out your entire data pipeline beginning-to-end with just the knowledge of the properties of the data you will be using - it can be agnostic to the structure of the data you take as input. Similarly, explicit data definitions could also make things easier to test because you can write tests using synthetic data or even generate random data for Monte Carlo simulations. Additionally, your IDE can take advantage of intellisense or other autocomplete tools to help you code faster and with fewer errors.
 
-/example_code/zen_of_python/zen_of_data_science1.html
+[](/example_code/zen_of_data_science/zen_of_data_science1.html)
 
 I also recommend using [class method constructors](https://web.archive.org/web/20210130220433/http://as.ynchrono.us/2014/12/asynchronous-object-initialization.html) to handle the mapping between your source data (e.g. json or csv formatted data) and the object instances. For instance, say you have been working with a dataset in csv format for some time and your client then sends you a new data file that includes additional entries in a dataframe with different column names and variable codings. It is easy to add a new class method constructor that can load the same data from a different source.
 
