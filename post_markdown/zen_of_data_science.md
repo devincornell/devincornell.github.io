@@ -1,8 +1,8 @@
 ---
-title: "Data Science Software Design Principles"
-subtitle: "I propose some basic software design principles that will improve the flexibility, reproducibility, and error-tolerance of your data science code and then give some concrete design patterns that you can start using today."
+title: "The Zen of Data Science"
+subtitle: "Akin to the [Zen of Python](https://peps.python.org/pep-0020/), here I propose a set of design principles that can improve the flexibility, reproducibility, and risk of errors in code you write for data science projects."
 date: "December 26, 2022"
-id: "data_science_design_principles"
+id: "zen_of_data_science"
 ---
 
 I wanted to reflect on a few design principles for software design of your data science pipeline that I have come to after doing data analysis for research and consulting over the last 7 years. Some of these projects were quick and simple, while others started out that way and quickly became cumbersome. It is the latter category of projects that encouraged me to propose these principles. While some are derived directly from accepted software design principles, others directly contradict them - in these cases, I relied on my own experience on the patterns we fall into and the needs of data science projects to propose alternative approaches. First I list the principles, then I go into more details.
@@ -24,6 +24,8 @@ Custom exceptions create a lot of flexibility when working with missing data.
 By this I mean that the structure of your data should be explicitly defined as part of your code. While it is tempting to pass dataframes from csv viles or nested iterables (e.g. lists of dictionaries) from json format through your data pipeline, these data structures can be error-prone and will make it more difficult to make changes once your data structures become sufficiently complicated. I recommend creating objects to represent each piece of data that you ingest. For instance, if you read in a csv file as a dataframe, consider creating a class definition that represents a single row of that dataframe and include the code to parse that data within the same class. 
 
 Creating an explicit object definition for your data will provide built-in validation because you are making gaurantees for what your data will look like and how you will access its attributes downstream. Consistent with broader motivations for using OOP, you could build out your entire data pipeline beginning-to-end with just the knowledge of the properties of the data you will be using - it can be agnostic to the structure of the data you take as input. Similarly, explicit data definitions could also make things easier to test because you can write tests using synthetic data or even generate random data for Monte Carlo simulations. Additionally, your IDE can take advantage of intellisense or other autocomplete tools to help you code faster and with fewer errors.
+
+/example_code/zen_of_python/zen_of_data_science1.html
 
 I also recommend using [class method constructors](https://web.archive.org/web/20210130220433/http://as.ynchrono.us/2014/12/asynchronous-object-initialization.html) to handle the mapping between your source data (e.g. json or csv formatted data) and the object instances. For instance, say you have been working with a dataset in csv format for some time and your client then sends you a new data file that includes additional entries in a dataframe with different column names and variable codings. It is easy to add a new class method constructor that can load the same data from a different source.
 
