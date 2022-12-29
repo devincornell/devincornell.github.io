@@ -7,7 +7,16 @@ id: "zen_of_data_science"
 
 I wanted to reflect on a few design principles for software design of your data science pipeline that I have come to after doing data analysis for research and consulting over the last 7 years. Some of these projects were quick and simple, while others started out that way and quickly became cumbersome. It is the latter category of projects that encouraged me to propose these principles. While some are derived directly from accepted software design principles, others directly contradict them - in these cases, I relied on my own experience on the patterns we fall into and the needs of data science projects to propose alternative approaches. First I list the principles, then I go into more details.
 
-1. ***The structure of your data should be explicit.*** Avoid dataframes or nested iterables when possible, use object-oriented designs, implement data validation upon ingestion and throughout your pipeline, and use custom exceptions for missing data. This approach will give you some built-in data validation and make it easier to extend later. I provide some Python-based recipes that might illustrate these points.
+1. ***Know thy data: The structure of data should be explicit in your object design.*** Use objects to explicitly represent your source or derivative data, avoid dataframes or nested iterables when possible, and implement data validation upon ingestion. This builds upon the Zen of Python principles suggesting that "explicit is better than implicit" and "flat is better than nested." More generally, building explicit structure into your data pipeline can reduce the potential for errors and provide some built-in gaurantees about available data.
+
+2. ***Make object pipelines obvious: Go nuts with factory method construtors.*** Place the logic for constructing an object into a factory method instead of the default constructor. This follows naturally from the Zen of Python principles "in the face of ambiguity, refuse the temptation to guess" and "there should be one-- and preferably only one --obvious way to do it." This creational design pattern from Gang of Four is particularly useful in data science scenarios where classes are often data representations. Creating separate factory methods for each type of input data can make dependencies clearer and make objects easier to test and extend.
+
+3. ***Validate upstream when possible.*** Create gaurantees for your data by adding validation code when you are able - ideally as far upstream in your data pipeline as possible. This validation code should ideally be used in addition to unit testsing, but any validation is better than none. I will show some examples that use this principle later.
+
+4. ***Handle missing data downstream.*** 
+
+Not all downstream analyses will be affected by an original 
+
 
 2. ***Version almost everything.*** Version both your code and data files/databases. While this can (and will) lead to a high level of code rot, it will be critical for keeping track of which pipelines and settings were used to generate each intermediary or final piece of data. This is especially important when you try different parameter sets and need to know exactly which parameters were used to generate each result. Git is the bare minimum here, although using the releases features there could be a good temporary substitute. While following this in every situation might be overkill, I recommend doing it for especially critical parts of your code - particularly for your final (or communicated) result result files.
 
@@ -15,15 +24,13 @@ I wanted to reflect on a few design principles for software design of your data 
 
 4. ***Make I/O explicit in your top-level scripts.*** Read and write functions should always appear in your toplevel script (e.g. main file or toplevel script) and it should be clear which type of data you are reading/writing. By this principle I mean that it should be easy to tell which types of data are being ingested and which types are being saved through a quick scan of your script. 
 
-5. ***Include validation when possible.*** If not unit testing then try to add assertions or exceptions where possible.
 
-6. ***Write custom exceptions to handle missing data (among other things).*** When 
 
 Custom exceptions create a lot of flexibility when working with missing data. 
 
-# 1. The structure of your data should be explicit
+# 1. Know thy data: The structure of data should be explicit in your object design
 
-By this I mean that the structure of your input and intermediate data should be explicitly defined in your code. While it is tempting to pass dataframes (often from csv files) or nested iterables (e.g. lists of dictionaries generated from raw json data) through your data pipeline, these data structures can be error-prone and will make it more difficult to read or make changes once your data structures become sufficiently complicated. They often encourage you to examine data through introspection at intermediary points in your pipeline, and make it difficult for Intellisense or other code validators to keep track of the structure of that data at each point. In data science it is particularly important to be able to trace data pipelines to track down the procedures used to produce a given result, and building more explicit structure into that pipeline can make it easier to understand and change later.
+By this I mean that the structure of your input and intermediate data should be explicitly defined in your code. While it is tempting to pass dataframes (often from csv files) or nested iterables (e.g. lists of dictionaries) through your data pipeline, these data structures can be error-prone and will make it more difficult to read or make changes once your analysis becomes sufficiently complicated. They often encourage you to examine data through introspection at intermediary points in your pipeline, and make it difficult for Intellisense or other code validators to keep track of the structure of that data at each point. In data science it is particularly important to be able to trace data pipelines to track down the procedures used to produce a given result, and building more explicit structure into that pipeline can make it easier to understand and change later.
 
 For illustration purposes, I'm going to use the iris dataset loaded from seaborn in this case. The dataset is a single dataframe with five columns (of which we will use the 3 shown here).
 
