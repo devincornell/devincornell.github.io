@@ -11,12 +11,13 @@ I wanted to reflect on a few design principles for software design of your data 
 
 2. ***Make object pipelines obvious: Go nuts with factory method construtors.*** Place the logic for constructing an object into a factory method instead of the default constructor. This follows naturally from the Zen of Python principles "in the face of ambiguity, refuse the temptation to guess" and "there should be one-- and preferably only one --obvious way to do it." This creational design pattern from Gang of Four is particularly useful in data science scenarios where classes are often data representations. Creating separate factory methods for each type of input data can make dependencies clearer and make objects easier to test and extend.
 
-3. ***Validate upstream when possible.*** Create gaurantees for your data by adding validation code when you are able - ideally as far upstream in your data pipeline as possible. This validation code should ideally be used in addition to unit testsing, but any validation is better than none. I will show some examples that use this principle later.
+3. ***Validate upstream when possible, and anywhere when not.*** Create gaurantees for your data by adding validation code when you are able - ideally as far upstream in your data pipeline as possible. This validation code should ideally be used in addition to unit testsing, but any validation is better than none. I will show some examples that use this principle later.
 
 4. ***Handle missing data downstream.*** 
 
 Not all downstream analyses will be affected by an original 
 
+Custom exceptions create a lot of flexibility when working with missing data. 
 
 2. ***Version almost everything.*** Version both your code and data files/databases. While this can (and will) lead to a high level of code rot, it will be critical for keeping track of which pipelines and settings were used to generate each intermediary or final piece of data. This is especially important when you try different parameter sets and need to know exactly which parameters were used to generate each result. Git is the bare minimum here, although using the releases features there could be a good temporary substitute. While following this in every situation might be overkill, I recommend doing it for especially critical parts of your code - particularly for your final (or communicated) result result files.
 
@@ -24,15 +25,41 @@ Not all downstream analyses will be affected by an original
 
 4. ***Make I/O explicit in your top-level scripts.*** Read and write functions should always appear in your toplevel script (e.g. main file or toplevel script) and it should be clear which type of data you are reading/writing. By this principle I mean that it should be easy to tell which types of data are being ingested and which types are being saved through a quick scan of your script. 
 
+# Theory of Data Analysis Pipelines
 
+It will be helpful to first outline a skeleton of a data science project to see why some design patterns, programming principles, and project management strategies are better suited for data analysis than others. By definition, data analysis involves the transformation of one type of data to another. For instance, maybe you are given a csv file and asked to generate a figure, or retrieve json data from an API and asked to produce a regression table. In these instances, your clients (whether it be journal reviewers, customers, or managers) expect you to transform some type of input data into data of some format for human interpretation.
 
-Custom exceptions create a lot of flexibility when working with missing data. 
+One way to think of these projects is as a pipeline: the pipeline starts with your source data and involves a series of transformations produced until the final result is produced. The figure below shows an example data pipeline. Each block represents some kind of structure that your data takes - essentially a set of measurements and relationships between them - and lines represent the algorithm you use to transform it. Some of these structures may be written to disk and loaded later down the pipeline in another script, and some of the transformations may appear as part of every script. Importantly, these datasets have dependency relations such that they are all derived from either the client source data or some outside source, such as a fitted statistical model or a sentiment analysis dictionary used to transform your client source data.
+
+![data science pipeline overview](https://storage.googleapis.com/public_data_09324832787/ds_pipelines.svg)
+
+As an analyst, your job is to build data pipelines that minimize the likelihood of errors, maximize reproducability (by others and yourself), and optimize flexibility for future changes. The following principles are designed to support these goals.
+
 
 # 1. Know thy data: The structure of data should be explicit in your object design
 
-By this I mean that the structure of your input and intermediate data should be explicitly defined in your code. While it is tempting to pass dataframes (often from csv files) or nested iterables (e.g. lists of dictionaries) through your data pipeline, these data structures can be error-prone and will make it more difficult to read or make changes once your analysis becomes sufficiently complicated. They often encourage you to examine data through introspection at intermediary points in your pipeline, and make it difficult for Intellisense or other code validators to keep track of the structure of that data at each point. In data science it is particularly important to be able to trace data pipelines to track down the procedures used to produce a given result, and building more explicit structure into that pipeline can make it easier to understand and change later.
+By this I mean that your data pipeline should keep track of the structure of your source and intermediary data without being presented with the input data itself. While it is tempting to pass dataframes (often from csv files) or nested iterables (e.g. lists of dictionaries) through your data pipeline because they are robust and you can use them to do many things, these exact attributes serve to increase the risk of errors in your code and make it harder for the programmer to read or modify in the future. Adding more structure to your design can provide built-in gaurantees about the structure of your data at any point in the pipeline, even in the absence of validation procedures.
 
-For illustration purposes, I'm going to use the iris dataset loaded from seaborn in this case. The dataset is a single dataframe with five columns (of which we will use the 3 shown here).
+At first glance it seems like building in more structure is tedious and unnessecary, but we've all experienced the scenario where very simple analyses become increasingly complex as our project scope widens, we need to make changes based on intermediary results, or the objectives of the project change entirely. In the real world, simple projects inevitably become more complicated over time, and building more explicit structure into your pipeline designs can help to mitigate some of the issues that arise in that case.
+
+Because data is a noun, for most languages I recommend creating immutable (unchangable) objects with a fixed set of properties to represent collections of data. On a theoretical level, let us first imagine that our source data includes various measurements taken on a set of plants. Assuming there is overlap between the measurements taken on each plant and the number of measurements can be enumerated and is no greater than 30 or 40, I recommend creating an object to represent each plant, and parsing input data into a sequence of those objects. 
+
+In this case, the first step of your data pipeline should be to convert your input data into a sequence of these plant objects. By placing the data into these objects, you are committing to some gaurantees that can be taken for granted by any function that attempts to use these objects. First of all, we gaurantee that every plant will have the same set of properties that we can work with (whether they represent missing data or accessing them raises an error is a different question). Without running your code, you can detect 
+
+Any static analysis assistant in your IDE like Intellisense etc will recognize cases when you try to access an attribute that does not exist.
+
+
+when passing this data to a future function. Any function this data is passed into 
+
+ know that every plant will have the same set of properties. If 
+
+with enumerated properties to represent a piece of data. In the examples below 
+
+They often encourage you to examine data through introspection at intermediary points in your pipeline, and make it difficult for code validators to keep track of the structure of that data at each point. 
+
+In data science it is particularly important to be able to track down the procedures used to produce a given data result, and building more explicit structure into that pipeline can make it easier to understand and change later.
+
+For illustration purposes, I'm going to use the iris dataset loaded from seaborn. The dataset is provided as a single dataframe with five columns (of which we will use the 3 shown here).
 
     import seaborn
     import pandas as pd
@@ -51,10 +78,11 @@ The first five rows look like the following:
     3           4.6          3.1  setosa
     4           5.0          3.6  setosa
 
+Now I will illustrate potential issues 
 
 ## The problem with implicit data structures
 
-For illustration, I created a diagram with two linear data pipelines depicting the transformation of the input data into an intermediate data structure which is changed into the final data to be shared with the customer (a table or figure, let's say). Almost every part of your data analysis pipeline will look something like this. In the top example, we do not keep track of the structure of the input or intermediate data in our code explicitly, wheras in the bottom pipeline we represent them as objects A, B, and C. The idea is that pipelines with explicit references to data structure in the code make it easier to understand what each transformation is doing - in theory, we (and the static analyzer in your IDE) could understand the entire pipeline without ever running our code.
+For illustration, I created a simpler diagram with two linear data pipelines depicting the transformation of the input data into an intermediate data structure which is changed into the final data to be shared with the customer (a table or figure, let's say). As I noted earlier, almost every part of your data analysis pipeline will look something like this. In the top example, we do not keep track of the structure of the input or intermediate data in our code explicitly, wheras in the bottom pipeline we represent them as objects A, B, and C. The idea is that pipelines with explicit references to data structure in the code make it easier to understand what each transformation is doing - in theory, we (and the static analyzer in your IDE) could understand the entire pipeline without ever running our code.
 
 ![data science pipeline overview](https://storage.googleapis.com/public_data_09324832787/pipeline_structures.png)
 
@@ -103,7 +131,7 @@ Dataframes can also be more memory intensive because joins and most other operat
 
 As an alternative, I recommend creating an object to represent each row of your dataset, and parsing each row using a factory method - I will give some examples later.
 
-### Case Against Nested Iterables
+### Nested Iterables are Also Bad
 
 It may also be tempting to use raw nested iterables like `set`s, `dict`s, or `list`s either because they follow directly from the structure of the input data (especially json data) or because they solve the second issue I have with dataframes - you can use the right tool for the job. My main concern with these structures is that they can get very complicated with high levels of nesting and requre missing data/error handling at every point of usage.
 
