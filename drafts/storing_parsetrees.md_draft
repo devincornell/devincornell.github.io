@@ -1,0 +1,15 @@
+---
+title: "Parsetrees and database storage"
+subtitle: "Some of the challenges of storing parsetrees and the solution I used in doctable."
+date: "June 9, 2021"
+id: "parsetrees_in_databases"
+---
+
+Parsetrees, or models of texts that map out grammatical structure of sentences, will be an invaluable tool for text analysis in the coming years, but the process of creating and storing them presents some technical challenges. 
+Actually running a dependency parser takes a lot of time, so you'll probably want to store the results in an intermediary stage before running any analyses. 
+The challenge is that 
+
+Converting a plain text file to a parsetree greatly increases the size of your data because dependency parsers add information about relationships between individual words, so we're talking about a huge increase. 
+While SpaCy `Doc` objects generated using the dependency parser 
+
+
