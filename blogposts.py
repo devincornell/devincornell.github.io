@@ -112,7 +112,12 @@ class BlogPost:
     def parse_metadata(cls, markdown: str):
         ''' Parses metadata at the top of the markdown text.
         '''
-        header = markdown.split('---')[1]
+        try:
+            header = markdown.split('---')[1]
+        except IndexError as e:
+            print(markdown)
+            print(f'fuck!!!')
+            raise e
         
         meta = dict()
         for attr in header.split('\n'):
