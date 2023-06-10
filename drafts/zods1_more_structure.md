@@ -5,9 +5,10 @@ date: "May 28, 2023"
 id: "zods_more_structure"
 ---
 
-As I wrap up my data-heavy PhD in Sociology and do some freelance consulting, I thought I'd share some suggestions for software design principles that can improve the flexibility, reproducibility, and error risk in your data analysis code. I grew into these principles as I completed a wide range research projects and taught many cohorts of data-oriented social science undergraduates, but I found discussions with professional software engineers to be extremely helpful as well, as they are specifically trained to write high-quality code. High-quality code means that it is easy to read, simple, easy to restructure, and embodies optimal computational performance - all important aspects of any data science project. This will be the first of several blog posts on the topic.
+As I wrap up my data-heavy PhD in Sociology and do some freelance consulting, I thought I'd share some suggestions for software design principles that can improve the flexibility, reproducibility, and risk of errors in your data analysis code. I grew into these principles as I completed a wide range research projects and taught many cohorts of data-oriented social science undergraduates, but I found discussions with professional software engineers to be especially helpful, as they are specifically trained to write high-quality code. There is much that data scientists can learn from software engineers.
 
-The first principle is as follows:
+
+High-quality code means that it is easy to read, simple, easy to restructure, and embodies optimal computational performance - all important aspects of any data science project. This will be the first of several blog posts on the topic. The principle for this article is as follows.
 
 > ***Know thy data: the structure of data should be explicit in your object design.***
 
@@ -17,12 +18,12 @@ More specifically, I have three primary recommendations:
 
 2. *Implement data validation as part of data storage objects.* Data storage objects are a great place to add data validation code because they make valid data criteria obvious to the reader at the same point where they examine structure.
 
-3. *Propogate missing data information through the full pipeline.* When computational resources allow, I recommend you keep track of missing data throughout your pipeline instead of filtering at various stages of the process. This allows you to evaluate the potential effects of this missing data as it relates to any intermediary representation.
+3. *Propogate missing data information through the full pipeline.* When computational resources allow, I recommend you keep track of missing data throughout your pipeline instead of filtering at various stages of the process. This allows you to evaluate the potential effects of this missing data as it relates to any intermediary representation. It may save you time later as the project progresses.
 
 
 # Theory of Data Analysis Pipelines
 
-It will be helpful to first outline a skeleton of a data science project to see why some design patterns, programming principles, and project management strategies are better suited for data analysis than others. By definition, data analysis involves the transformation of one type of data to another. For instance, maybe you are given a csv file and asked to generate a figure, or retrieve json data from an API and asked to produce a regression table. In these instances, your clients (whether it be journal reviewers, customers, or managers) expect you to transform some type of input data into data of some format for human interpretation.
+It will be helpful to first outline a skeleton of a data science project to see why some design patterns, programming principles, and project management strategies are better suited for data analysis than others. By definition, data analysis involves the transformation of one type of data to another. For instance, maybe you are given a csv file and asked to generate a figure, or retrieve json data from an API and asked to produce a regression table or machine learning model. In these instances, your clients (whether it be journal reviewers, customers, or managers) expect you to transform some type of input data into data of some format for human interpretation.
 
 One way to think of these projects is as a pipeline: the pipeline starts with your source data and involves a series of transformations produced until the final result is produced. The figure below shows an example data pipeline. Each block represents some kind of structure that your data takes - essentially a set of measurements and relationships between them - and lines represent the algorithm you use to transform it. Some of these structures may be written to disk and loaded later down the pipeline in another script, and some of the transformations may appear as part of every script. Importantly, these datasets have dependency relations such that they are all derived from either the client source data or some outside source, such as a fitted statistical model or a sentiment analysis dictionary used to transform your client source data.
 
@@ -32,7 +33,11 @@ As an analyst, your job is to build data pipelines that minimize the likelihood 
 
 # 1. Use objects to represent your data
 
-By this I mean representing each observation or data point in your code as an explicit class or struct with an explicitly defined set of properties, and preferably with strict data types or at least type annotations. Anyone 
+First, I recommend representing each observation or data point in your code as an explicit class or struct with an explicitly defined set of properties, and preferably with strict data types or at least type annotations (and possibly active type checking). In this way, 
+
++ Your static analyzer (typically as part of your IDE) can identify any errors in your code before you actually run it.
+
+
 
 By this I mean that your data pipeline should keep track of the structure of your source and intermediary data without being presented with the input data itself. While it is tempting to pass dataframes (often from csv files) or nested iterables (e.g. lists of dictionaries) through your data pipeline because they are robust and you can use them to do many things, these exact attributes serve to increase the risk of errors in your code and make it harder for the programmer to read or modify in the future. Adding more structure to your design can provide built-in gaurantees about the structure of your data at any point in the pipeline, even in the absence of validation procedures.
 
