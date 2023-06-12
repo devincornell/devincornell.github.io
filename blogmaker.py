@@ -114,7 +114,7 @@ class BlogPost:
 
     def as_dict(self) -> typing.Dict[str, typing.Any]:
         return {
-            'html': self.render_html(),
+            'body_html': self.render_html(),
             **dataclasses.asdict(self),
         }
 
