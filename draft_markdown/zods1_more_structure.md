@@ -85,13 +85,48 @@ It is a regular class, so you may add methods or additional attributes, but be s
 
 Later I will discuss collections of these objects, but for now lets stick with classes representing single observations.
 
+## Enums for Categorical Variables
+
+Note that in cases where we have categorical variables that can take any of a small, fixed, and enumerable set of values, it is usually best to create an explicit enum type to make their behavior clearer to the reader and make some gaurantees about the input data. I will illustrate this feature in Python using the species variable, although this may not be the best application since it can't handle new species types. In cases where your dataset is not expected to change, it may still be the best option.
+
+First, we can list all species in the dataset:
+
+    {'setosa', 'versicolor', 'virginica'}
+
+Now, create an enum using the enum package to represent the various species.
+
+    import enum
+    class Species(enum.Enum):
+        SETOSA = enum.auto()
+        VERSICOLOR = enum.auto()
+        VIRGINICA = enum.auto()
+
+For clarity, change the type hint on the species attribute.
+
+        ...
+        species: Species
+
+Then, we will need a mapping from the original input data to the enum values. We can use a simple dictionary for that. This dictionary maps the strings to species types.
+
+    species_name_map = {
+        'setosa': Species.SETOSA,
+        'versicolor': Species.VERSICOLOR,
+        'virginica': Species.VIRGINICA,
+    }
+
+Then, as part of the object construction code, we would pass the input string through this map to get the actual species type.
+
+Note that in cases where there are a larger number of species that are held in some database, it might still be good to do validation when the object is being created.
+
+## Basic Transformations
+
 While this particular data object should be immutable, we can create methods to return objects of a different data type to represent some data transformation. For instance, lets say we want to create an additional object to represent surface areas in an iris. Using the same procedure, we create a new dataclass and add a method to `IrisEntry` to create this object.
 
     @dataclasses.dataclass
     class IrisArea:
         sepal_area: float
         petal_area: float
-        species: str
+        species: Species
         
         def surface_area(self) -> float:
             return self.sepal_area + self.petal_area
@@ -227,7 +262,17 @@ Note that alternatively you could create a more complicated encapsulation scheme
 
 This requires more work to build out methods for the collection though, so I recommend it primarily in more complicated cases.
 
-## More Complicated Transformations
+
+## Transformations on Collections
+
+Transformations on collections may be useful for a number of applications. Whether you extended a built-in collection or made your own, any methods you would apply to a collection of data objects can be placed in these classes.
+
+As an example, 
+
+    species: Species
+
+
+
 
 
 # ------------------------------------------------ (old stuff)
