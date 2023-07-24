@@ -1,6 +1,6 @@
 ---
-title: "Data Science Patterns: More structure is better"
-subtitle: "I propose several patterns for building your data science pipelines."
+title: "Patterns for Data Science: More structure is better"
+subtitle: "Use these patterns to create better data pipelines."
 date: "May 28, 2023"
 id: "zods1_more_structure"
 ---
@@ -25,9 +25,11 @@ Now I propose five more specific recommendations that follow this tenant.
 
 3. ***Create types for collections of data objects.*** Create custom types to manage collections of data objects instead of using builtin lists or arrays. For simple cases, you can extend existing builtin types, although collection containers may be appropriate in some cases. At a minimum, you can add static class methods to initialize multiple data objects in sequence.
 
-4. ***Group related functionality into classes containing data objects.*** Instead of cluttering data objects with a large number of methods for analyzing or transforming, create factory methods that return new objects for transforming or summarizing the original data.
+4. ***Group related methods into wrapper objects.*** Instead of cluttering data objects with a large number of methods for analyzing or transforming, create factory methods that return new objects for transforming or summarizing the original data.
 
 5. ***Retain objects representing missing data.*** Instead of filtering missing data early in your pipeline to simplify downstream methods, continue to use objects even for missing data. While this add additional logic to downstream methods, it may be worth the effort when evaluating the effect of missing data or the project shifts to use a wider range of data.
+
+Now I will give some more detailed guidance.
 
 # 1. Use objects to represent your data
 
@@ -44,7 +46,7 @@ Here are a few benefits of using this approach.
 + You can easily create simulations using dummy objects.
 
 
-## Basic Example in Python
+### Basic Example in Python
 
 First let me start with an illustration of what I mean using Python, although I believe most popular languages will support this approach. To this end, I am going to use the iris dataset loaded from the seaborn package. The dataset is provided as a single dataframe with five columns (of which we will use the 3 shown here).
 
@@ -87,7 +89,7 @@ It is a regular class, so you may add methods or additional attributes, but be s
 
 Later I will discuss collections of these objects, but for now lets stick with classes representing single observations.
 
-## Enums for Categorical Variables
+### Enums for Categorical Variables
 
 In cases where we have categorical variables that can take any of a small, fixed, and enumerable set of values, it is usually best to create an explicit enum type to make their behavior clearer to the reader and make some gaurantees about the input data. I will illustrate this feature in Python using the species variable, although this may not be the best application since it can't handle new species types. In cases where your dataset is not expected to change, it may still be the best option.
 
@@ -120,7 +122,7 @@ Then, as part of the object construction code, we would pass the input string th
 
 Note that in cases where there are a larger number of species that are held in some database, it might still be good to do validation when the object is being created.
 
-## Basic Transformations
+### Basic Transformations
 
 While this particular data object should be immutable, we can create methods to return objects of a different data type to represent some data transformation. For instance, lets say we want to create an additional object to represent surface areas in an iris. Using the same procedure, we create a new dataclass and add a method to `IrisEntry` to create this object.
 
@@ -184,7 +186,7 @@ Which prints the following:
 
 Pretty straightforward - you can apply the factory method to each row of the dataframe after using pandas to read the csv file. I will give an example of an extended solution to this later when I discuss creating types for collections of data objects.
 
-## Additional Static Factory Methods
+### Additional Static Factory Methods
 
 Now, for example, lets say that you have additional data in json format, which I simulate here by transforming the dataframe.
 
@@ -225,7 +227,7 @@ Simply create a new factory method called `from_json` to create a data object fr
 
 You must explicitly choose the constructor depending on the input data this way, which is a good thing. 
 
-## Simple Factory Patterns
+### Simple Factory Patterns
 
 In cases where you need to decide, use a factory-like pattern to choose the correct data based on the input.
 
@@ -240,7 +242,7 @@ In cases where you need to decide, use a factory-like pattern to choose the corr
 
 My third recommendation is to create custom collection objects by extending existing collection types, or, in more complicated cases, by encapsulating the collections (the decision may be language-dependent). This alone improves readability, but, perhaps more importantly, it makes it easier to assess exactly which operations can and should be done on a collection of these particular objects. This too follows the Zen of Data Science tenant that "explicit is better than implicit."
 
-## Inherit from builtin types
+### Inherit from builtin types
 
 In python, you would most likely want to use the `typing` package to inherit from builtin types. We inherit from `typing.List` here, and the type hint gives additional information about the intended use of the class.
 
@@ -267,7 +269,7 @@ Then construct the object as follows.
 
 Here `Irises` is essentially a list with a custom type that includes additional factory methods at this point.
 
-## Encapsulation approach
+### Encapsulation approach
 
 Note that alternatively you could create a more complicated encapsulation scheme when the collection needs to do more complicated things.
 
@@ -285,7 +287,7 @@ This requires more work to build out methods for the collection though, so I rec
 
 
 
-## Transformations on collections
+### Transformations on collections
 
 Transformations on collections may be useful for a number of applications. Whether you extended a built-in collection or made your own, any methods you would apply to a collection of data objects can be placed in these classes.
 
@@ -304,7 +306,7 @@ You could create filter, map, or a number of other methods here for manipulating
 
 ### Concurrency in Transformations
 
-As a logical extension, note that these may be good placess to add parallelization code.
+Naturally, these may be good places to add parallelization code.
 
 For instance, refer to the `IrisEntry.calc_area` method we created earlier to produce the `IrisArea` object associated with each `IrisEntry` object. We can create a new method on `Irises` which opens a [pool of workers](https://docs.python.org/3/library/multiprocessing.html) with the multiprocessing module and calls the `calc_area` method on each iris in parallel.
 
@@ -318,8 +320,6 @@ For instance, refer to the `IrisEntry.calc_area` method we created earlier to pr
         def calc_iris_area(iris: IrisEntry) -> IrisArea:
             return iris.calc_area()
 
-
-
 One logical application of transformations on collections might be to provide parallization.
 
 of this interface for transformation would be to add parellized code to the transformations on collections. For instance, 
@@ -329,9 +329,11 @@ of this interface for transformation would be to add parellized code to the tran
 
 
 
-# 4. Add additional functionality through method-only classes that access the same data
+# 4. Group related methods into wrapper objects
 
-Now I offer a solution to the situation where you need to add a large number of methods to your data objects. Instead of attaching all methods to the data object itself or creating a new base class from which the data object inherits, you can create an additional object definition with the relevant methods that operate on the original data object, and, ideally, _only_ on that data object. You can then call those methods on a temporary instance of the child object created through a method of the original data object.
+It is generally inadvisable to create data objects with a large number of methods for transformation or summarization, so instead you can group related methods into wrapper objects, or objects that encapsulate the original data object. You can then construct the wrapper class in a method of the original data object. The wrapper classes should contain _only_ the original data objects.
+
+### Basic wrapper object
 
 Let us start with an example where we want to create plotting functionality to our data object. In this case, we could imagine a wide range of functions that make visualizations in various ways, and it might clean things up to have them defined in a single place that won't clutter up the tranformation methods that are a part of the original data object. This is a good case for this approach.
 
@@ -354,7 +356,7 @@ Because it is a dataclass, you can use the constructor directly and then call th
     plotter = PyPlotter(irises)
     plotter.sepal_scatter()
 
-This solution works quite fine. However, it may be convenient to access these methods directly from the Irises object. Because teh `PyPlotter` object contains only the irises data, we can create a method to return the plotter on which we can then call the plotting methods. In python, we can use the `property` decorator that will call a function merely by accessing an attribute of the same name. 
+This solution works quite fine. However, it may be convenient to access these methods directly from the Irises object. Because the `PyPlotter` object contains only the irises data, we can create a method to return the plotter on which we can then call the plotting methods. In python, we can use the `property` decorator that will call a function merely by accessing an attribute of the same name. 
 
         ...
         @property
@@ -365,11 +367,11 @@ This method simply calls the default constructor of the plot class. Now we can a
 
     irises.plot.sepal_scatter()
 
-While there is some performance cost to this approach, the organizational benefit may be substantial enough to be worth it.
+While there is some performance cost to this approach, the organizational benefit may be substantial enough to warrant it.
 
-## More Complicated Method Classes
+### More Complicated Method Classes
 
-There may be cases where you want to similarly extend the data object in a way that changes the format of the original data without transforming it in any substantive way. In cases when that format change is expensive, you can follow a formula that is similar to the above, but do the transformation in a factory method of the child class which is called from a method of the data class.
+There may be cases where you want to similarly extend the data object in a way that changes the format of the original data. In cases when that format change is expensive, you can follow a formula that is similar to the above, but do the transformation in a factory method of the child class which is called from a method of the data class.
 
 As an example, lets say we want to use ggplot through the `plotnine` python package to plot features of our irises. Unlike `matplotlib`, plotting in this package is typically done through dataframes, so we will need to convert the `Irises` object to a dataframe before doing any plotting. This new class includes the factory method constructor and a method to create a scatter plot.
 
@@ -782,7 +784,7 @@ In Python you will ideally create custom exceptions for your applications - a pr
     class PersonAgeOutOfRangeError(ValueError):
         pass
 
-Next we want to raise an exception if there is an issue with the `full_name` of the `Person`. This is an interesting case because two things can be wrong: `full_name` can be an empty string or it can only include a single word when at least two words are needed to make a full name (at least in most of the Americas). Because they are both issues with the name, we can start by making an exception `PersonNameEror` to be raised when the name is out of range. But we can also improve granularity of this exception by indicating whether the issue was that the name string was empty or whether they only had one name. For that, we create two additional exceptions - one for empty name, and the other for a last name error.
+Next we want to raise an exception if there is an issue with the `full_name` of the `Person`. This is an interesting case because two things can be wrong: `full_name` can be an empty string or it can only include a single word when at least two words are needed to make a full name (at least in most of the Americas). Because they are both issues with the name, we can start by making an exception `PersonNameEror` to be raised when the name is out of range. But we can also improve granularity of this exception by indicating whether the issue was that the name string was empty or whether they only had one name. For that, we create two additional exceptions - one for empty name, and the other for a last name error. 
 
     class PersonNameEror(ValueError):
         pass
