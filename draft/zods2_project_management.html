@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Devin J. Cornell: Patterns for Data Science: Project management</title>
+        <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
+        <!-- Font Awesome icons (free version)-->
+        <!--<script src="https://use.fontawesome.com/releases/v5.15.3/js/all.js" crossorigin="anonymous"></script>-->
+        <!-- Google fonts-->
+        <link href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link href="/css/blog.css" rel="stylesheet" />
+        <style>
+            pre {
+                background-color: #ececec;
+                border-radius: 4px;
+                padding: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Navigation-->
+        <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
+            <div class="container px-4 px-lg-5">
+                <a class="navbar-brand" href="/">devinjcornell.com</a>//<a class="navbar-brand" href="/blog">Blog</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                    Menu
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarResponsive">
+                    <ul class="navbar-nav ms-auto py-4 py-lg-0">
+                        <!--<li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="index.html">Home</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="about.html">About</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="post.html">Sample Post</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="contact.html">Contact</a></li>-->
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <!-- Page Header-->
+        <header class="masthead" style="background-image: url('assets/img/post-bg.jpg')">
+            <div class="container position-relative px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <div class="post-heading">
+                            <h1>Patterns for Data Science: Project management</h1>
+                            <h2 class="subheading">Some design patterns for improving the way you manage your data science projects.</h2>
+                            <span class="meta">
+                                Posted by
+                                <a href="/">Devin J. Cornell</a>
+                                on May 28, 2023
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <!-- Post Content-->
+        <article class="mb-4">
+            <div class="container px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <h1>2. Version almost everything</h1>
+<p>My next recommendation is related to managing projects. A key challenge in project management is keeping track of different intermediary data products and the code used to generate them. It is typical to be in a scenario where, halfway through building a data pipeline, your requirements change or you produce results that encourage you to take a different approach to analysis. In that case, you don't want to delete the old intermediary results because you may want to refer back to them later. Or, worse yet, you shared them with a client and may need to refer back to them for their sake. Either way, you also want to keep track of the code you used to create those files, in case you get any questions about it or are simply curious. It is in this scenario that I recommend that you retain multiple class definitions for the same type of object and keep track using naming conventions. Then, when you go to look closer at a result you generated previously, you can easily track the code you used to generate it. </p>
+<p>It might be worth thinking more about typical data science workflows to get a sense of why this might make sense. First, lets take a look at the following figure.</p>
+<p><img alt="data science pipeline overview" src="https://storage.googleapis.com/public_data_09324832787/ds_pipeline_workflow.svg" /></p>
+<p>At the top of this figure we see the original dataset, composed of one csv file and one json file. Each of the scripts that appear here involve some type of transformation from one data type to another. Script 1 takes the original csv data and converts it into a new Intermediate csv file. Script 3 takes the orignal csv file, the original json file, and the intermediate csv file generated by Script 1, and converts it into Final table csv file. Script 4 then converts this table into a visualization that will be presented to the client. Note that on the right we also see that Script 2 converts the original json data to Some figure png file - possibly for another analysis.</p>
+<p>In an ideal world, we work on and finish Script 1, then work on and finish Script 2, and so on until we finish coding and can produce the final data from the original data. In a more practical scenario, most likely will need to go back and fix some upstream script to add or edit some information according to requirement changes or just changing realization of the information needed to produce intermediary results. When we do this, however, it doesn't always make sense to delete data that was previously generated - either so we can use it as reference or present it as intermediary results to the client. In these cases, it makes the most sense to keep track of the data and the code that was used to generate it through an informal versioning system of your design.</p>
+<p>For an object-oriented example, let's assume that the client gives you data in the format represented by the class <code>IrisA</code>.</p>
+<pre><code>@dataclasses.dataclass
+class IrisA:
+    sepal_length: int
+    sepal_width: int
+    species: str
+</code></pre>
+<p>You write a script that converts <code>IrisA</code> data to <code>IrisB</code> data using its class method constructor <code>from_a</code>, and you saved the result as <code>resultB.csv</code>. This result will be used later on by another script to produce the final figure. Lets say you produce the final figure and call it <code>finalB.png</code>, then share it with your client as intermediate results. See my example class below.</p>
+<pre><code>@dataclasses.dataclass
+class IrisB:
+    sepal_area: float
+
+    @classmethod
+    def from_a(cls, a: IrisA):
+        return cls(sepal_area = a.sepal_length * a.sepal_width)
+</code></pre>
+<p>The client has some suggested improvements, and you realize you need one additional piece of information from the <code>IrisA</code> dataset to be included in <code>IrisB</code>: the <code>species</code>. So you go back and edit <code>IrisB</code> to include this information. You use this dataset to produce the final result <code>finalB2.png</code>, and share with the client. </p>
+<pre><code>@dataclasses.dataclass
+class IrisB:
+    sepal_area: float
+    species: str
+
+    @classmethod
+    def from_a(cls, a: IrisA):
+        return cls(sepal_area = a.sepal_length * a.sepal_width, species=a.species)
+</code></pre>
+<p>The client asks about a discrepency between <code>finalB.png</code> and <code>finalB2.png</code> - can you answer their question? You could go back to the correct commit based on datetimes, but that might be a little tricky if the file timestamp was changed after copying/etc. Instead, I recommend creating a versioning system that is consistent between the names of your data objects and the intermediate data files they were used to generate.</p>
+<pre><code>@dataclasses.dataclass
+class IrisB_v1:
+    sepal_area: float
+
+    @classmethod
+    def from_a(cls, a: IrisA):
+        return cls(sepal_area = a.sepal_length * a.sepal_width)
+
+@dataclasses.dataclass
+class IrisB_v2:
+    sepal_area: float
+    species: str
+
+    @classmethod
+    def from_a(cls, a: IrisA):
+        return cls(sepal_area = a.sepal_length * a.sepal_width, species=a.species)
+</code></pre>
+<p>When you save the files, you could integrate the name of the class into the filename. For instance, you could call them <code>result_IrisB_v1.csv</code> and <code>result_IrisB_v2.csv</code>, which you could then translate to a final figure names like <code>final_result_IrisB_v1.png</code> <code>final_result_IrisB_v2.png</code>. This is what it might look like:</p>
+<pre><code>a = IrisA(1.0, 2.0, 'big')
+
+b1 = IrisB_v1.from_a(a)
+save(b1, f'result_{b1.__class__}.csv')
+
+b2 = IrisB_v2.from_a(a)
+save(b2, f'result_{b2.__class__}.csv')
+</code></pre>
+<p>Of course every case is unique and I don't recommend using this everywhere, but I have found it to be useful in scenarios where I am getting a lot of client feedback and I need to refer to old code when I'm trying to explain differences between results figures or intermediate data.</p>
+<h1>3. Create parameter or settings objects that live in your code</h1>
+<p>Building off of the previous two examples, I recommend creating parameter objects that you can use to keep track of results created with different parameters. This essentially follows from the previous two examples, but further introduces the possibility that you may generate results from many different parameter sets over the lifetime of your project. Ideally the defined parameter set will be used at every step of your data pipeline to make it perfectly reproducable. Lets see the example below.</p>
+<p>Start by creating a dataclass to contain parameter information. This defines all the variables that will be used to generate results throughout your data pipeline. It might be helpful to have some <code>version_name</code> member to make it easy to get the version as a string. This even includes a parameter that accepts a type - this will allow you to control which version of a class is being used throughout your pipeline. This may be overkill, but you can imagine projects that are of sufficient complexity as to benefit to this level of detail.</p>
+<pre><code>@dataclasses.dataclass
+class Params:
+    version_name: str
+    IrisB: type
+    intermediate_fname: str
+    final_fname: str
+</code></pre>
+<p>Now I recommend creating functions or module-level variables for param object instances, including the version number as part of the object name. Here I have two params objecs, which I named <code>0x1</code> and <code>0x2</code>.</p>
+<pre><code>def params_0x1() -&gt; Params:
+    return Params(
+        version_name = '0x1',
+        IrisB = IrisB_v1,
+        intermediate_fname = 'intermediate_0x1.csv',
+        final_fname = 'final_0x1.csv',
+    )
+
+def params_0x2() -&gt; Params:
+    return Params(
+        version_name = '0x2',
+        IrisB = IrisB_v2,
+        intermediate_fname = 'intermediate_0x2.csv',
+        final_fname = 'final_0x2.csv',
+    )
+</code></pre>
+<p>So at the beginning of each script you can instantiate a params object and use it at various points.</p>
+<pre><code>params = params_0x1()
+a = IrisA(1.0, 2.0, 'big')
+b = params.IrisB.from_a(a)
+save(b, f'result_{params.version_name}.csv')
+</code></pre>
+<p>This approach may be overkill in some scenarios, but if the project gets large enough it is an option you may want to consider.</p>
+<h1>4. Make I/O explicit in your top-level scripts</h1>
+<p>This principle is very simple: make it such the user can see save and read functions at the top level of your script (even if the filenames are hidden). It should be clear to the reader that the script is ingesting one or more datasets and exporting others. Adding this to your script can save you a lot of time later when you try to determine which types of data this script makes and outputs.</p>
+<pre><code>df = pd.read_csv('test.csv')
+new_data = myfunc(df)
+new_data.save_json('new_data.json')
+</code></pre>
+<p>This can still be consistent with previous recommendations as long as you access filename properties at the top level of your script. In this example, the filenames are stored as members of the <code>params</code> object.</p>
+<pre><code>params = params_0x1()
+df = pd.read_csv(params.test_csv_fname)
+new_data = myfunc(df)
+new_data.save_json(params.output_json_fname)
+</code></pre>
+                    </div>
+                </div>
+            </div>
+        </article>
+        <!-- Footer-->
+        <footer class="border-top">
+            <div class="container px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <ul class="list-inline text-center">
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-facebook-f fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                        </ul>
+                        <div class="small text-center text-muted fst-italic">Copyright &copy; Devin J. Cornell 2021</div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        <!-- Bootstrap core JS-->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Core theme JS-->
+        <script src="/js/blog.js"></script>
+    </body>
+</html>
