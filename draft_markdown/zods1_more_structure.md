@@ -1,5 +1,5 @@
 ---
-title: "Zen of Data Science 1: More structure is better"
+title: "Data Science Principles 1: More structure is better"
 subtitle: "Here I discuss Akin to the Zen of Python, here I propose a set of design principles that can improve the flexibility, reproducibility, and risk of errors in code you write for data science projects."
 date: "May 28, 2023"
 id: "zods_more_structure"
@@ -10,18 +10,36 @@ As I wrap up my data-heavy PhD in Sociology and do some freelance consulting, I 
 
 High-quality code means that it is easy to read, simple, easy to restructure, and embodies optimal computational performance - all important aspects of any data science project. This will be the first of several blog posts on the topic. The principle for this article is as follows.
 
-> ***Know thy data: the structure of data should be explicit in your object design.***
+> ***The structure of your data should be explicit in your code.***
 
-More specifically, I have three primary recommendations:
+More specifically, *use objects to explicitly represent your data* at every stage of your pipeline, and avoid dataframes or nested iterables when possible. This builds upon the [Zen of Python](https://peps.python.org/pep-0020/) principles suggesting that "explicit is better than implicit" and "flat is better than nested." Building explicit structure into your data pipeline can provide some built-in gaurantees about your data at every stage of your pipeline.
 
-1. *Use objects to explicitly represent your data* at every stage of your pipeline and avoid dataframes or nested iterables when possible. This builds upon the [Zen of Python](https://peps.python.org/pep-0020/) principles suggesting that "explicit is better than implicit" and "flat is better than nested." Building explicit structure into your data pipeline can provide some built-in gaurantees about your data to reduce the potential for errors and improve readability.
-
-2. *Implement data validation as part of data storage objects.* Data storage objects are a great place to add data validation code because they make valid data criteria obvious to the reader at the same point where they examine structure.
-
-3. *Propogate missing data information through the full pipeline.* When computational resources allow, I recommend you keep track of missing data throughout your pipeline instead of filtering at various stages of the process. This allows you to evaluate the potential effects of this missing data as it relates to any intermediary representation. It may save you time later as the project progresses.
+I recommend using factory method constructors, built-in validation, and data-only attributes (avoid non-data references).
 
 
-# Theory of Data Analysis Pipelines
+1. ***Use objects to represent data.*** The object definition should explicitly describe attributes of the data, and it should _only_ be used to store and manipulate these features
+
+2. ***Instantiate the objects using factory method constructors.*** The constructors of your data objects should only accept raw data elements - use factory methods for alternate constructors that involve any parsing or conversion/validation logic.
+
+3. ***Add additional functionality through classes that access the same data.*** Create methods in your data objects to return new objects with that functionality instead of using inheritance or other OOP techniques. This prevents your data objects from becoming too cluttered as you add new functionality to extend your analyses.
+
+4. ***For simple cases, extend collection data types.*** When you need to create objects for collections of data, first try subclassing existing types like lists or arrays to create case-specific factory method constructors. This is simpler than creating new objects that contain collection types, and worth using until your use case becomes more complicated.
+
+5. ***Also keep objects for missing data.*** Instead of filtering missing data early in your pipeline to simplify downstream methods, continue to use objects even for missing data. While this add additional logic to downstream methods, it may be worth the effort when evaluating the effect of missing data or the project shifts to use a wider range of data.
+
+
+
+
+0000. ***Build validation into your objects*** directly either to be used in the factory method constructors or as part of the constructor (with the ability to turn it off for performance).
+
+3. ***Data objects should only store data*** - avoid adding references to other objects or functionality. You can build other container objects to handle more complex data structures, but your data objects should only store data.
+
+4. ***Keep objects for missing data*** so that it can be propogated downstream in the pipeline, rather than filtering or otherwise handling missing data at the input. You may make decisions about how to filter or impute missing data downstream as part of project outputs.
+
+3. *Propogate missing data information through the full pipeline:* When computational resources allow, I recommend you keep track of missing data throughout your pipeline instead of filtering at various stages of the process. This allows you to evaluate the potential effects of this missing data as it relates to any intermediary representation. It may save you time later as the project progresses.
+
+
+# Data Analysis Pipelines
 
 It will be helpful to first outline a skeleton of a data science project to see why some design patterns, programming principles, and project management strategies are better suited for data analysis than others. By definition, data analysis involves the transformation of one type of data to another. For instance, maybe you are given a csv file and asked to generate a figure, or retrieve json data from an API and asked to produce a regression table or machine learning model. In these instances, your clients (whether it be journal reviewers, customers, or managers) expect you to transform some type of input data into data of some format for human interpretation.
 
