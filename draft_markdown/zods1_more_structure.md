@@ -218,9 +218,9 @@ Simply create a new factory method called `from_json` to create a data object fr
             )
 
 
-# 3. Extend collection data types for simple cases
+# 3. Represent Collections as Objects
 
-My third recommendation is to create custom collection objects by extending existing collection types, or, at the very least, by encapsulating the collections (the decision may be language-dependent). This too follows the Zen of Data Science tenant that "explicit is better than implicit." 
+My third recommendation is to create custom collection objects by extending existing collection types, or, at the very least, by encapsulating the collections (the decision may be language-dependent). This alone improves readability, but, perhaps more importantly, it makes it easier to assess exactly which operations can and should be done on a collection of these particular objects. This too follows the Zen of Data Science tenant that "explicit is better than implicit."
 
 
 In python, you would most likely want to use the `typing` package.
@@ -263,16 +263,157 @@ Note that alternatively you could create a more complicated encapsulation scheme
 This requires more work to build out methods for the collection though, so I recommend it primarily in more complicated cases.
 
 
+
 ## Transformations on Collections
 
 Transformations on collections may be useful for a number of applications. Whether you extended a built-in collection or made your own, any methods you would apply to a collection of data objects can be placed in these classes.
 
-As an example, 
+As an example, lets create a function that groups irises by their species. Note, importantly, that we use `self.__class__()` to construct an `Irises` object instead of a regular list.
 
-    species: Species
+        ...
+        def group_by_species(self) -> typing.Dict[Species, Irises]:
+            groups = dict()
+            for ir in self:
+                groups.setdefault(ir.species, self.__class__())
+                groups[ir.species].append(ir)
+            return groups
+
+You could create filter, map, or a number of other methods here for manipulating collections, just be sure to wrap the output in the collection object constructor.
+
+### Concurrency in Transformations
+
+As a logical extension, note that these may be good placess to add parallelization code.
+
+For instance, refer to the `IrisEntry.calc_area` method we created earlier to produce the `IrisArea` object associated with each `IrisEntry` object. We can create a new method on `Irises` which opens a [pool of workers](https://docs.python.org/3/library/multiprocessing.html) with the multiprocessing module and calls the `calc_area` method on each iris in parallel.
+
+        ...
+        def calc_areas_parallel(self, n_processes: int = 4) -> typing.List[IrisArea]:
+            with multiprocessing.Pool(n_processes) as p:
+                areas = p.map(self.calc_iris_area, self)
+            return areas
+        
+        @staticmethod
+        def calc_iris_area(iris: IrisEntry) -> IrisArea:
+            return iris.calc_area()
 
 
 
+One logical application of transformations on collections might be to provide parallization.
+
+of this interface for transformation would be to add parellized code to the transformations on collections. For instance, 
+
+        def calc_area(self) -> tuple:
+            return IrisArea(self.sepal_area(), self.petal_area())
+
+
+
+# 4. Add additional functionality through method-only classes that access the same data
+
+Now I offer a solution to the situation where you need to add a large number of methods to your data objects. Instead of attaching all methods to the data object itself or creating a new base class from which the data object inherits, you can create an additional object definition with the relevant methods that operate on the original data object, and, ideally, _only_ on that data object. You can then call those methods on a temporary instance of the child object created through a method of the original data object.
+
+Let us start with an example where we want to create plotting functionality to our data object. In this case, we could imagine a wide range of functions that make visualizations in various ways, and it might clean things up to have them defined in a single place that won't clutter up the tranformation methods that are a part of the original data object. This is a good case for this approach.
+
+Lets first create a new class that will manage the plotting methods. The following is a dataclass with exactly one attribute - the `Irises` that will be plotted. I include one example method that plots the sepal length against it's width. Note that this method primarily access data from the `self.irises` instance.
+
+    import matplotlib.pyplot as plt
+    @dataclasses.dataclass
+    class PyPlotter:
+        irises: Irises
+        
+        def sepal_scatter(self):
+            plot = plt.scatter(
+                x = [ir.sepal_length for ir in self.irises], 
+                y = [ir.sepal_width for ir in self.irises], 
+            )
+            return plot
+    
+Because it is a dataclass, you can use the constructor directly and then call the method on that object. 
+
+    plotter = PyPlotter(irises)
+    plotter.sepal_scatter()
+
+This solution works quite fine. However, it may be convenient to access these methods directly from the Irises object. Because teh `PyPlotter` object contains only the irises data, we can create a method to return the plotter on which we can then call the plotting methods. In python, we can use the `property` decorator that will call a function merely by accessing an attribute of the same name. 
+
+        ...
+        @property
+        def plot(self):
+            return PyPlotter(self)
+
+This method simply calls the default constructor of the plot class. Now we can access these methods as attributes of the `plot` property.
+
+    irises.plot.sepal_scatter()
+
+While there is some performance cost to this approach, the organizational benefit may be substantial enough to be worth it.
+
+## More Complicated Method Classes
+
+There may be cases where you want to similarly extend the data object in a way that changes the format of the original data without transforming it in any substantive way. In cases when that format change is expensive, you can follow a formula that is similar to the above, but do the transformation in a factory method of the child class which is called from a method of the data class.
+
+As an example, lets say we want to use ggplot through the `plotnine` python package to plot features of our irises. Unlike `matplotlib`, plotting in this package is typically done through dataframes, so we will need to convert the `Irises` object to a dataframe before doing any plotting. This new class includes the factory method constructor and a method to create a scatter plot.
+
+    import plotnine
+    @dataclasses.dataclass
+    class GGPlotter:
+        iris_df: pd.DataFrame
+            
+        @classmethod
+        def from_irises(cls, irises: Irises):
+            return cls(pd.DataFrame([dataclasses.asdict(ir) for ir in irises]))
+        
+        def sepal_scatter(self):
+            return (plotnine.ggplot(plotnine.aes(x='sepal_length', y='sepal_width'), self.iris_df)
+                + plotnine.geom_point()
+            )
+
+Then, we simply call the factory method constructor from a data object method to instantiate the plotter. The method requires more than a call to a constructor, so we do not use the `property` decorator to make it clear to the user that something expensive is happening here.
+        
+        ...
+        def ggplotter(self):
+            return GGPlotter.from_irises(self)
+
+And then we can access the plotting methods from a temporary or permanent instance of `GGPlotter`.
+
+    irises.ggplotter().sepal_scatter()
+
+    plotter = irises.ggplotter()
+    plotter.sepal_scatter()
+
+Notice that this example is very similar to the `IrisArea` above - it is a convenient pattern for both extending functionality and creating substantive transformations.
+
+
+# 5. Also keep objects for missing data
+
+My final recommendation here is to keep track of missing data throughout your pipeline rather than filtering it in intermediary steps. As with any software engineering project, the questions you ask using your data will change along with the assumptions you make to answer them. For that reason, I recommend refraining from filtering missing data at any point in your pipeline - instead, create objects that store the missing data just as you would with non-missing data, and build methods to check for the missing data.
+
+The method could simply look like the following.
+
+        ...
+        @property
+        def species_is_missing(self) -> bool:
+            return self.species is None
+
+And use this method to filter at the point of use, rather than as a step in the process.
+
+    missing_irises = [
+        IrisEntry(1.0, 1.0, 1.0, 1.0, None),
+        IrisEntry(1.0, 1.0, 1.0, 1.0, None),
+    ]
+    sepal_lengths = [ir.sepal_length for ir in missing_irises if not ir.species_is_missing]
+
+
+
+
+
+# ----------------------- 
+methods have something in common - they all produce visualization.
+
+Logically, it might clutter things up to add plotting methods
+
+
+The next recommendation is that you create additional classes that contain the original data object to add additional methods once you require a large number of them. Ideally your code would be organized in a way such that you do not end up with classes with a large number of methods, but this can be a consequence of my first principle - that is, methods that operate on a particular piece of data (and only that data) should appear in the data object. To make your code more modular, I recommend
+
+
+Now lets say you want to add additional features to the original data object but don't necessarily want to create a large number of new methods on the same class. This challenge is more organizational than necessary, as these methods could easily be added 
 
 
 # ------------------------------------------------ (old stuff)
