@@ -17,67 +17,40 @@ More specifically, *use objects to explicitly represent your data* at every stag
 I recommend using factory method constructors, built-in validation, and data-only attributes (avoid non-data references).
 
 
-1. ***Use objects to represent data.*** The object definition should explicitly describe attributes of the data, and it should _only_ be used to store and manipulate these features
+1. ***Use objects to represent data.*** The object definition should explicitly describe attributes of the data, and it should _only_ be used to store and manipulate the defined features. It should probably be immutable, too.
 
 2. ***Instantiate the objects using factory method constructors.*** The constructors of your data objects should only accept raw data elements - use factory methods for alternate constructors that involve any parsing or conversion/validation logic.
 
-3. ***Add additional functionality through classes that access the same data.*** Create methods in your data objects to return new objects with that functionality instead of using inheritance or other OOP techniques. This prevents your data objects from becoming too cluttered as you add new functionality to extend your analyses.
+3. ***For simple cases, extend collection data types.*** When you need to create objects for collections of data, first try subclassing existing types like lists or arrays to create case-specific factory method constructors. This is simpler than creating new objects that contain collection types, and worth using until your use case becomes more complicated.
 
-4. ***For simple cases, extend collection data types.*** When you need to create objects for collections of data, first try subclassing existing types like lists or arrays to create case-specific factory method constructors. This is simpler than creating new objects that contain collection types, and worth using until your use case becomes more complicated.
+4. ***Add additional functionality through classes that access the same data.*** Create methods in your data objects to return new objects with that functionality instead of using inheritance or other OOP techniques. This prevents your data objects from becoming too cluttered as you add new functionality to extend your analyses.
 
 5. ***Also keep objects for missing data.*** Instead of filtering missing data early in your pipeline to simplify downstream methods, continue to use objects even for missing data. While this add additional logic to downstream methods, it may be worth the effort when evaluating the effect of missing data or the project shifts to use a wider range of data.
 
-
-
-
-# Data Analysis Pipelines
-
-It will be helpful to first outline a skeleton of a data science project to see why some design patterns, programming principles, and project management strategies are better suited for data analysis than others. By definition, data analysis involves the transformation of one type of data to another. For instance, maybe you are given a csv file and asked to generate a figure, or retrieve json data from an API and asked to produce a regression table or machine learning model. In these instances, your clients (whether it be journal reviewers, customers, or managers) expect you to transform some type of input data into data of some format for human interpretation.
-
-One way to think of these projects is as a pipeline: the pipeline starts with your source data and involves a series of transformations produced until the final result is produced. The figure below shows an example data pipeline. Each block represents some kind of structure that your data takes - essentially a set of measurements and relationships between them - and lines represent the algorithm you use to transform it. Some of these structures may be written to disk and loaded later down the pipeline in another script, and some of the transformations may appear as part of every script. Importantly, these datasets have dependency relations such that they are all derived from either the client source data or some outside source, such as a fitted statistical model or a sentiment analysis dictionary used to transform your client source data.
-
-![data science pipeline overview](https://storage.googleapis.com/public_data_09324832787/ds_pipelines.svg)
-
-As an analyst, your job is to build data pipelines that minimize the likelihood of errors, maximize reproducability (by others and yourself), and optimize flexibility for future changes. The following principles are designed to support these goals.
-
 # 1. Use objects to represent your data
 
-First, I recommend representing each observation or data point in your code as an explicit class or struct with an explicitly defined set of properties, and preferably with strict data types or at least type annotations (and possibly active type checking). In this way, 
+First, I recommend representing each observation or data point as a class or struct with a defined set of properties that is explicit in your code. These classes should follow two principles: (1) the data they contain should be immutable - any transformations should result in new data objects; and (2) data objects should _only_ be used to store and transform the attributes of the data - any other functionality can be implemented through defined methods; 
 
-+ Your static analyzer (typically as part of your IDE) can identify any errors in your code before you actually run it.
+Here are a few benefits of using this approach.
 
++ Most importantly, your code can be understood by the reader without running your code or even reading data description documentation.
 
++ Your compiler or static analyzer (typically as part of your IDE) can identify any errors in your code before you actually run it.
 
-By this I mean that your data pipeline should keep track of the structure of your source and intermediary data without being presented with the input data itself. While it is tempting to pass dataframes (often from csv files) or nested iterables (e.g. lists of dictionaries) through your data pipeline because they are robust and you can use them to do many things, these exact attributes serve to increase the risk of errors in your code and make it harder for the programmer to read or modify in the future. Adding more structure to your design can provide built-in gaurantees about the structure of your data at any point in the pipeline, even in the absence of validation procedures.
++ You can create objects that represent placeholders for your data to build out your pipeline before you even have your data (assuming you know what it will look like). 
 
-At first glance it seems like building in more structure is tedious and unnessecary, but we've all experienced the scenario where very simple analyses become increasingly complex as our project scope widens, we need to make changes based on intermediary results, or the objectives of the project change entirely. In the real world, simple projects inevitably become more complicated over time, and building more explicit structure into your pipeline designs can help to mitigate some of the issues that arise in that case.
-
-Because data is a noun, for most languages I recommend creating immutable (unchangable) objects with a fixed set of properties to represent collections of data. On a theoretical level, let us first imagine that our source data includes various measurements taken on a set of plants. Assuming there is overlap between the measurements taken on each plant and the number of measurements can be enumerated and is no greater than 30 or 40, I recommend creating an object to represent each plant, and parsing input data into a sequence of those objects. 
-
-In this case, the first step of your data pipeline should be to convert your input data into a sequence of these plant objects. By placing the data into these objects, you are committing to some gaurantees that can be taken for granted by any function that attempts to use these objects. First of all, we gaurantee that every plant will have the same set of properties that we can work with (whether they represent missing data or accessing them raises an error is a different question). Without running your code, you can detect 
-
-Any static analysis assistant in your IDE like Intellisense etc will recognize cases when you try to access an attribute that does not exist.
++ You can easily create simulations using dummy objects.
 
 
-when passing this data to a future function. Any function this data is passed into 
+### Example in Python
 
- know that every plant will have the same set of properties. If 
-
-with enumerated properties to represent a piece of data. In the examples below 
-
-They often encourage you to examine data through introspection at intermediary points in your pipeline, and make it difficult for code validators to keep track of the structure of that data at each point. 
-
-In data science it is particularly important to be able to track down the procedures used to produce a given data result, and building more explicit structure into that pipeline can make it easier to understand and change later.
-
-For illustration purposes, I'm going to use the iris dataset loaded from seaborn. The dataset is provided as a single dataframe with five columns (of which we will use the 3 shown here).
+First let me start with an illustration of what I mean using Python, although I believe most popular languages will support this approach. To this end, I am going to use the iris dataset loaded from the seaborn package. The dataset is provided as a single dataframe with five columns (of which we will use the 3 shown here).
 
     import seaborn
     import pandas as pd
 
     iris_df = seaborn.load_dataset("iris")
-    iris_df = iris_df[['sepal_length', 'sepal_width', 'species']]
     iris_df.head()
-
 
 The first five rows look like the following:
 
@@ -88,9 +61,185 @@ The first five rows look like the following:
     3           4.6          3.1  setosa
     4           5.0          3.6  setosa
 
-Now I will illustrate potential issues 
+With the help of the increasingly popular `dataclasses` package, the following class can be used to represent a single observation of this data instead. You can see that the following object has five attributes, four of which are floats and one of which is a string. A dataclass simply creates a default constructor that requres these five attributes of the same names to be passed. As promised, the object is only focused on is data.
+
+    import dataclasses
+
+    @dataclasses.dataclass
+    class IrisEntry:
+        sepal_length: float
+        sepal_width: float
+        petal_length: float
+        petal_width: float
+        species: str
+
+It is a regular class, so you may add methods or additional attributes, but be sure not to add any additional state information to the class itself.
+
+        ...
+
+        def sepal_area(self) -> float:
+            return self.sepal_length * self.sepal_width
+        
+        def petal_area(self) -> float:
+            return self.petal_length * self.petal_width
+
+Later I will discuss collections of these objects, but for now lets stick with classes representing single observations.
+
+While this particular data object should be immutable, we can create methods to return objects of a different data type to represent some data transformation. For instance, lets say we want to create an additional object to represent surface areas in an iris. Using the same procedure, we create a new dataclass and add a method to `IrisEntry` to create this object.
+
+    @dataclasses.dataclass
+    class IrisArea:
+        sepal_area: float
+        petal_area: float
+        species: str
+        
+        def surface_area(self) -> float:
+            return self.sepal_area + self.petal_area
+
+And the method used to create the iris area will look like the following.
+
+        ...
+        def calc_area(self) -> tuple:
+            return IrisArea(self.sepal_area(), self.petal_area())
+
+Create the iris entry and the area objects like this:
+
+    iris_entry = IrisEntry(1.0, 2.0, 3.0, 4.0, 'setosa')
+    iris_area = iris_entry.calc_area()
+    iris_area.petal_area, iris_area.species
+
+In this way, each data object stores only one type of data and derivative data types can be produced using methods that are part of data objects. This is a simple, yet powerful, example of a fundamental operation in data science projects.
+
+Using the data object approach, you are building gaurantees into any downstream operation that uses these objects: namely, you are gauranteeing that these attributes exist as part of your object. Any methods that are part of this data object use only these original attributes (in addition to any input), and apply only to a single iris object (rather than a set of them). Without ever touching your code, both human readers and static analyzers know the structure of your data.
+
+
+# 2. Instantiate data objects using factory method constructors
+
+My second recommendation is to use factory methods, rather than default constructors, to instantiate data objects. This means putting any logic needed for parsing or preprocessing into a non-constructor method that returns an instance of the data object. This recommendation involves use of the [factory design pattern](https://web.archive.org/web/20210130220433/http://as.ynchrono.us/2014/12/asynchronous-object-initialization.html), an important design pattern used by software engineers. The essential feature of this pattern is that you can separate the logic of parsing or transforming data from the actual data itself by placing them in separate functions.
+
+Perhaps the most useful feature of this approach is that you can easily add methods for constructing the object from different types of input data. For instance, you could have separate methods for constructing a data object from JSON and CSV file formats. Or, perhaps you have two different html formats in which your data could appear - in that case, you can add a factory method for each version.
+
+In Python, the factory design pattern is implemented using a [class method](https://realpython.com/factory-method-python/), which is a function with the `classmethod` decorator that returns an instance of the data object to which it is attached. Building on the previous code, the factory method would look like the following:
+
+        ...
+        @classmethod
+        def from_dataframe_row(cls, row: pd.Series):
+            return cls(
+                sepal_length = row['sepal_length'],
+                sepal_width = row['sepal_width'],
+                petal_length = row['petal_length'],
+                petal_width = row['petal_width'],
+                species = row['species'],
+            )
+
+Note that in class methods, we follow the convention of calling the first argument "`cls`" instead of "`self`" because these methods are passed the class type itself instead of an instance of the class. So the call to `cls()` is actually calling the object constructor, which is created by the `dataclass` decorator in this case. So we pass the rows of the iris dataframe to the factory method using the following code.
+
+    for ind, row in iris_df.iterrows():
+        new_iris = IrisEntry.from_dataframe_row(row)
+        print(new_iris)
+        break
+
+Which prints the following:
+
+    IrisEntry(sepal_length=5.1, sepal_width=3.5, petal_length=1.4, petal_width=0.2, species='setosa')
+
+Pretty straightforward - you can apply the factory method to each row of the dataframe after using pandas to read the csv file.
+
+Now lets say that you have additional data in json format, which I simulate here by transforming the dataframe.
+
+    iris_list = iris_df.to_dict(orient='records')
+    iris_list[:2]
+
+The data will look something like this after parsing the json to python objects.
+
+    [
+        {
+            'sepal_length': 5.1,
+            'sepal_width': 3.5,
+            'petal_length': 1.4,
+            'petal_width': 0.2,
+            'species': 'setosa'
+        },
+        {
+            'sepal_length': 4.9,
+            'sepal_width': 3.0,
+            'petal_length': 1.4,
+            'petal_width': 0.2,
+            'species': 'setosa'
+        }
+    ]
+
+Simply create a new factory method called `from_json` to create a data object from json instead of a dataframe.
+
+        ...
+        @classmethod
+        def from_json(cls, iris_data: dict):
+            return cls(
+                sepal_length = iris_data['sepal_length'],
+                sepal_width = iris_data['sepal_width'],
+                petal_length = iris_data['petal_length'],
+                petal_width = iris_data['petal_width'],
+                species = iris_data['species'],
+            )
+
+
+# 3. Extend collection data types for simple cases
+
+My third recommendation is to create custom collection objects by extending existing collection types, or, at the very least, by encapsulating the collections (the decision may be language-dependent). This too follows the Zen of Data Science tenant that "explicit is better than implicit." 
+
+
+In python, you would most likely want to use the `typing` package.
+
+    import typing
+    class Irises(typing.List):
+        
+        @classmethod
+        def from_dataframe(cls, df: pd.DataFrame):
+            irises = cls()
+            for ind, row in iris_df.iterrows():
+                irises.append(IrisEntry.from_dataframe_row(row))
+            return irises
+
+You can also add the json factory method.
+
+        ...
+        @classmethod
+        def from_json(cls, iris_list: list):
+            return cls([IrisEntry.from_json(irow) for irow in iris_list])
+
+Then construct the object as follows.
+    
+    irises = Irises.from_json(iris_list)
+
+Here `Irises` is essentially a list with a custom type that includes additional factory methods at this point.
+
+Note that alternatively you could create a more complicated encapsulation scheme when the collection needs to do more complicated things.
+
+    @dataclasses.dataclass
+    class IrisCollection:
+        irises: typing.List[IrisEntry]
+        
+        @classmethod
+        def from_json(cls, iris_list: list):
+            return cls(irises=[IrisEntry.from_json(irow) for irow in iris_list])
+
+    iris_collection = IrisCollection.from_json(iris_list)
+
+This requires more work to build out methods for the collection though, so I recommend it primarily in more complicated cases.
+
+## More Complicated Transformations
+
+
+# ------------------------------------------------ (old stuff)
+
+
+
 
 ## The problem with implicit data structures
+
+My students (and a younger me) often argue that building in more structure is tedious and unnessecary given the power of data frames and other collection types. Why create objects when you can just apply a series of operations on a dataframe? While it is true that using simple dataframes is faster - and still, perhaps, appropriate for demonstrations or quick analyses, I have decided over the years that this additional overhead is probably worth it as projects evolve and requirements start to change. I will now go through 
+
+
 
 For illustration, I created a simpler diagram with two linear data pipelines depicting the transformation of the input data into an intermediate data structure which is changed into the final data to be shared with the customer (a table or figure, let's say). As I noted earlier, almost every part of your data analysis pipeline will look something like this. In the top example, we do not keep track of the structure of the input or intermediate data in our code explicitly, wheras in the bottom pipeline we represent them as objects A, B, and C. The idea is that pipelines with explicit references to data structure in the code make it easier to understand what each transformation is doing - in theory, we (and the static analyzer in your IDE) could understand the entire pipeline without ever running our code.
 
@@ -99,9 +248,10 @@ For illustration, I created a simpler diagram with two linear data pipelines dep
 As a hypothetical, let's say you are seeing a potential issue in your final data structure - a figure, let's say - and you want to investigate why you observe a given value. First you hypothesize that the issue may have been with function/script 2, and so we first need to understand the structure of the intermediary data which it transformed. There are three approaches to understanding the intermediate data structure when we have not been explicit in our code: 
 
 1. remember the structure of that data - generally a terrible idea in software design because you may be looking at this years later or someone else may be looking at it;
-2. run the first pipeline component and use some runtime introspection tool (breakpoints, print statements, debuggers, etc) to look at the data - possible but clunky and time-consuming; or 
-3. do some mental bookkeeping to trace the original input data (which may also require introspection) through the pipeline - also a time-consuming activity. If, however, you had built explicit object definitions into your code, you would know the structure of the data exactly without looking at the code used to generate it. Thus, it separates the logic of your operations from the structure of your data.
 
+2. run the first pipeline component and use some runtime introspection tool (breakpoints, print statements, debuggers, etc) to look at the data - possible but clunky and time-consuming; or 
+
+3. do some mental bookkeeping to trace the original input data (which may also require introspection) through the pipeline - also a time-consuming activity. If, however, you had built explicit object definitions into your code, you would know the structure of the data exactly without looking at the code used to generate it. Thus, it separates the logic of your operations from the structure of your data.
 
 Instead, I recommend creating objects to represent atomic or higher-order pieces of data that you ingest as a starting point. As an exampl, use 
 
