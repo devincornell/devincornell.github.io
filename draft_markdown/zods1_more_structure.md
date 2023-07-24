@@ -1,21 +1,23 @@
 ---
-title: "Data Science Principles 1: More structure is better"
-subtitle: "Here I discuss Akin to the Zen of Python, here I propose a set of design principles that can improve the flexibility, reproducibility, and risk of errors in code you write for data science projects."
+title: "Data Science Patterns: More structure is better"
+subtitle: "I propose several patterns for building your data science pipelines."
 date: "May 28, 2023"
 id: "zods_more_structure"
 ---
 
-As I wrap up my data-heavy PhD in Sociology and do some freelance consulting, I thought I'd share some suggestions for software design principles that can improve the flexibility, reproducibility, and risk of errors in your data analysis code. I grew into these principles as I completed a wide range research projects and taught many cohorts of data-oriented social science undergraduates, but I found discussions with professional software engineers to be especially helpful, as they are specifically trained to write high-quality code. There is much that data scientists can learn from software engineers.
+As I wrap up my data-heavy PhD in Sociology and do some freelance consulting, I wanted to share some suggestions for software design principles that can improve the flexibility, reproducibility, and risk of errors in your data analysis code. I grew into these principles as I completed a wide range research projects and taught many cohorts of data-oriented social science undergraduates, but I found discussions with professional software engineers to be especially helpful, as they are specifically trained to write high-quality code. There is much that data scientists can learn from software engineers.
 
+While some of these are derived directly from classical design patterns and guidelines proposed in the [Zen of Python](https://peps.python.org/pep-0020/), others come directly from my own experience in managing both large and small data science projects. Some of these recommendations depart from conventional wisdom, and, in those cases, I argue that the specific requirements of data science projects may indeed justify the departure.
 
-High-quality code means that it is easy to read, simple, easy to restructure, and embodies optimal computational performance - all important aspects of any data science project. This will be the first of several blog posts on the topic. The principle for this article is as follows.
+My students (and a younger me) have often argued that the approaches here can be tedious to implement and unnescary for most applications. I have been fortunate to have my own mentors that have convinced me, over time, that it is often worth it, in the long run, as no project is ever as small and simple as it seems. It also took me some adjustment to get used to using a proper IDE to help me navigate callstacks and object definitions more quickly - I highly recommend familiarizing yourself with an IDE if you have interest in writing more modular code.
+
+High-quality code means that it is easy to read, requires minimal restructuring, and embodies optimal computational performance - all important aspects of any data science project. This will likely be the first of several blog posts on the topic. The principle for this article is as follows.
 
 > ***The structure of your data should be explicit in your code.***
 
-More specifically, *use objects to explicitly represent your data* at every stage of your pipeline, and avoid dataframes or nested iterables when possible. This builds upon the [Zen of Python](https://peps.python.org/pep-0020/) principles suggesting that "explicit is better than implicit" and "flat is better than nested." Building explicit structure into your data pipeline can provide some built-in gaurantees about your data at every stage of your pipeline.
+More specifically, *use objects to explicitly represent your data* at every stage of your pipeline, and avoid dataframes or nested iterables when possible. This builds upon the  principles suggesting that "explicit is better than implicit" and "flat is better than nested." Building explicit structure into your data pipeline can provide some built-in gaurantees about your data at every stage of your pipeline.
 
-I recommend using factory method constructors, built-in validation, and data-only attributes (avoid non-data references).
-
+Now I propose five more specific recommendations that follow this tenant.
 
 1. ***Use objects to represent data.*** The object definition should explicitly describe attributes of the data, and it should _only_ be used to store and manipulate the defined features. It should probably be immutable, too.
 
