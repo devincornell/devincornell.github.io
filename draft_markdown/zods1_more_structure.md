@@ -2,7 +2,7 @@
 title: "Data Science Patterns: More structure is better"
 subtitle: "I propose several patterns for building your data science pipelines."
 date: "May 28, 2023"
-id: "zods_more_structure"
+id: "zods1_more_structure"
 ---
 
 As I wrap up my data-heavy PhD in Sociology and do some freelance consulting, I wanted to share some suggestions for software design principles that can improve the flexibility, reproducibility, and risk of errors in your data analysis code. I grew into these principles as I completed a wide range research projects and taught many cohorts of data-oriented social science undergraduates, but I found discussions with professional software engineers to be especially helpful, as they are specifically trained to write high-quality code. There is much that data scientists can learn from software engineers.
@@ -19,15 +19,15 @@ More specifically, *use objects to explicitly represent your data* at every stag
 
 Now I propose five more specific recommendations that follow this tenant.
 
-1. ***Use objects to represent data.*** The object definition should explicitly describe attributes of the data, and it should _only_ be used to store and manipulate the defined features. It should probably be immutable, too.
+1. ***Use objects to represent data.*** The object definition should explicitly describe attributes of the data, and it the object should _only_ be used to store and manipulate the defined features. It should probably be immutable, too.
 
-2. ***Instantiate the objects using factory method constructors.*** The constructors of your data objects should only accept raw data elements - use factory methods for alternate constructors that involve any parsing or conversion/validation logic.
+2. ***Use static factory methods to instantiate data objects.*** Include any logic for creating the object in static factory methods, instead of constructors. Use separate methods for constructing the object from different data sources. Data object constructors should not include any logic - it should simply store the provided data.
 
-3. ***For simple cases, extend collection data types.*** When you need to create objects for collections of data, first try subclassing existing types like lists or arrays to create case-specific factory method constructors. This is simpler than creating new objects that contain collection types, and worth using until your use case becomes more complicated.
+3. ***Create types for collections of data objects.*** Create custom types to manage collections of data objects instead of using builtin lists or arrays. For simple cases, you can extend existing builtin types, although collection containers may be appropriate in some cases. At a minimum, you can add static class methods to initialize multiple data objects in sequence.
 
-4. ***Add additional functionality through classes that access the same data.*** Create methods in your data objects to return new objects with that functionality instead of using inheritance or other OOP techniques. This prevents your data objects from becoming too cluttered as you add new functionality to extend your analyses.
+4. ***Group related functionality into classes containing data objects.*** Instead of cluttering data objects with a large number of methods for analyzing or transforming, create factory methods that return new objects for transforming or summarizing the original data.
 
-5. ***Also keep objects for missing data.*** Instead of filtering missing data early in your pipeline to simplify downstream methods, continue to use objects even for missing data. While this add additional logic to downstream methods, it may be worth the effort when evaluating the effect of missing data or the project shifts to use a wider range of data.
+5. ***Retain objects representing missing data.*** Instead of filtering missing data early in your pipeline to simplify downstream methods, continue to use objects even for missing data. While this add additional logic to downstream methods, it may be worth the effort when evaluating the effect of missing data or the project shifts to use a wider range of data.
 
 # 1. Use objects to represent your data
 
@@ -44,7 +44,7 @@ Here are a few benefits of using this approach.
 + You can easily create simulations using dummy objects.
 
 
-### Example in Python
+## Basic Example in Python
 
 First let me start with an illustration of what I mean using Python, although I believe most popular languages will support this approach. To this end, I am going to use the iris dataset loaded from the seaborn package. The dataset is provided as a single dataframe with five columns (of which we will use the 3 shown here).
 
@@ -89,7 +89,7 @@ Later I will discuss collections of these objects, but for now lets stick with c
 
 ## Enums for Categorical Variables
 
-Note that in cases where we have categorical variables that can take any of a small, fixed, and enumerable set of values, it is usually best to create an explicit enum type to make their behavior clearer to the reader and make some gaurantees about the input data. I will illustrate this feature in Python using the species variable, although this may not be the best application since it can't handle new species types. In cases where your dataset is not expected to change, it may still be the best option.
+In cases where we have categorical variables that can take any of a small, fixed, and enumerable set of values, it is usually best to create an explicit enum type to make their behavior clearer to the reader and make some gaurantees about the input data. I will illustrate this feature in Python using the species variable, although this may not be the best application since it can't handle new species types. In cases where your dataset is not expected to change, it may still be the best option.
 
 First, we can list all species in the dataset:
 
@@ -116,7 +116,7 @@ Then, we will need a mapping from the original input data to the enum values. We
         'virginica': Species.VIRGINICA,
     }
 
-Then, as part of the object construction code, we would pass the input string through this map to get the actual species type.
+Then, as part of the object construction code, we would pass the input string through this map to get the actual species type. This creates gaurantees that the specified enum values are exhaustive of all possible inputs, and the construction code will raise an exception if it does not appear in this set.
 
 Note that in cases where there are a larger number of species that are held in some database, it might still be good to do validation when the object is being created.
 
@@ -150,9 +150,9 @@ In this way, each data object stores only one type of data and derivative data t
 Using the data object approach, you are building gaurantees into any downstream operation that uses these objects: namely, you are gauranteeing that these attributes exist as part of your object. Any methods that are part of this data object use only these original attributes (in addition to any input), and apply only to a single iris object (rather than a set of them). Without ever touching your code, both human readers and static analyzers know the structure of your data.
 
 
-# 2. Instantiate data objects using factory method constructors
+# 2. Use static factory methods to instantiate data objects
 
-My second recommendation is to use factory methods, rather than default constructors, to instantiate data objects. This means putting any logic needed for parsing or preprocessing into a non-constructor method that returns an instance of the data object. This recommendation involves use of the [factory design pattern](https://web.archive.org/web/20210130220433/http://as.ynchrono.us/2014/12/asynchronous-object-initialization.html), an important design pattern used by software engineers. The essential feature of this pattern is that you can separate the logic of parsing or transforming data from the actual data itself by placing them in separate functions.
+My second recommendation is to use static factory methods, rather than constructors, to instantiate data objects. This means putting any logic needed for conversion or preprocessing into a non-constructor method that returns an instance of the class itself. The essential feature of this pattern is that you can separate the logic of parsing or transforming data from the actual data itself by placing them in separate functions.
 
 Perhaps the most useful feature of this approach is that you can easily add methods for constructing the object from different types of input data. For instance, you could have separate methods for constructing a data object from JSON and CSV file formats. Or, perhaps you have two different html formats in which your data could appear - in that case, you can add a factory method for each version.
 
@@ -166,10 +166,12 @@ In Python, the factory design pattern is implemented using a [class method](http
                 sepal_width = row['sepal_width'],
                 petal_length = row['petal_length'],
                 petal_width = row['petal_width'],
-                species = row['species'],
+                species = species_name_map[row['species']],
             )
 
-Note that in class methods, we follow the convention of calling the first argument "`cls`" instead of "`self`" because these methods are passed the class type itself instead of an instance of the class. So the call to `cls()` is actually calling the object constructor, which is created by the `dataclass` decorator in this case. So we pass the rows of the iris dataframe to the factory method using the following code.
+Note that in class methods, we follow the convention of calling the first argument "`cls`" instead of "`self`" because these methods are passed the class type itself instead of an instance of the class. So the call to `cls()` is actually calling the object constructor, which is created by the `dataclass` decorator in this case.
+
+We then pass the rows of the iris dataframe to the factory method using the following code.
 
     for ind, row in iris_df.iterrows():
         new_iris = IrisEntry.from_dataframe_row(row)
@@ -180,9 +182,11 @@ Which prints the following:
 
     IrisEntry(sepal_length=5.1, sepal_width=3.5, petal_length=1.4, petal_width=0.2, species='setosa')
 
-Pretty straightforward - you can apply the factory method to each row of the dataframe after using pandas to read the csv file.
+Pretty straightforward - you can apply the factory method to each row of the dataframe after using pandas to read the csv file. I will give an example of an extended solution to this later when I discuss creating types for collections of data objects.
 
-Now lets say that you have additional data in json format, which I simulate here by transforming the dataframe.
+## Additional Static Factory Methods
+
+Now, for example, lets say that you have additional data in json format, which I simulate here by transforming the dataframe.
 
     iris_list = iris_df.to_dict(orient='records')
     iris_list[:2]
@@ -216,19 +220,32 @@ Simply create a new factory method called `from_json` to create a data object fr
                 sepal_width = iris_data['sepal_width'],
                 petal_length = iris_data['petal_length'],
                 petal_width = iris_data['petal_width'],
-                species = iris_data['species'],
+                species = species_name_map[iris_data['species']],
             )
 
+You must explicitly choose the constructor depending on the input data this way, which is a good thing. 
 
-# 3. Represent Collections as Objects
+## Simple Factory Patterns
 
-My third recommendation is to create custom collection objects by extending existing collection types, or, at the very least, by encapsulating the collections (the decision may be language-dependent). This alone improves readability, but, perhaps more importantly, it makes it easier to assess exactly which operations can and should be done on a collection of these particular objects. This too follows the Zen of Data Science tenant that "explicit is better than implicit."
+In cases where you need to decide, use a factory-like pattern to choose the correct data based on the input.
 
+    constructor_method_map = {
+        'json': IrisEntry.from_json,
+        'dataframe': IrisEntry.from_dataframe_row,
+    }
+    def iris_factory(data_format: str, raw_data: typing.Union[dict, pd.Series]) -> IrisEntry:
+        return constructor_method_map[data_format](raw_data)
 
-In python, you would most likely want to use the `typing` package.
+# 3. Create types for collections of data objects
+
+My third recommendation is to create custom collection objects by extending existing collection types, or, in more complicated cases, by encapsulating the collections (the decision may be language-dependent). This alone improves readability, but, perhaps more importantly, it makes it easier to assess exactly which operations can and should be done on a collection of these particular objects. This too follows the Zen of Data Science tenant that "explicit is better than implicit."
+
+## Inherit from builtin types
+
+In python, you would most likely want to use the `typing` package to inherit from builtin types. We inherit from `typing.List` here, and the type hint gives additional information about the intended use of the class.
 
     import typing
-    class Irises(typing.List):
+    class Irises(typing.List[IrisEntry]):
         
         @classmethod
         def from_dataframe(cls, df: pd.DataFrame):
@@ -250,6 +267,8 @@ Then construct the object as follows.
 
 Here `Irises` is essentially a list with a custom type that includes additional factory methods at this point.
 
+## Encapsulation approach
+
 Note that alternatively you could create a more complicated encapsulation scheme when the collection needs to do more complicated things.
 
     @dataclasses.dataclass
@@ -266,7 +285,7 @@ This requires more work to build out methods for the collection though, so I rec
 
 
 
-## Transformations on Collections
+## Transformations on collections
 
 Transformations on collections may be useful for a number of applications. Whether you extended a built-in collection or made your own, any methods you would apply to a collection of data objects can be placed in these classes.
 
@@ -281,6 +300,7 @@ As an example, lets create a function that groups irises by their species. Note,
             return groups
 
 You could create filter, map, or a number of other methods here for manipulating collections, just be sure to wrap the output in the collection object constructor.
+
 
 ### Concurrency in Transformations
 
