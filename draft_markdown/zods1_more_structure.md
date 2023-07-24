@@ -30,15 +30,6 @@ I recommend using factory method constructors, built-in validation, and data-onl
 
 
 
-0000. ***Build validation into your objects*** directly either to be used in the factory method constructors or as part of the constructor (with the ability to turn it off for performance).
-
-3. ***Data objects should only store data*** - avoid adding references to other objects or functionality. You can build other container objects to handle more complex data structures, but your data objects should only store data.
-
-4. ***Keep objects for missing data*** so that it can be propogated downstream in the pipeline, rather than filtering or otherwise handling missing data at the input. You may make decisions about how to filter or impute missing data downstream as part of project outputs.
-
-3. *Propogate missing data information through the full pipeline:* When computational resources allow, I recommend you keep track of missing data throughout your pipeline instead of filtering at various stages of the process. This allows you to evaluate the potential effects of this missing data as it relates to any intermediary representation. It may save you time later as the project progresses.
-
-
 # Data Analysis Pipelines
 
 It will be helpful to first outline a skeleton of a data science project to see why some design patterns, programming principles, and project management strategies are better suited for data analysis than others. By definition, data analysis involves the transformation of one type of data to another. For instance, maybe you are given a csv file and asked to generate a figure, or retrieve json data from an API and asked to produce a regression table or machine learning model. In these instances, your clients (whether it be journal reviewers, customers, or managers) expect you to transform some type of input data into data of some format for human interpretation.
