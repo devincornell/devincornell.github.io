@@ -27,7 +27,7 @@ Now I propose five more specific recommendations from this principle.
 
 Now I will give some more detailed guidance.
 
-# 1. Use objects to represent your data
+## 1. Use objects to represent your data
 
 First, I recommend representing each observation or data point as a class or struct with a defined set of properties that is explicit in your code. These classes should follow two principles: (1) the data they contain should be immutable - any transformations should result in new data objects; and (2) data objects should _only_ be used to store and transform the attributes of the data - any other functionality can be implemented through defined methods; 
 
@@ -42,7 +42,7 @@ Here are a few benefits of using this approach.
 + You can easily create simulations using dummy objects.
 
 
-### Basic Example in Python
+#### Basic Example in Python
 
 First let me start with an illustration of what I mean using Python, although I believe most popular languages will support this approach. To this end, I am going to use the iris dataset loaded from the seaborn package. The dataset is provided as a single dataframe with five columns (of which we will use the 3 shown here).
 
@@ -86,7 +86,7 @@ It is a regular class, so you may add methods or additional attributes, but be s
 
 Later I will discuss collections of these objects, but for now lets stick with classes representing single observations (irises, in this case).
 
-### Enums for Categorical Variables
+#### Enums for Categorical Variables
 
 In cases where we have categorical variables that can take any of a small, fixed, and enumerable set of values, it is usually best to create an explicit enum type to make their behavior clearer to the reader and make some gaurantees about the input data. I will illustrate this feature in Python using the species variable, although this may not be the best application since it can't handle new species types. In cases where your dataset is not expected to change, it may still be the best option.
 
@@ -119,7 +119,7 @@ Then, as part of the object construction code, we would pass the input string th
 
 Note that in cases where there are a larger number of species that are held in some database, it might still be good to do validation when the object is being created.
 
-### Basic Transformations
+#### Basic Transformations
 
 While this particular data object should be immutable, we can create methods to return objects of a different data type to represent some data transformation. For instance, lets say we want to create an additional object to represent surface areas in an iris. Using the same procedure, we create a new dataclass and add a method to `IrisEntry` to create this object.
 
@@ -149,7 +149,7 @@ In this way, each data object stores only one type of data and derivative data t
 Using the data object approach, you are building gaurantees into any downstream operation that uses these objects: namely, you are gauranteeing that these attributes exist as part of your object. Any methods that are part of this data object use only these original attributes (in addition to any input), and apply only to a single iris object (rather than a set of them). Without ever touching your code, both human readers and static analyzers know the structure of your data.
 
 
-# 2. Use static factory methods to instantiate data objects
+## 2. Use static factory methods to instantiate data objects
 
 My second recommendation is to use static factory methods, rather than constructors, to instantiate data objects. This means putting any logic needed for conversion or preprocessing into a non-constructor method that returns an instance of the class itself. The essential feature of this pattern is that you can separate the logic of parsing or transforming data from the actual data itself by placing them in separate functions.
 
@@ -183,7 +183,7 @@ Which prints the following:
 
 Pretty straightforward - you can apply the factory method to each row of the dataframe after using pandas to read the csv file. I will give an example of an extended solution to this later when I discuss creating types for collections of data objects.
 
-### Additional Static Factory Methods
+#### Additional Static Factory Methods
 
 Now, for example, lets say that you have additional data in json format, which I simulate here by transforming the dataframe.
 
@@ -224,7 +224,7 @@ Simply create a new factory method called `from_json` to create a data object fr
 
 You must explicitly choose the constructor depending on the input data this way, which is a good thing. 
 
-### Simple Factory Patterns
+#### Simple Factory Patterns
 
 Sometimes your program may need to decide which method to used - in that case you can use a factory-like pattern.
 
@@ -236,11 +236,11 @@ Sometimes your program may need to decide which method to used - in that case yo
     def iris_factory(data_format: str, raw_data: typing.Union[dict, pd.Series]) -> IrisEntry:
         return constructor_method_map[data_format](raw_data)
 
-# 3. Create types for collections of data objects
+## 3. Create types for collections of data objects
 
 My third recommendation is to create custom collection objects by extending existing collection types, or, in more complicated cases, by encapsulating the collections (the decision may be language-dependent). This alone improves readability, but, perhaps more importantly, it makes it easier to assess exactly which operations can and should be done on a collection of these particular objects. This too follows the Zen of Data Science tenant that "explicit is better than implicit."
 
-### Inherit from builtin types
+#### Inherit from builtin types
 
 In python, you would most likely want to use the `typing` package to inherit from builtin types. We inherit from `typing.List` here, and the type hint gives additional information about the intended use of the class.
 
@@ -267,7 +267,7 @@ Then construct the object as follows.
 
 Here `Irises` is essentially a list with a custom type that includes additional factory methods at this point.
 
-### Encapsulation approach
+#### Encapsulation approach
 
 Note that alternatively you could create a more complicated encapsulation scheme when the collection needs to do more complicated things.
 
@@ -285,7 +285,7 @@ This requires more work to build out methods for the collection though, so I rec
 
 
 
-### Transformations on collections
+#### Transformations on collections
 
 Transformations on collections may be useful for a number of applications. Whether you extended a built-in collection or made your own, any methods you would apply to a collection of data objects can be placed in these classes.
 
@@ -302,7 +302,7 @@ As an example, lets create a function that groups irises by their species. Note,
 You could create filter, map, or a number of other methods here for manipulating collections, just be sure to wrap the output in the collection object constructor.
 
 
-### Concurrency in Transformations
+#### Concurrency in Transformations
 
 Naturally, these may be good places to add parallelization code. Parallelization is another case where having immutable data objects, and therefore clean functions (those that have no side effects other than to produce the output), is particularly useful.
 
@@ -321,13 +321,13 @@ For example, refer to the `IrisEntry.calc_area` method we created earlier to pro
 All parallelization code here exists within the transformation method itself.
 
 
-# 4. Group related methods into wrapper objects
+## 4. Group related methods into wrapper objects
 
 It is generally inadvisable to create data objects with a large number of methods for transformation or summarization because it will make it harder to maintain and use (see [discussions amongst Pandas developers](https://www.reddit.com/r/Python/comments/11fio85/comment/jajz9a0/?utm_source=share&utm_medium=web2x&context=3)). As you develop new ways to transform and view your data objects, it will be useful to extend functionality into new namespaces.
 
 To do this, I recommend adding functionally-related methods to a separate wrapper class which maintains _only_ a reference to the original data object. You can then create a method in the data object which instantiates the wrapper object simply by passing a reference to itself, and you can call any methods on that instance.
 
-### Basic wrapper object
+#### Basic wrapper object
 
 Let us start with an example where we want to create plotting functionality to our data object. In this case, we could imagine a wide range of functions that make visualizations in various ways, and it might clean things up to have them defined in a single place that won't clutter up the tranformation methods that are a part of the original data object. This is a good case for this approach.
 
@@ -363,7 +363,7 @@ This method simply calls the default constructor of the plot class. Now we can a
 
 While there is some performance cost to this approach, the organizational benefit may be substantial enough to warrant it.
 
-### More Complicated Method Classes
+#### More Complicated Method Classes
 
 There may be cases where you want to similarly extend the data object in a way that changes the format of the original data. In cases when that format change is expensive, you can follow a formula that is similar to the above, but do the transformation in a factory method of the child class which is called from a method of the data class.
 
@@ -399,12 +399,12 @@ And then we can access the plotting methods from a temporary or permanent instan
 Notice that this example is very similar to the `IrisArea` above - it is a convenient pattern for both extending functionality and creating substantive transformations.
 
 
-# 5. Also keep objects for missing data
+## 5. Also keep objects for missing data
 
 My final recommendation here is to keep track of missing data throughout your pipeline rather than filtering it in intermediary steps. As with any software engineering project, the questions you ask using your data will change along with the assumptions you make to answer them. For that reason, I recommend refraining from filtering missing data at any point in your pipeline - instead, create objects that store the missing data just as you would with non-missing data, and build methods to check for the missing data.
 
 
-### Explicit Checking
+#### Explicit Checking
 
 The method could simply look like the following.
 
@@ -421,7 +421,7 @@ And use this method to filter at the point of use, rather than as a step in the 
     ]
     sepal_lengths = [ir.sepal_length for ir in missing_irises if not ir.species_is_missing]
 
-### Custom Exceptions
+#### Custom Exceptions
 
 While you would experience a performance hit, you could also use exception handling to identify missing data. This approach is more "pythonic" in that you try to access the data and simply raise an error when it fails or is not available. Again, this would incur a performance hit, so I typically use it less.
 
@@ -447,7 +447,7 @@ Then in your downstream code you should use a `try`...`except` to handle the mis
             pass # ignore it
 
 
-# In summary
+## Feedback?
 
-Blah.
+
 
