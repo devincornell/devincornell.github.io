@@ -5,19 +5,15 @@ date: "May 28, 2023"
 id: "zods1_more_structure"
 ---
 
-As I wrap up my data-heavy PhD in Sociology and do some freelance consulting, I wanted to share some suggestions for software design principles that can improve the flexibility, reproducibility, and risk of errors in your data analysis code. I grew into these principles as I completed a wide range research projects and taught many cohorts of data-oriented social science undergraduates, but I found discussions with professional software engineers to be especially helpful, as they are specifically trained to write high-quality code. There is much that data scientists can learn from software engineers.
-
-While some of these are derived directly from classical design patterns and guidelines proposed in the [Zen of Python](https://peps.python.org/pep-0020/), others come directly from my own experience in managing both large and small data science projects. Some of these recommendations depart from conventional wisdom, and, in those cases, I argue that the specific requirements of data science projects may indeed justify the departure.
+As I wrap up my PhD and do some freelance consulting, I wanted to share some programming patterns and principles that I have been using for data science projects. Over the years, I drew on general programming principles like [Zen of Python](https://peps.python.org/pep-0020/) and discussions with software engineers to improve my own research code and teaching materials. I will provide several specific recommendations based on the needs and trajectories of data science projects I have been involved with up to this point.
 
 My students (and a younger me) have often argued that the approaches here can be tedious to implement and unnescary for most applications. I have been fortunate to have my own mentors that have convinced me, over time, that it is often worth it, in the long run, as no project is ever as small and simple as it seems. It also took me some adjustment to get used to using a proper IDE to help me navigate callstacks and object definitions more quickly - I highly recommend familiarizing yourself with an IDE if you have interest in writing more modular code.
 
-High-quality code means that it is easy to read, requires minimal restructuring, and embodies optimal computational performance - all important aspects of any data science project. This will likely be the first of several blog posts on the topic. The principle for this article is as follows.
+High-quality code means that it is easy to read, requires minimal restructuring, and embodies optimal computational performance - all important aspects of any data science project. The principle for this article is as follows.
 
 > ***The structure of your data should be explicit in your code.***
 
-More specifically, *use objects to explicitly represent your data* at every stage of your pipeline, and avoid dataframes or nested iterables when possible. This builds upon the  principles suggesting that "explicit is better than implicit" and "flat is better than nested." Building explicit structure into your data pipeline can provide some built-in gaurantees about your data at every stage of your pipeline.
-
-Now I propose five more specific recommendations that follow this tenant.
+Now I propose five more specific recommendations from this principle.
 
 1. ***Use objects to represent data.*** The object definition should explicitly describe attributes of the data, and it the object should _only_ be used to store and manipulate the defined features. It should probably be immutable, too.
 
@@ -333,7 +329,9 @@ of this interface for transformation would be to add parellized code to the tran
 
 # 4. Group related methods into wrapper objects
 
-It is generally inadvisable to create data objects with a large number of methods for transformation or summarization, so instead you can group related methods into wrapper objects, or objects that encapsulate the original data object. You can then construct the wrapper class in a method of the original data object. The wrapper classes should contain _only_ the original data objects.
+It is generally inadvisable to create data objects with a large number of methods for transformation or summarization because it will make it harder to maintain and use (see [discussions amongst Pandas developers](https://www.reddit.com/r/Python/comments/11fio85/comment/jajz9a0/?utm_source=share&utm_medium=web2x&context=3)). As you develop new ways to transform and view your data objects, it will be useful to extend functionality into new namespaces.
+
+To do this, I recommend adding functionally-related methods to a separate wrapper class which maintains _only_ a reference to the original data object. You can then create a method in the data object which instantiates the wrapper object simply by passing a reference to itself, and you can call any methods on that instance.
 
 ### Basic wrapper object
 
