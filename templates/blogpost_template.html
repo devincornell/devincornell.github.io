@@ -52,7 +52,7 @@
                             <span class="meta">
                                 Posted by
                                 <a href="/">Devin J. Cornell</a>
-                                on {{post.date}}
+                                on {{post.date.strftime("%b %-d, %Y")}}
                             </span>
                         </div>
                     </div>
@@ -100,7 +100,7 @@
                                 </a>
                             </li>
                         </ul>
-                        <div class="small text-center text-muted fst-italic">Copyright &copy; Devin J. Cornell 2021</div>
+                        <div class="small text-center text-muted fst-italic">Copyright &copy; Devin J. Cornell 2021<br/><hr/>{{updated}}</div>
                     </div>
                 </div>
             </div>
