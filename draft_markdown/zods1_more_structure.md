@@ -410,7 +410,7 @@ Notice that this example is very similar to the `IrisArea` above - it is a conve
 
 ## 5. Also keep objects for missing data
 
-My final recommendation here is to keep track of missing data throughout your pipeline rather than filtering it in intermediary steps. As with any software engineering project, the questions you ask using your data will change along with the assumptions you make to answer them. For that reason, I recommend refraining from filtering missing data at any point in your pipeline - instead, create objects that store the missing data just as you would with non-missing data, and build methods to check for the missing data.
+My final recommendation here is to keep track of missing data, encapsulated in data objects, throughout your pipeline rather than filtering it in intermediary steps. As with any software engineering project, the questions you ask using your data will change along with the assumptions you make to answer them. For that reason, I recommend refraining from filtering missing data at any point in your pipeline - instead, create objects that store the missing data just as you would with non-missing data, and build methods to check for the missing data.
 
 
 #### Explicit Checking
