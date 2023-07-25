@@ -5,7 +5,7 @@ date: "July 25, 2023"
 id: "zods1_more_structure"
 ---
 
-As I wrap up my PhD and do some freelance consulting, I wanted to share some programming patterns and principles that I have been using for data science projects. Over the years, I drew on general programming principles like [Zen of Python](https://peps.python.org/pep-0020/) and discussions with software engineers to improve my own research code and teaching materials. I will provide several specific guidelines and patterns based on the needs and trajectories of data science projects I have been involved with up to this point.
+As I wrap up my PhD and do some freelance consulting, I wanted to share some programming patterns and principles that I have been using for data science projects. Over the years, I drew on general programming principles like [Zen of Python](https://peps.python.org/pep-0020/) as well as discussions with software engineers to improve my own research code and teaching materials. I will provide several specific guidelines and patterns based on the needs and trajectories of data science projects I have been involved with up to this point.
 
 My students (and a younger me) have often argued that the approaches here can be tedious to implement and unnescary for most applications. I have been fortunate to have my own mentors that have convinced me, over time, that it is often worth it, in the long run, as no project is ever as small and simple as it seems. It also took me some adjustment to get used to using a proper IDE to help me navigate callstacks and object definitions more quickly - I highly recommend familiarizing yourself with an IDE if you have interest in writing more modular code.
 
