@@ -1,7 +1,7 @@
 ---
 title: "Patterns for Data Science: More structure is better"
 subtitle: "Use these patterns to create better data pipelines."
-date: "May 28, 2023"
+date: "July 25, 2023"
 id: "zods1_more_structure"
 ---
 
