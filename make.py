@@ -17,16 +17,16 @@ if __name__ == '__main__':
 
 
     posts = list()
-    post_folder = 'post/'
+    html_folder = 'post/'
     for fp in pathlib.Path('post_markdown/').glob('*.md'):
         print('found post:',  fp)
         
-        post = blogmaker.BlogPost.from_markdown_file(fp)
+        post = blogmaker.BlogPost.from_markdown_file(fp, html_folder)
         print(f'{post.info()}\n')
 
         html = bmaker.render_blogpost_page(post)
         
-        with pathlib.Path(f'{post_folder}/{post.tag}.html').open('w') as f:
+        with post.html_path.open('w') as f:
             f.write(html)
             
         posts.append(post)
@@ -41,10 +41,10 @@ if __name__ == '__main__':
     for fp in pathlib.Path('draft_markdown/').glob('*.md'):
         print('found draft:',  fp)
         
-        post = blogmaker.BlogPost.from_markdown_file(fp)
+        post = blogmaker.BlogPost.from_markdown_file(fp, html_folder)
         html = bmaker.render_blogpost_page(post)
         
-        with pathlib.Path(f'{draft_folder}/{post.tag}.html').open('w') as f:
+        with post.html_path.open('w') as f:
             f.write(html)
 
         

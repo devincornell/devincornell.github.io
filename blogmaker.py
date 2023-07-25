@@ -51,6 +51,7 @@ class BlogPost:
     ''' Contains information about an individual post.
     '''
     fpath: pathlib.Path
+    html_path: pathlib.Path
     title: str
     subtitle: str
     entered_date: str
@@ -61,6 +62,7 @@ class BlogPost:
     def info(self) -> typing.Dict[str,str]:
         return {
             'fpath': self.fpath,
+            'html_path': self.html_path,
             'tag': self.tag,
             'title': self.title,
             'subtitle': self.subtitle,
@@ -69,8 +71,9 @@ class BlogPost:
         }
     
     @classmethod
-    def from_markdown_file(cls, fname: str) -> BlogPost:
+    def from_markdown_file(cls, fname: str, html_folder: str) -> BlogPost:
         fpath = pathlib.Path(fname)
+        html_folder = pathlib.Path(html_folder)
         
         with fpath.open('r') as f:
             md_text = f.read()
@@ -79,6 +82,7 @@ class BlogPost:
         
         return cls(
             fpath = fpath,
+            html_path = html_folder.joinpath(post_data['id']+'.html'),
             title = post_data['title'],
             subtitle = post_data['subtitle'],
             entered_date = post_data['date'],
