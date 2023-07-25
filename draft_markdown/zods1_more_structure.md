@@ -7,7 +7,7 @@ id: "zods1_more_structure"
 
 As I wrap up my PhD and do some freelance consulting, I wanted to share some programming patterns and principles that I have been using for data science projects. Over the years, I drew on general programming principles like [Zen of Python](https://peps.python.org/pep-0020/) as well as discussions with software engineers to improve my own research code and teaching materials. I will provide several specific guidelines and patterns based on the needs and trajectories of data science projects I have been involved with up to this point.
 
-My students (and a younger me) have often argued that the approaches here can be tedious to implement and unnescary for most applications. I have been fortunate to have my own mentors that have convinced me, over time, that it is often worth it, in the long run, as no project is ever as small and simple as it seems. It also took me some adjustment to get used to using a proper IDE to help me navigate callstacks and object definitions more quickly - I highly recommend familiarizing yourself with an IDE if you have interest in writing more modular code.
+My students (and a younger me) have often argued that the approaches here can be tedious to implement and unnecessary for most applications. I have been fortunate to have my own mentors that have convinced me, over time, that it is often worth it, in the long run, as no project is ever as small and simple as it seems. It also took me some adjustment to get used to using a proper IDE to help me navigate callstacks and object definitions more quickly - I highly recommend familiarizing yourself with an IDE if you have interest in writing more modular code.
 
 High-quality code means that it is easy to read, requires minimal restructuring, and embodies optimal computational performance - all important aspects of any data science project. The principle for this article is as follows.
 
@@ -19,7 +19,7 @@ Now I propose five more specific recommendations from this principle, which I wi
 
 2. ***[Use static factory methods to instantiate data objects](#pr2).*** Include any logic for creating the object in static factory methods, instead of constructors. Use separate methods for constructing the object from different data sources. Data object constructors should not include any logic - it should simply store the provided data.
 
-3. ***[Create types for collections of data objects](#pr3).*** Create custom types to manage collections of data objects instead of using builtin lists or arrays. For simple cases, you can extend existing builtin types, although collection containers may be appropriate in some cases. At a minimum, you can add static class methods to initialize multiple data objects in sequence.
+3. ***[Create types for collections of data objects](#pr3).*** Create custom types to manage collections of data objects instead of using built-in lists or arrays. For simple cases, you can extend existing built-in types, although collection containers may be appropriate in some cases. At a minimum, you can add static class methods to initialize multiple data objects in sequence.
 
 4. ***[Group related methods into wrapper objects](#pr4).*** Instead of cluttering data objects with a large number of methods for analyzing or transforming, create factory methods that return new objects for transforming or summarizing the original data.
 
@@ -31,7 +31,7 @@ Now I will give some more detailed guidance.
 
 ## 1. Use objects to represent your data
 
-First, I recommend representing each observation or data point as a class or struct with a defined set of properties that is explicit in your code. These classes should follow two principles: (1) the data they contain should be immutable - any transformations should result in new data objects; and (2) data objects should _only_ be used to store and transform the attributes of the data - any other functionality can be implemented through defined methods; 
+First, I recommend representing each observation or data point as a class or struct with a defined set of properties that is explicit in your code. These classes should follow two principles: (1) the data they contain should be immutable - any transformations should result in new data objects; and (2) data objects should _only_ be used to store and transform the attributes of the data - any other functionality can be implemented through defined methods.
 
 Here are a few benefits of using this approach.
 
@@ -65,7 +65,7 @@ The first five rows look like the following:
 
 With the help of the increasingly popular `dataclasses` package (see an introduction [here](https://realpython.com/python-data-classes/)), the following class can be used to represent a single observation of this data instead. You don't need to use packages like `dataclasses` or `attrs`, but they make your life easier by creating basic data-only constructors.
 
-You can see that the following object has five attributes, four of which are floats and one of which is a string. A dataclass simply creates a default constructor that requres these five attributes of the same names to be passed. As promised, the object is only focused on is data.
+You can see that the following object has five attributes, four of which are floats and one of which is a string. A dataclass simply creates a default constructor that requires these five attributes of the same names to be passed. As promised, the object is only focused on the data it encapsulates.
 
     import dataclasses
 
@@ -86,11 +86,11 @@ It is a regular class, so you may add methods or additional attributes, but be s
         def petal_area(self) -> float:
             return self.petal_length * self.petal_width
 
-Later I will discuss collections of these objects, but for now lets stick with classes representing single observations (irises, in this case).
+Later I will discuss collections of these objects, but for now let's stick with classes representing single observations (irises, in this case).
 
 #### Enums for Categorical Variables
 
-In cases where we have categorical variables that can take any of a small, fixed, and enumerable set of values, it is usually best to create an explicit enum type to make their behavior clearer to the reader and make some gaurantees about the input data. I will illustrate this feature in Python using the species variable, although this may not be the best application since it can't handle new species types. In cases where your dataset is not expected to change, it may still be the best option.
+In cases where we have categorical variables that can take any of a small, fixed, and enumerable set of values, it is usually best to create an explicit enum type to make their behavior clearer to the reader and make some guarantees about the input data. I will illustrate this feature in Python using the species variable, although this may not be the best application since it can't handle new species types. In cases where your dataset is not expected to change, it may still be the best option.
 
 First, we can list all species in the dataset:
 
@@ -117,13 +117,13 @@ Then, we will need a mapping from the original input data to the enum values. We
         'virginica': Species.VIRGINICA,
     }
 
-Then, as part of the object construction code, we would pass the input string through this map to get the actual species type. This creates gaurantees that the specified enum values are exhaustive of all possible inputs, and the construction code will raise an exception if it does not appear in this set.
+Then, as part of the object construction code, we would pass the input string through this map to get the actual species type. This approach creates guarantees that the specified enum values are exhaustive of all possible inputs, and the construction code will raise an exception if it does not appear in this set.
 
 Note that in cases where there are a larger number of species that are held in some database, it might still be good to do validation when the object is being created.
 
 #### Basic Transformations
 
-While this particular data object should be immutable, we can create methods to return objects of a different data type to represent some data transformation. For instance, lets say we want to create an additional object to represent surface areas in an iris. Using the same procedure, we create a new dataclass and add a method to `IrisEntry` to create this object.
+While this particular data object should be immutable, we can create methods to return objects of a different data type to represent some data transformation. For instance, let's say we want to create an additional object to represent surface areas in an iris. Using the same procedure, we create a new dataclass and add a method to `IrisEntry` to create this object.
 
     @dataclasses.dataclass
     class IrisArea:
@@ -148,7 +148,7 @@ Create the iris entry and the area objects like this:
 
 In this way, each data object stores only one type of data and derivative data types can be produced using methods that are part of data objects. This is a simple, yet powerful, example of a fundamental operation in data science projects.
 
-Using the data object approach, you are building gaurantees into any downstream operation that uses these objects: namely, you are gauranteeing that these attributes exist as part of your object. Any methods that are part of this data object use only these original attributes (in addition to any input), and apply only to a single iris object (rather than a set of them). Without ever touching your code, both human readers and static analyzers know the structure of your data.
+Using the data object approach, you are building guarantees into any downstream operation that uses these objects: namely, you are guaranteeing that these attributes exist as part of your object. Any methods that are part of this data object use only these original attributes (in addition to any input) and apply only to a single iris object (rather than a set of them). Without ever touching your code, both human readers and static analyzers know the structure of your data.
 
 <p id='pr2'>.</p>
 
@@ -156,7 +156,7 @@ Using the data object approach, you are building gaurantees into any downstream 
 
 My second recommendation is to use static factory methods, rather than constructors, to instantiate data objects. This means putting any logic needed for conversion or preprocessing into a non-constructor method that returns an instance of the class itself. The essential feature of this pattern is that you can separate the logic of parsing or transforming data from the actual data itself by placing them in separate functions.
 
-Perhaps the most useful feature of this approach is that you can easily add methods for constructing the object from different types of input data. For instance, you could have separate methods for constructing a data object from JSON and CSV file formats. Or, perhaps you have two different html formats in which your data could appear - in that case, you can add a factory method for each version.
+Perhaps the most useful feature of this approach is that you can easily add methods for constructing the object from different types of input data. For instance, you could have separate methods for constructing a data object from JSON and CSV file formats. Or perhaps you have two different html formats in which your data could appear - in that case, you can add a factory method for each version.
 
 In Python, the factory design pattern is implemented using a [class method](https://realpython.com/factory-method-python/), which is a function with the `classmethod` decorator that returns an instance of the data object to which it is attached. Building on the previous code, the factory method would look like the following:
 
@@ -188,7 +188,7 @@ Pretty straightforward - you can apply the factory method to each row of the dat
 
 #### Additional Static Factory Methods
 
-Now, for example, lets say that you have additional data in json format, which I simulate here by transforming the dataframe.
+Now, for example, let us say that you have additional data in json format, which I simulate here by transforming the dataframe.
 
     iris_list = iris_df.to_dict(orient='records')
     iris_list[:2]
@@ -229,7 +229,7 @@ You must explicitly choose the constructor depending on the input data this way,
 
 #### Simple Factory Patterns
 
-Sometimes your program may need to decide which method to used - in that case you can use a factory-like pattern.
+Sometimes your program may need to decide which method to use - in that case you can use a factory-like pattern.
 
     constructor_method_map = {
         'json': IrisEntry.from_json,
@@ -245,9 +245,9 @@ Sometimes your program may need to decide which method to used - in that case yo
 
 My third recommendation is to create custom collection objects by extending existing collection types, or, in more complicated cases, by encapsulating the collections (the decision may be language-dependent). This alone improves readability, but, perhaps more importantly, it makes it easier to assess exactly which operations can and should be done on a collection of these particular objects. This too follows the Zen of Data Science tenant that "explicit is better than implicit."
 
-#### Inherit from builtin types
+#### Extend built-in types
 
-In python, you would most likely want to use the `typing` package to inherit from builtin types. We inherit from `typing.List` here, and the type hint gives additional information about the intended use of the class.
+In python, you would most likely want to use the `typing` package to inherit from built-in types. We inherit from `typing.List` here, and the type hint gives additional information about the intended use of the class.
 
     import typing
     class Irises(typing.List[IrisEntry]):
@@ -294,7 +294,7 @@ This requires more work to build out methods for the collection though, so I rec
 
 Transformations on collections may be useful for a number of applications. Whether you extended a built-in collection or made your own, any methods you would apply to a collection of data objects can be placed in these classes.
 
-As an example, lets create a function that groups irises by their species. Note, importantly, that we use `self.__class__()` to construct an `Irises` object instead of a regular list.
+As an example, let's create a function that groups irises by their species. Note, importantly, that we use `self.__class__()` to construct an `Irises` object instead of a regular list.
 
         ...
         def group_by_species(self) -> typing.Dict[Species, Irises]:
@@ -332,13 +332,13 @@ All parallelization code here exists within the transformation method itself.
 
 It is generally inadvisable to create data objects with a large number of methods for transformation or summarization because it will make it harder to maintain and use (see [discussions amongst Pandas developers](https://www.reddit.com/r/Python/comments/11fio85/comment/jajz9a0/?utm_source=share&utm_medium=web2x&context=3)). As you develop new ways to transform and view your data objects, it will be useful to extend functionality into new namespaces.
 
-To do this, I recommend adding functionally-related methods to a separate wrapper class which maintains _only_ a reference to the original data object. You can then create a method in the data object which instantiates the wrapper object simply by passing a reference to itself, and you can call any methods on that instance.
+To do this, I recommend adding functionally related methods to a separate wrapper class which maintains _only_ a reference to the original data object. You can then create a method in the data object which instantiates the wrapper object simply by passing a reference to itself, and you can call any methods on that instance.
 
 #### Basic wrapper object
 
 Let us start with an example where we want to create plotting functionality to our data object. In this case, we could imagine a wide range of functions that make visualizations in various ways, and it might clean things up to have them defined in a single place that won't clutter up the tranformation methods that are a part of the original data object. This is a good case for this approach.
 
-Lets first create a new class that will manage the plotting methods. The following is a dataclass with exactly one attribute - the `Irises` that will be plotted. I include one example method that plots the sepal length against it's width. Note that this method primarily access data from the `self.irises` instance.
+Let us first create a new class that will manage the plotting methods. The following is a dataclass with exactly one attribute - the `Irises` that will be plotted. I include one example method that plots the sepal length against it's width. Note that this method primarily accesses data from the `self.irises` instance.
 
     import matplotlib.pyplot as plt
     @dataclasses.dataclass
@@ -372,9 +372,9 @@ While there is some performance cost to this approach, the organizational benefi
 
 #### More Complicated Method Classes
 
-There may be cases where you want to similarly extend the data object in a way that changes the format of the original data. In cases when that format change is expensive, you can follow a formula that is similar to the above, but do the transformation in a factory method of the child class which is called from a method of the data class.
+There may be cases where you want to similarly extend the data object in a way that changes the format of the original data. In cases when that format change is expensive, you can follow a formula that is similar to the above but do the transformation in a factory method of the child class which is called from a method of the data class.
 
-As an example, lets say we want to use ggplot through the `plotnine` python package to plot features of our irises. Unlike `matplotlib`, plotting in this package is typically done through dataframes, so we will need to convert the `Irises` object to a dataframe before doing any plotting. This new class includes the factory method constructor and a method to create a scatter plot.
+As an example, let's say we want to use ggplot through the `plotnine` python package to plot features of our irises. Unlike `matplotlib`, plotting in this package is typically done through dataframes, so we will need to convert the `Irises` object to a dataframe before doing any plotting. This new class includes the factory method constructor and a method to create a scatter plot.
 
     import plotnine
     @dataclasses.dataclass
@@ -439,7 +439,7 @@ In Python, an exception is any class which inherits from `BaseException`, so we 
     class MissingSepalLength(BaseException):
         pass
 
-Now we simply want to raise the exception when the data is missing. There are other ways to do this, but lets say we simply access the `sepal_length` attribute through a custom getter method. The method raises an exception if the value is None, and otherwise returns the value.
+Now we simply want to raise the exception when the data is missing. There are other ways to do this, but let's say we simply access the `sepal_length` attribute through a custom getter method. The method raises an exception if the value is None, and otherwise returns the value.
 
         ...
         def get_sepal_length(self) -> float:
