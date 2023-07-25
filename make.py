@@ -29,7 +29,9 @@ if __name__ == '__main__':
             
         posts.append(post)
         
-    bmaker.render_blogroll_page(posts)
+    br_html = bmaker.render_blogroll_page(posts)
+    with pathlib.Path(f'blog.html').open('w') as f:
+        f.write(br_html)
     
     
     
