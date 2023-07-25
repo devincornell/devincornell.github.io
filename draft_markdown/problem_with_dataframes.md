@@ -11,24 +11,6 @@ Admittedly, part of my motivation for this article is reactionary. Over the last
 
 
 
-The selling point for packages like Pandas or other tabular data structures in R for beginners is precisely that they require minimal code to do powerful things. For instance, much can be acheived using basic filter, mutate, select, join, and grouping functions, and many tutorials, especially those from the tidyverse, teach students to explicitly 
-
-that modifying the operations we perform and the 
-
-
-While there are more tutorials and guides to learn programming than ever before, I 
-
-
-
-Before students learn about classes they are taught to manipulate dataframes, usually in a serial manner where data is transformed from one to the other.
-
-Dataframes (or other tabular data structures) are quentissential to 
-
-
-
-
-
-
 # The data science pipeline
 
 For illustration, I created a simple diagram with two linear data pipelines depicting the transformation of the input data into an intermediate data structure which is changed into the final data to be shared with the customer (a table or figure, let's say). As I noted earlier, almost every part of your data analysis pipeline will look something like this. In the top example, we do not keep track of the structure of the input or intermediate data in our code explicitly, wheras in the bottom pipeline we represent them as objects A, B, and C. The idea is that pipelines with explicit references to data structure in the code make it easier to understand what each transformation is doing - in theory, we (and the static analyzer in your IDE) could understand the entire pipeline without ever running our code.
