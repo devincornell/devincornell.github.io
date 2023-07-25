@@ -22,6 +22,8 @@ if __name__ == '__main__':
         print('found post:',  fp)
         
         post = blogmaker.BlogPost.from_markdown_file(fp)
+        print(f'{post.info()}\n')
+
         html = bmaker.render_blogpost_page(post)
         
         with pathlib.Path(f'{post_folder}/{post.tag}.html').open('w') as f:
