@@ -64,7 +64,7 @@
             <div class="container px-4 px-lg-5">
                 <div class="row gx-4 gx-lg-5 justify-content-center">
                     <div class="col-md-10 col-lg-8 col-xl-7">
-                        <p>As I wrap up my PhD and do some freelance consulting, I wanted to share some programming patterns and principles that I have been using for data science projects. Over the years, I drew on general programming principles like <a href="https://peps.python.org/pep-0020/">Zen of Python</a> and discussions with software engineers to improve my own research code and teaching materials. I will provide several specific recommendations based on the needs and trajectories of data science projects I have been involved with up to this point.</p>
+                        <p>As I wrap up my PhD and do some freelance consulting, I wanted to share some programming patterns and principles that I have been using for data science projects. Over the years, I drew on general programming principles like <a href="https://peps.python.org/pep-0020/">Zen of Python</a> and discussions with software engineers to improve my own research code and teaching materials. I will provide several specific guidelines and patterns based on the needs and trajectories of data science projects I have been involved with up to this point.</p>
 <p>My students (and a younger me) have often argued that the approaches here can be tedious to implement and unnescary for most applications. I have been fortunate to have my own mentors that have convinced me, over time, that it is often worth it, in the long run, as no project is ever as small and simple as it seems. It also took me some adjustment to get used to using a proper IDE to help me navigate callstacks and object definitions more quickly - I highly recommend familiarizing yourself with an IDE if you have interest in writing more modular code.</p>
 <p>High-quality code means that it is easy to read, requires minimal restructuring, and embodies optimal computational performance - all important aspects of any data science project. The principle for this article is as follows.</p>
 <blockquote>
@@ -313,8 +313,8 @@ iris_collection = IrisCollection.from_json(iris_list)
 </code></pre>
 <p>You could create filter, map, or a number of other methods here for manipulating collections, just be sure to wrap the output in the collection object constructor.</p>
 <h3>Concurrency in Transformations</h3>
-<p>Naturally, these may be good places to add parallelization code.</p>
-<p>For instance, refer to the <code>IrisEntry.calc_area</code> method we created earlier to produce the <code>IrisArea</code> object associated with each <code>IrisEntry</code> object. We can create a new method on <code>Irises</code> which opens a <a href="https://docs.python.org/3/library/multiprocessing.html">pool of workers</a> with the multiprocessing module and calls the <code>calc_area</code> method on each iris in parallel.</p>
+<p>Naturally, these may be good places to add parallelization code. Parallelization is another case where having immutable data objects, and therefore clean functions (those that have no side effects other than to produce the output), is particularly useful.</p>
+<p>For example, refer to the <code>IrisEntry.calc_area</code> method we created earlier to produce the <code>IrisArea</code> object associated with each <code>IrisEntry</code> object. We can create a new method on <code>Irises</code> which opens a <a href="https://docs.python.org/3/library/multiprocessing.html">pool of workers</a> with the multiprocessing module and calls the <code>calc_area</code> method on each iris in parallel.</p>
 <pre><code>    ...
     def calc_areas_parallel(self, n_processes: int = 4) -&gt; typing.List[IrisArea]:
         with multiprocessing.Pool(n_processes) as p:
@@ -325,11 +325,7 @@ iris_collection = IrisCollection.from_json(iris_list)
     def calc_iris_area(iris: IrisEntry) -&gt; IrisArea:
         return iris.calc_area()
 </code></pre>
-<p>One logical application of transformations on collections might be to provide parallization.</p>
-<p>of this interface for transformation would be to add parellized code to the transformations on collections. For instance, </p>
-<pre><code>    def calc_area(self) -&gt; tuple:
-        return IrisArea(self.sepal_area(), self.petal_area())
-</code></pre>
+<p>All parallelization code here exists within the transformation method itself.</p>
 <h1>4. Group related methods into wrapper objects</h1>
 <p>It is generally inadvisable to create data objects with a large number of methods for transformation or summarization because it will make it harder to maintain and use (see <a href="https://www.reddit.com/r/Python/comments/11fio85/comment/jajz9a0/?utm_source=share&amp;utm_medium=web2x&amp;context=3">discussions amongst Pandas developers</a>). As you develop new ways to transform and view your data objects, it will be useful to extend functionality into new namespaces.</p>
 <p>To do this, I recommend adding functionally-related methods to a separate wrapper class which maintains <em>only</em> a reference to the original data object. You can then create a method in the data object which instantiates the wrapper object simply by passing a reference to itself, and you can call any methods on that instance.</p>

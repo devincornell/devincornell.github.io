@@ -5,7 +5,7 @@ date: "May 28, 2023"
 id: "zods1_more_structure"
 ---
 
-As I wrap up my PhD and do some freelance consulting, I wanted to share some programming patterns and principles that I have been using for data science projects. Over the years, I drew on general programming principles like [Zen of Python](https://peps.python.org/pep-0020/) and discussions with software engineers to improve my own research code and teaching materials. I will provide several specific recommendations based on the needs and trajectories of data science projects I have been involved with up to this point.
+As I wrap up my PhD and do some freelance consulting, I wanted to share some programming patterns and principles that I have been using for data science projects. Over the years, I drew on general programming principles like [Zen of Python](https://peps.python.org/pep-0020/) and discussions with software engineers to improve my own research code and teaching materials. I will provide several specific guidelines and patterns based on the needs and trajectories of data science projects I have been involved with up to this point.
 
 My students (and a younger me) have often argued that the approaches here can be tedious to implement and unnescary for most applications. I have been fortunate to have my own mentors that have convinced me, over time, that it is often worth it, in the long run, as no project is ever as small and simple as it seems. It also took me some adjustment to get used to using a proper IDE to help me navigate callstacks and object definitions more quickly - I highly recommend familiarizing yourself with an IDE if you have interest in writing more modular code.
 
@@ -304,9 +304,9 @@ You could create filter, map, or a number of other methods here for manipulating
 
 ### Concurrency in Transformations
 
-Naturally, these may be good places to add parallelization code.
+Naturally, these may be good places to add parallelization code. Parallelization is another case where having immutable data objects, and therefore clean functions (those that have no side effects other than to produce the output), is particularly useful.
 
-For instance, refer to the `IrisEntry.calc_area` method we created earlier to produce the `IrisArea` object associated with each `IrisEntry` object. We can create a new method on `Irises` which opens a [pool of workers](https://docs.python.org/3/library/multiprocessing.html) with the multiprocessing module and calls the `calc_area` method on each iris in parallel.
+For example, refer to the `IrisEntry.calc_area` method we created earlier to produce the `IrisArea` object associated with each `IrisEntry` object. We can create a new method on `Irises` which opens a [pool of workers](https://docs.python.org/3/library/multiprocessing.html) with the multiprocessing module and calls the `calc_area` method on each iris in parallel.
 
         ...
         def calc_areas_parallel(self, n_processes: int = 4) -> typing.List[IrisArea]:
@@ -318,13 +318,7 @@ For instance, refer to the `IrisEntry.calc_area` method we created earlier to pr
         def calc_iris_area(iris: IrisEntry) -> IrisArea:
             return iris.calc_area()
 
-One logical application of transformations on collections might be to provide parallization.
-
-of this interface for transformation would be to add parellized code to the transformations on collections. For instance, 
-
-        def calc_area(self) -> tuple:
-            return IrisArea(self.sepal_area(), self.petal_area())
-
+All parallelization code here exists within the transformation method itself.
 
 
 # 4. Group related methods into wrapper objects
