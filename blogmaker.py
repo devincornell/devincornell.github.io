@@ -41,6 +41,7 @@ class BlogMaker:
     
     def render_blogroll_page(self, posts: typing.List[BlogPost]) -> str:
         '''Renders the blogroll page according to the provided template.'''
+        posts = list(sorted(posts, key=lambda p: p.date, reverse=True))
         return self.blogroll_template.render(posts=[p.as_dict() for p in posts])
 
 
