@@ -41,7 +41,7 @@ if __name__ == '__main__':
     for fp in pathlib.Path('draft_markdown/').glob('*.md'):
         print('found draft:',  fp)
         
-        post = blogmaker.BlogPost.from_markdown_file(fp, html_folder)
+        post = blogmaker.BlogPost.from_markdown_file(fp, draft_folder)
         html = bmaker.render_blogpost_page(post)
         
         with post.html_path.open('w') as f:
