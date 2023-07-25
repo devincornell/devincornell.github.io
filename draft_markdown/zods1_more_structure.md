@@ -13,9 +13,9 @@ High-quality code means that it is easy to read, requires minimal restructuring,
 
 > ***The structure of your data should be explicit in your code.***
 
-Now I propose five more specific recommendations from this principle.
+Now I propose five more specific recommendations from this principle, which I will discuss in detail after.
 
-1. ***Use objects to represent data.*** The object definition should explicitly describe attributes of the data, and it the object should _only_ be used to store and manipulate the defined features. It should probably be immutable, too.
+1. ***[Use objects to represent data](#pr1).*** The object definition should explicitly describe attributes of the data, and it the object should _only_ be used to store and manipulate the defined features. It should probably be immutable, too.
 
 2. ***Use static factory methods to instantiate data objects.*** Include any logic for creating the object in static factory methods, instead of constructors. Use separate methods for constructing the object from different data sources. Data object constructors should not include any logic - it should simply store the provided data.
 
@@ -26,6 +26,8 @@ Now I propose five more specific recommendations from this principle.
 5. ***Retain objects representing missing data.*** Instead of filtering missing data early in your pipeline to simplify downstream methods, continue to use objects even for missing data. While this add additional logic to downstream methods, it may be worth the effort when evaluating the effect of missing data or the project shifts to use a wider range of data.
 
 Now I will give some more detailed guidance.
+
+<p id='pr1'>.</p>
 
 ## 1. Use objects to represent your data
 

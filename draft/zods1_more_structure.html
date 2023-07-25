@@ -52,7 +52,7 @@
                             <span class="meta">
                                 Posted by
                                 <a href="/">Devin J. Cornell</a>
-                                on May 28, 2023
+                                on July 25, 2023
                             </span>
                         </div>
                     </div>
@@ -70,10 +70,10 @@
 <blockquote>
 <p><strong><em>The structure of your data should be explicit in your code.</em></strong></p>
 </blockquote>
-<p>Now I propose five more specific recommendations from this principle.</p>
+<p>Now I propose five more specific recommendations from this principle, which I will discuss in detail after.</p>
 <ol>
 <li>
-<p><strong><em>Use objects to represent data.</em></strong> The object definition should explicitly describe attributes of the data, and it the object should <em>only</em> be used to store and manipulate the defined features. It should probably be immutable, too.</p>
+<p><strong><em><a href="#pr1">Use objects to represent data</a>.</em></strong> The object definition should explicitly describe attributes of the data, and it the object should <em>only</em> be used to store and manipulate the defined features. It should probably be immutable, too.</p>
 </li>
 <li>
 <p><strong><em>Use static factory methods to instantiate data objects.</em></strong> Include any logic for creating the object in static factory methods, instead of constructors. Use separate methods for constructing the object from different data sources. Data object constructors should not include any logic - it should simply store the provided data.</p>
@@ -89,6 +89,8 @@
 </li>
 </ol>
 <p>Now I will give some more detailed guidance.</p>
+<p id='pr1'>.</p>
+
 <h2>1. Use objects to represent your data</h2>
 <p>First, I recommend representing each observation or data point as a class or struct with a defined set of properties that is explicit in your code. These classes should follow two principles: (1) the data they contain should be immutable - any transformations should result in new data objects; and (2) data objects should <em>only</em> be used to store and transform the attributes of the data - any other functionality can be implemented through defined methods; </p>
 <p>Here are a few benefits of using this approach.</p>
@@ -424,6 +426,7 @@ sepal_lengths = [ir.sepal_length for ir in missing_irises if not ir.species_is_m
         pass # ignore it
 </code></pre>
 <h2>Feedback?</h2>
+<p>Message me on Instagram/Threads/Twitter @ devinjcornell</p>
                     </div>
                 </div>
             </div>
