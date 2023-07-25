@@ -7,6 +7,7 @@ import dateutil.parser
 import jinja2
 import datetime
 import typing
+import dateutil.parser
 
 #pip install python-frontmatter
 import frontmatter
@@ -52,9 +53,20 @@ class BlogPost:
     fpath: pathlib.Path
     title: str
     subtitle: str
+    entered_date: str
     date: datetime.datetime
     tag: str
     body: str
+
+    def info(self) -> typing.Dict[str,str]:
+        return {
+            'fpath': self.fpath,
+            'tag': self.tag,
+            'title': self.title,
+            'subtitle': self.subtitle,
+            'date': self.date,
+            'entered_date': self.entered_date,
+        }
     
     @classmethod
     def from_markdown_file(cls, fname: str) -> BlogPost:
@@ -69,7 +81,8 @@ class BlogPost:
             fpath = fpath,
             title = post_data['title'],
             subtitle = post_data['subtitle'],
-            date = post_data['date'],
+            entered_date = post_data['date'],
+            date = dateutil.parser.parse(post_data['date']),
             tag = post_data['id'],
             body = post_data.content,
             #body_html = markdown.markdown(post_data.content),
