@@ -17,13 +17,13 @@ Now I propose five more specific recommendations from this principle, which I wi
 
 1. ***[Use objects to represent data](#pr1).*** The object definition should explicitly describe attributes of the data, and it the object should _only_ be used to store and manipulate the defined features. It should probably be immutable, too.
 
-2. ***Use static factory methods to instantiate data objects.*** Include any logic for creating the object in static factory methods, instead of constructors. Use separate methods for constructing the object from different data sources. Data object constructors should not include any logic - it should simply store the provided data.
+2. ***[Use static factory methods to instantiate data objects](#pr2).*** Include any logic for creating the object in static factory methods, instead of constructors. Use separate methods for constructing the object from different data sources. Data object constructors should not include any logic - it should simply store the provided data.
 
-3. ***Create types for collections of data objects.*** Create custom types to manage collections of data objects instead of using builtin lists or arrays. For simple cases, you can extend existing builtin types, although collection containers may be appropriate in some cases. At a minimum, you can add static class methods to initialize multiple data objects in sequence.
+3. ***[Create types for collections of data objects](#pr3).*** Create custom types to manage collections of data objects instead of using builtin lists or arrays. For simple cases, you can extend existing builtin types, although collection containers may be appropriate in some cases. At a minimum, you can add static class methods to initialize multiple data objects in sequence.
 
-4. ***Group related methods into wrapper objects.*** Instead of cluttering data objects with a large number of methods for analyzing or transforming, create factory methods that return new objects for transforming or summarizing the original data.
+4. ***[Group related methods into wrapper objects](#pr4).*** Instead of cluttering data objects with a large number of methods for analyzing or transforming, create factory methods that return new objects for transforming or summarizing the original data.
 
-5. ***Retain objects representing missing data.*** Instead of filtering missing data early in your pipeline to simplify downstream methods, continue to use objects even for missing data. While this add additional logic to downstream methods, it may be worth the effort when evaluating the effect of missing data or the project shifts to use a wider range of data.
+5. ***[Retain objects representing missing data](#pr5).*** Instead of filtering missing data early in your pipeline to simplify downstream methods, continue to use objects even for missing data. While this add additional logic to downstream methods, it may be worth the effort when evaluating the effect of missing data or the project shifts to use a wider range of data.
 
 Now I will give some more detailed guidance.
 
@@ -150,6 +150,7 @@ In this way, each data object stores only one type of data and derivative data t
 
 Using the data object approach, you are building gaurantees into any downstream operation that uses these objects: namely, you are gauranteeing that these attributes exist as part of your object. Any methods that are part of this data object use only these original attributes (in addition to any input), and apply only to a single iris object (rather than a set of them). Without ever touching your code, both human readers and static analyzers know the structure of your data.
 
+<p id='pr2'>.</p>
 
 ## 2. Use static factory methods to instantiate data objects
 
@@ -238,6 +239,8 @@ Sometimes your program may need to decide which method to used - in that case yo
     def iris_factory(data_format: str, raw_data: typing.Union[dict, pd.Series]) -> IrisEntry:
         return constructor_method_map[data_format](raw_data)
 
+<p id='pr3'>.</p>
+
 ## 3. Create types for collections of data objects
 
 My third recommendation is to create custom collection objects by extending existing collection types, or, in more complicated cases, by encapsulating the collections (the decision may be language-dependent). This alone improves readability, but, perhaps more importantly, it makes it easier to assess exactly which operations can and should be done on a collection of these particular objects. This too follows the Zen of Data Science tenant that "explicit is better than implicit."
@@ -323,6 +326,8 @@ For example, refer to the `IrisEntry.calc_area` method we created earlier to pro
 All parallelization code here exists within the transformation method itself.
 
 
+<p id='pr4'>.</p>
+
 ## 4. Group related methods into wrapper objects
 
 It is generally inadvisable to create data objects with a large number of methods for transformation or summarization because it will make it harder to maintain and use (see [discussions amongst Pandas developers](https://www.reddit.com/r/Python/comments/11fio85/comment/jajz9a0/?utm_source=share&utm_medium=web2x&context=3)). As you develop new ways to transform and view your data objects, it will be useful to extend functionality into new namespaces.
@@ -400,6 +405,8 @@ And then we can access the plotting methods from a temporary or permanent instan
 
 Notice that this example is very similar to the `IrisArea` above - it is a convenient pattern for both extending functionality and creating substantive transformations.
 
+
+<p id='pr5'>.</p>
 
 ## 5. Also keep objects for missing data
 

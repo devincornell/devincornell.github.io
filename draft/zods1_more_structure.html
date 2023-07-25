@@ -64,7 +64,7 @@
             <div class="container px-4 px-lg-5">
                 <div class="row gx-4 gx-lg-5 justify-content-center">
                     <div class="col-md-10 col-lg-8 col-xl-7">
-                        <p>As I wrap up my PhD and do some freelance consulting, I wanted to share some programming patterns and principles that I have been using for data science projects. Over the years, I drew on general programming principles like <a href="https://peps.python.org/pep-0020/">Zen of Python</a> and discussions with software engineers to improve my own research code and teaching materials. I will provide several specific guidelines and patterns based on the needs and trajectories of data science projects I have been involved with up to this point.</p>
+                        <p>As I wrap up my PhD and do some freelance consulting, I wanted to share some programming patterns and principles that I have been using for data science projects. Over the years, I drew on general programming principles like <a href="https://peps.python.org/pep-0020/">Zen of Python</a> as well as discussions with software engineers to improve my own research code and teaching materials. I will provide several specific guidelines and patterns based on the needs and trajectories of data science projects I have been involved with up to this point.</p>
 <p>My students (and a younger me) have often argued that the approaches here can be tedious to implement and unnescary for most applications. I have been fortunate to have my own mentors that have convinced me, over time, that it is often worth it, in the long run, as no project is ever as small and simple as it seems. It also took me some adjustment to get used to using a proper IDE to help me navigate callstacks and object definitions more quickly - I highly recommend familiarizing yourself with an IDE if you have interest in writing more modular code.</p>
 <p>High-quality code means that it is easy to read, requires minimal restructuring, and embodies optimal computational performance - all important aspects of any data science project. The principle for this article is as follows.</p>
 <blockquote>
@@ -76,16 +76,16 @@
 <p><strong><em><a href="#pr1">Use objects to represent data</a>.</em></strong> The object definition should explicitly describe attributes of the data, and it the object should <em>only</em> be used to store and manipulate the defined features. It should probably be immutable, too.</p>
 </li>
 <li>
-<p><strong><em>Use static factory methods to instantiate data objects.</em></strong> Include any logic for creating the object in static factory methods, instead of constructors. Use separate methods for constructing the object from different data sources. Data object constructors should not include any logic - it should simply store the provided data.</p>
+<p><strong><em><a href="#pr2">Use static factory methods to instantiate data objects</a>.</em></strong> Include any logic for creating the object in static factory methods, instead of constructors. Use separate methods for constructing the object from different data sources. Data object constructors should not include any logic - it should simply store the provided data.</p>
 </li>
 <li>
-<p><strong><em>Create types for collections of data objects.</em></strong> Create custom types to manage collections of data objects instead of using builtin lists or arrays. For simple cases, you can extend existing builtin types, although collection containers may be appropriate in some cases. At a minimum, you can add static class methods to initialize multiple data objects in sequence.</p>
+<p><strong><em><a href="#pr3">Create types for collections of data objects</a>.</em></strong> Create custom types to manage collections of data objects instead of using builtin lists or arrays. For simple cases, you can extend existing builtin types, although collection containers may be appropriate in some cases. At a minimum, you can add static class methods to initialize multiple data objects in sequence.</p>
 </li>
 <li>
-<p><strong><em>Group related methods into wrapper objects.</em></strong> Instead of cluttering data objects with a large number of methods for analyzing or transforming, create factory methods that return new objects for transforming or summarizing the original data.</p>
+<p><strong><em><a href="#pr4">Group related methods into wrapper objects</a>.</em></strong> Instead of cluttering data objects with a large number of methods for analyzing or transforming, create factory methods that return new objects for transforming or summarizing the original data.</p>
 </li>
 <li>
-<p><strong><em>Retain objects representing missing data.</em></strong> Instead of filtering missing data early in your pipeline to simplify downstream methods, continue to use objects even for missing data. While this add additional logic to downstream methods, it may be worth the effort when evaluating the effect of missing data or the project shifts to use a wider range of data.</p>
+<p><strong><em><a href="#pr5">Retain objects representing missing data</a>.</em></strong> Instead of filtering missing data early in your pipeline to simplify downstream methods, continue to use objects even for missing data. While this add additional logic to downstream methods, it may be worth the effort when evaluating the effect of missing data or the project shifts to use a wider range of data.</p>
 </li>
 </ol>
 <p>Now I will give some more detailed guidance.</p>
@@ -193,6 +193,8 @@ iris_area.petal_area, iris_area.species
 </code></pre>
 <p>In this way, each data object stores only one type of data and derivative data types can be produced using methods that are part of data objects. This is a simple, yet powerful, example of a fundamental operation in data science projects.</p>
 <p>Using the data object approach, you are building gaurantees into any downstream operation that uses these objects: namely, you are gauranteeing that these attributes exist as part of your object. Any methods that are part of this data object use only these original attributes (in addition to any input), and apply only to a single iris object (rather than a set of them). Without ever touching your code, both human readers and static analyzers know the structure of your data.</p>
+<p id='pr2'>.</p>
+
 <h2>2. Use static factory methods to instantiate data objects</h2>
 <p>My second recommendation is to use static factory methods, rather than constructors, to instantiate data objects. This means putting any logic needed for conversion or preprocessing into a non-constructor method that returns an instance of the class itself. The essential feature of this pattern is that you can separate the logic of parsing or transforming data from the actual data itself by placing them in separate functions.</p>
 <p>Perhaps the most useful feature of this approach is that you can easily add methods for constructing the object from different types of input data. For instance, you could have separate methods for constructing a data object from JSON and CSV file formats. Or, perhaps you have two different html formats in which your data could appear - in that case, you can add a factory method for each version.</p>
@@ -265,6 +267,8 @@ iris_list[:2]
 def iris_factory(data_format: str, raw_data: typing.Union[dict, pd.Series]) -&gt; IrisEntry:
     return constructor_method_map[data_format](raw_data)
 </code></pre>
+<p id='pr3'>.</p>
+
 <h2>3. Create types for collections of data objects</h2>
 <p>My third recommendation is to create custom collection objects by extending existing collection types, or, in more complicated cases, by encapsulating the collections (the decision may be language-dependent). This alone improves readability, but, perhaps more importantly, it makes it easier to assess exactly which operations can and should be done on a collection of these particular objects. This too follows the Zen of Data Science tenant that "explicit is better than implicit."</p>
 <h4>Inherit from builtin types</h4>
@@ -328,6 +332,8 @@ iris_collection = IrisCollection.from_json(iris_list)
         return iris.calc_area()
 </code></pre>
 <p>All parallelization code here exists within the transformation method itself.</p>
+<p id='pr4'>.</p>
+
 <h2>4. Group related methods into wrapper objects</h2>
 <p>It is generally inadvisable to create data objects with a large number of methods for transformation or summarization because it will make it harder to maintain and use (see <a href="https://www.reddit.com/r/Python/comments/11fio85/comment/jajz9a0/?utm_source=share&amp;utm_medium=web2x&amp;context=3">discussions amongst Pandas developers</a>). As you develop new ways to transform and view your data objects, it will be useful to extend functionality into new namespaces.</p>
 <p>To do this, I recommend adding functionally-related methods to a separate wrapper class which maintains <em>only</em> a reference to the original data object. You can then create a method in the data object which instantiates the wrapper object simply by passing a reference to itself, and you can call any methods on that instance.</p>
@@ -389,6 +395,8 @@ plotter = irises.ggplotter()
 plotter.sepal_scatter()
 </code></pre>
 <p>Notice that this example is very similar to the <code>IrisArea</code> above - it is a convenient pattern for both extending functionality and creating substantive transformations.</p>
+<p id='pr5'>.</p>
+
 <h2>5. Also keep objects for missing data</h2>
 <p>My final recommendation here is to keep track of missing data throughout your pipeline rather than filtering it in intermediary steps. As with any software engineering project, the questions you ask using your data will change along with the assumptions you make to answer them. For that reason, I recommend refraining from filtering missing data at any point in your pipeline - instead, create objects that store the missing data just as you would with non-missing data, and build methods to check for the missing data.</p>
 <h4>Explicit Checking</h4>
