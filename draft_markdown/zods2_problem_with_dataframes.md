@@ -9,6 +9,33 @@ Dataframe interfaces are useful because they are so flexible: filtering, mutatat
 
 Admittedly, part of my motivation for this article is reactionary. Over the last decade of teaching and reading about data science practices, I have seen a shift in the way that students are learning. Students start learning with tools like Jupyter and RStudio markdown because they allow for quick experimentation on a step-by-step basis and enable trying new things with near-instant feedback. Expansive packages like Pandas and tidyverse are becoming essential material, and students often engage with them before they even understand the language they are built in (me too, sometimes). There is no doubt that these are learning powerful tools, but my concern is that we are sacraficing fundamentals of programming that are essential for building real-world projects that are maintainable. Anyone can learn to write code, but, in my opinion, we should be teaching how to write _good_ code from the start.
 
+In [this recent article](../zods1_more_structure.html), I elaborated on what I mean by adding structure to your data pipelines, and added examples on how to implent those strategies in Python (although I believe they also apply to other languages). In this article, however, I will focus on why the opposite strategies can create problems as you build out more complicated data pipelines.
+
+## The Alternatives
+
+For the purpose of this article, I divide our possible approaches into two categories: (1) use of custom object types that are explicitly defined to encapsulate project-specific data, and (2) objects with weaker typing schemes such as dataframes or lists of dictionaries. This partially resembles the difference between strong and weak typing schemes, respectively, where stronger typing means you are enforcing more rules on the types of data that you are working with and the extent to which they are explicit. The more flexible data types described here are more weakly typed, because, in weakly typed languages, they can often contain heterogeneous data types that are not described in the code itself. 
+
+It is true that objects like dataframes themselves types, but my concern is that the types of individual columns are never known by your interpreter until you actually run the code. While you may enforce and check the data types of an inputdata frame 
+
+or contained elements are not known by your interpreter
+
+by the reader or static analyzer prior to runtime. You can specify and enforce the types of columns in dataframes, but your interpreter or analyzer never actually
+
+
+
+they are not probject-specific - that is, they do not enforce structures that are relevant to the specific project for which the pipeline is being built. When you read a dataframe from a csv file, for example, you can specify the code 
+
+As such, simply knowing the type of an object does not give us insight into the representations that appear in the pipeline. 
+
+Dataframes maintain types for the columns they maintain, however, you cannot see the types unless you do some introspection into the 
+
+
+
+For a further elaboration on what I mean by adding more structure, see 
+
+
+. As an example, if you read a csv file as a dataframe, consider creating a class definition that represents a single row of that dataframe and include the code to parse that data within the same class, as well as any methods that operate on that class' data. Then encapsulate those objects into collections in which you can build additional methods for parsing, grouping, filtering, or transforming collections/lists/etc. By defining classes explicitly, your analyzer knows which attributes and methods are available on that object at any point in time. Avoid using lists of dictionaries or other datastructures without defined types, as they have the same pitfalls as dataframes.
+
 
 ## The Data Pipeline
 
@@ -31,20 +58,14 @@ Let us explore the case where you do not use custom data objects, and instead us
 
 3. do some mental bookkeeping to trace the original input data (which may also require introspection) through the pipeline - also a time-consuming activity. 
 
-
 None of these options look good - the best scenario is option 3, and even that is only viable if you know both the structure of the input data and are okay reading through the logic up until that point. Unfortunately, debugging or changing intermediary stages of your data pipeline will happen all the time - this can create some big problems as your project grows and your requirements change.
 
-What is the problem with running the code in real time? In my experience, this simply takes a lot longer than reading the code itself when it comes to large data pipelines. Each step or set of steps in your pipeline are expensive and probably time-consuming. To make it easier, you might optimize the pipeline by storing intermediary steps so you can load them into separate notebooks more quickly, but this optimization is time-consuming and would need to be done every time you set out to work. It is far better to detect any problems without needing to actually run your code.
+What is the problem with running the code in real time? In my experience, this simply takes a lot longer than keeping track of the code itself (either reading it or using a static analyzer) when it comes to large data pipelines. Each step or set of steps in your pipeline are expensive and probably time-consuming. To make it easier, you might optimize the pipeline by storing intermediary steps (RData or pickle files) so you can load them into separate notebooks more quickly, but this optimization is time-consuming and would need to be done every time you set out to work. In software engineering, it is generally far better to detect any problems without needing to actually run your code.
 
-
-In the case where you represent the structure of your data as part of the code itself (i.e. use classes/structs to define the structure), however, you (and your compiler/static analyzer) know the structure of the data at every stage of the pipeline because it is explicitly defined. From this alone you know not only that your data, regaurdless of the pipeline issue, will appear in the specified formats, but also that the role of that particular function/script is to convert data of type B to type C. In this case, the pipeline issue will be much easier to solve.
-
-
+In the case where you represent the structure of your data as part of the code itself (i.e. use classes/structs to define intermediate structures), however, you (and your compiler/static analyzer) know the structure of the data at every stage of the pipeline because it is explicitly defined. From this alone you know not only that your data will appear in the specified formats (providing some gaurantees), but also that the role of that particular function/script is to convert data of type B to type C. In this case, the pipeline issue will be much easier to identify.
 
 
 
-
-For example, if you read in a csv file as a dataframe, consider creating a class definition that represents a single row of that dataframe and include the code to parse that data within the same class. While json data may be more heirarchical, there are almost always equivalent data units at various levels - you can create a data structure for each level. Using this approach, you can know the structure of your data at any point in your pipeline and your IDE's static analyzer can identify any downstream issues that arise from a change in that data structure. This can be an invaluable tool for 
 
 ### Case Against Dataframes
 While dataframes are important data structures that a large suite of languages and packages have been built around, I have two primary concerns about using them as a central feature of your data pipelines: (1) all of the problems we observe above, and (2) they are often the wrong tools for the job (performance-wise) - even though they may be fine for many tasks involving small datasets.
