@@ -10,11 +10,18 @@ Dataframe interfaces are useful because they are so flexible: filtering, mutatat
 Admittedly, part of my motivation for this article is reactionary. Over the last decade of teaching and reading about data science practices, I have seen a shift in the way that students are learning. Students start learning with tools like Jupyter and RStudio markdown because they allow for quick experimentation on a step-by-step basis and enable trying new things with near-instant feedback. Expansive packages like Pandas and tidyverse are becoming essential material, and students often engage with them before they even understand the language they are built in (me too, sometimes). There is no doubt that these are learning powerful tools, but my concern is that we are sacraficing fundamentals of programming that are essential for building real-world projects that are maintainable. Anyone can learn to write code, but, in my opinion, we should be teaching how to write _good_ code from the start.
 
 
-# Debugging your pipeline
+## The Data Pipeline
 
-For illustration, below I created a simple diagram with two linear data pipelines depicting the transformation of the input data into an intermediate data structure which is changed into the final data to be shared with the customer (a table or figure, let's say). Almost every part of your data analysis pipeline will look something like this. In the top example, we do not keep track of the structure of the input or intermediate data in our code explicitly (imagine using a list of dictionaries or a dataframe read from a csv file), wheras in the bottom pipeline we represent them as objects A, B, and C explicitly in our code. The idea is that pipelines with explicit references to data structure in the code make it easier to understand what each transformation is doing - in theory, we (and the static analyzer in your IDE) could understand the entire pipeline without ever running our code.
+By data pipeline, I mean a series of sequential steps for changing data from one format to another - the essential core of all data science projects. Maybe you want to take a CSV file and visualize some variables in a 2-dimensional plot, or maybe you want to produce a statistical model to capture trends in the data, or maybe you want to build a clustering model to see if your observations can be grouped into sub-components. In all cases, these data objects are stages in the data pipeline with a particular structure. A data structure means that the way that particular pieces of information are organized within your computers system - that is, how it is accessed and changed.
+
+For illustration of a data pipeline, below I created a simple diagram with two linear data pipelines depicting the transformation of the input data into an intermediate data structure which is changed into the final data to be shared with the customer (a table or figure, let's say). 
 
 ![data science pipeline overview](https://storage.googleapis.com/public_data_09324832787/pipeline_structures.png)
+
+The topmost path in the figure shows the case where we do not keep track of the structure of the input or intermediate data in our code explicitly (imagine using a list of dictionaries or a dataframe read from a csv file), wheras in the bottom pipeline we represent them as objects A, B, and C explicitly in our code. The idea is that pipelines with explicit references to data structure in the code make it easier to understand what each transformation is doing - in theory, we (and the static analyzer in your IDE) could understand the entire pipeline without ever _running_ our code.
+
+
+## Debugging Pipelines
 
 Let us explore the case where you do not use custom data objects, and instead use dataframes or lists of dictionary/collections, or some other non-explicit data structures. As a hypothetical, say you are seeing a potential issue in your final data structure - a figure, let's say - and you want to investigate why you observe a given value. First, you hypothesize that the issue may have been with function/script 2, and so we first need to understand the structure of the intermediary data which it transformed. There are three approaches to understanding the intermediate data structure when we have not been explicit in our code: 
 
@@ -24,7 +31,11 @@ Let us explore the case where you do not use custom data objects, and instead us
 
 3. do some mental bookkeeping to trace the original input data (which may also require introspection) through the pipeline - also a time-consuming activity. 
 
+
 None of these options look good - the best scenario is option 3, and even that is only viable if you know both the structure of the input data and are okay reading through the logic up until that point. Unfortunately, debugging or changing intermediary stages of your data pipeline will happen all the time - this can create some big problems as your project grows and your requirements change.
+
+What is the problem with running the code in real time? In my experience, this simply takes a lot longer than reading the code itself when it comes to large data pipelines. Each step or set of steps in your pipeline are expensive and probably time-consuming. To make it easier, you might optimize the pipeline by storing intermediary steps so you can load them into separate notebooks more quickly, but this optimization is time-consuming and would need to be done every time you set out to work. It is far better to detect any problems without needing to actually run your code.
+
 
 In the case where you represent the structure of your data as part of the code itself (i.e. use classes/structs to define the structure), however, you (and your compiler/static analyzer) know the structure of the data at every stage of the pipeline because it is explicitly defined. From this alone you know not only that your data, regaurdless of the pipeline issue, will appear in the specified formats, but also that the role of that particular function/script is to convert data of type B to type C. In this case, the pipeline issue will be much easier to solve.
 
