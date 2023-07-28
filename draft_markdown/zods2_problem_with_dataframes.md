@@ -1,5 +1,5 @@
 ---
-title: "Are dataframes too flexible?"
+title: "Are dataframes too flexible? Choosing the right data structures for your project."
 subtitle: "The challenges with implicit data structures."
 date: "May 28, 2023"
 id: "zods2_problem_with_dataframes"
@@ -13,13 +13,13 @@ In [this recent article](../zods1_more_structure.html), I elaborated on what I m
 
 ## The Alternatives
 
-For the purpose of this article, I group data structures into two categories: objects such as dataframes or dictionaries/maps and custom object types with defined attributes such as classes or structs that are project/application-specific.
+For the purpose of this article, I group data structures into two categories: objects such as dataframes or dictionaries/maps and custom object types with defined attributes such as classes or structs that are project/application-specific. I construct this dichotomy as it is essentially divided by three particular characteristics.
 
 1. **Properties or attributes the elements contain.** Dataframes are flexible enough to allow you to dynamically add or remove columns, and custom object types tend to have a fixed set of properties which can be accessed/changed.
 
 2. **Method for construction.** Dataframes can be initialized using any number of methods, including transformations from other object types or read directly from csv or excel files on disks. Custom object types ideally have a limited set of methods for construction, and those methods are clear.
 
-3. **Methods for summarizing or characterizing attributes.** There is a wide range of possible methods for summarizing or characterizing data in a dataframe, but, in the ideal case, custom data objects have a small set of methods for summarizing or characterizing.
+3. **Methods for summarizing or characterizing attributes.** There is a wide range of possible methods for summarizing or characterizing data in a dataframe, but, in the ideal case, custom data objects have a small set of methods for summarizing or characterizing their data.
 
 
 
