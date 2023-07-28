@@ -15,19 +15,14 @@ In [this recent article](../zods1_more_structure.html), I elaborated on what I m
 
 For the purpose of this article, I group data structures into two categories: objects such as dataframes or dictionaries/maps and custom object types with defined attributes such as classes or structs that are project/application-specific. I construct this dichotomy as it is essentially divided by three particular characteristics.
 
-1. **Properties or attributes the elements contain.** Dataframes are flexible enough to allow you to dynamically add or remove columns, and custom object types tend to have a fixed set of properties which can be accessed/changed.
+1. **Properties or attributes the elements contain.** Dataframes are flexible enough to allow you to dynamically add or remove columns, and custom object types tend to have a fixed set of properties which can be accessed/changed. 
 
 2. **Method for construction.** Dataframes can be initialized using any number of methods, including transformations from other object types or read directly from csv or excel files on disks. Custom object types ideally have a limited set of methods for construction, and those methods are clear.
 
 3. **Methods for summarizing or characterizing attributes.** There is a wide range of possible methods for summarizing or characterizing data in a dataframe, but, in the ideal case, custom data objects have a small set of methods for summarizing or characterizing their data.
 
 
-
-
-
-use of custom object types that are explicitly defined to encapsulate project-specific data, and (2) objects with weaker typing schemes such as dataframes or lists of dictionaries. This partially resembles the difference between strong and weak typing schemes, respectively, where stronger typing means you are enforcing more rules on the types of data that you are working with and the extent to which they are explicit. The more flexible data types described here are more weakly typed, because, in weakly typed languages, they can often contain heterogeneous data types that are not described in the code itself. 
-
-Dataframes themselves are types and their columns have specific types within those objects, but the defining characteristic is that the interpreter or analyzer cannot infer those types without looking at the behavior of the functions or scripts used to produce it (which they often do not). They are types within the underlying package code, but they are not considered as types within the language itself. If you build your pipelines using functions that both accept and return dataframes, you do not know the structure of the new dataframe unless you look at the code used to transform it. In contrast, if you define custom types for the input and output data, you can know without looking at the 
+Hiiiii^[Note that dataframes themselves are types and their columns have specific types within those objects, but the defining characteristic is that the interpreter or analyzer cannot infer those types without looking at the behavior of the functions or scripts used to produce it (which they often do not). They are types within the underlying package code, but they are not considered as types within the language itself. If you build your pipelines using functions that both accept and return dataframes, you do not know the structure of the new dataframe unless you look at the code used to transform it. In contrast, if you define custom types for the input and output data, you can know without looking at the]
 
 
 They do not appear in your code except at the type of conversion or enforcement, or, even more sketchy. 
@@ -54,7 +49,7 @@ For a further elaboration on what I mean by adding more structure, see
 . As an example, if you read a csv file as a dataframe, consider creating a class definition that represents a single row of that dataframe and include the code to parse that data within the same class, as well as any methods that operate on that class' data. Then encapsulate those objects into collections in which you can build additional methods for parsing, grouping, filtering, or transforming collections/lists/etc. By defining classes explicitly, your analyzer knows which attributes and methods are available on that object at any point in time. Avoid using lists of dictionaries or other datastructures without defined types, as they have the same pitfalls as dataframes.
 
 
-## The Data Pipeline
+## Data pipelines: separating the "what" from the "how"
 
 By data pipeline, I mean a series of sequential steps for changing data from one format to another - the essential core of all data science projects. Maybe you want to take a CSV file and visualize some variables in a 2-dimensional plot, or maybe you want to produce a statistical model to capture trends in the data, or maybe you want to build a clustering model to see if your observations can be grouped into sub-components. In all cases, these data objects are stages in the data pipeline with a particular structure. A data structure means that the way that particular pieces of information are organized within your computers system - that is, how it is accessed and changed.
 
