@@ -9,13 +9,30 @@ Dataframe interfaces are useful because they are so flexible: filtering, mutatat
 
 Admittedly, part of my motivation for this article is reactionary. Over the last decade of teaching and reading about data science practices, I have seen a shift in the way that students are learning. Students start learning with tools like Jupyter and RStudio markdown because they allow for quick experimentation on a step-by-step basis and enable trying new things with near-instant feedback. Expansive packages like Pandas and tidyverse are becoming essential material, and students often engage with them before they even understand the language they are built in (me too, sometimes). There is no doubt that these are learning powerful tools, but my concern is that we are sacraficing fundamentals of programming that are essential for building real-world projects that are maintainable. Anyone can learn to write code, but, in my opinion, we should be teaching how to write _good_ code from the start.
 
-In [this recent article](../zods1_more_structure.html), I elaborated on what I mean by adding structure to your data pipelines, and added examples on how to implent those strategies in Python (although I believe they also apply to other languages). In this article, however, I will focus on why the opposite strategies can create problems as you build out more complicated data pipelines.
+In [this recent article](../zods1_more_structure.html), I elaborated on what I mean by adding structure to your data pipelines, and added examples on how to implent those strategies in Python (although I believe they also apply to other languages). In this article, however, I will focus on why the opposite strategies can create problems as you build out more complicated data pipelines. I will focuse primarily on dataframes in the Pandas package, although in the practical section I will discuss weakly typed non-dataframe approaches.
 
 ## The Alternatives
 
-For the purpose of this article, I divide our possible approaches into two categories: (1) use of custom object types that are explicitly defined to encapsulate project-specific data, and (2) objects with weaker typing schemes such as dataframes or lists of dictionaries. This partially resembles the difference between strong and weak typing schemes, respectively, where stronger typing means you are enforcing more rules on the types of data that you are working with and the extent to which they are explicit. The more flexible data types described here are more weakly typed, because, in weakly typed languages, they can often contain heterogeneous data types that are not described in the code itself. 
+For the purpose of this article, I group data structures into two categories: objects such as dataframes or dictionaries/maps and custom object types with defined attributes such as classes or structs that are project/application-specific.
 
-It is true that objects like dataframes themselves types, but my concern is that the types of individual columns are never known by your interpreter until you actually run the code. While you may enforce and check the data types of an inputdata frame 
+1. **Properties or attributes the elements contain.** Dataframes are flexible enough to allow you to dynamically add or remove columns, and custom object types tend to have a fixed set of properties which can be accessed/changed.
+
+2. **Method for construction.** Dataframes can be initialized using any number of methods, including transformations from other object types or read directly from csv or excel files on disks. Custom object types ideally have a limited set of methods for construction, and those methods are clear.
+
+3. **Methods for summarizing or characterizing attributes.** There is a wide range of possible methods for summarizing or characterizing data in a dataframe, but, in the ideal case, custom data objects have a small set of methods for summarizing or characterizing.
+
+
+
+
+
+use of custom object types that are explicitly defined to encapsulate project-specific data, and (2) objects with weaker typing schemes such as dataframes or lists of dictionaries. This partially resembles the difference between strong and weak typing schemes, respectively, where stronger typing means you are enforcing more rules on the types of data that you are working with and the extent to which they are explicit. The more flexible data types described here are more weakly typed, because, in weakly typed languages, they can often contain heterogeneous data types that are not described in the code itself. 
+
+Dataframes themselves are types and their columns have specific types within those objects, but the defining characteristic is that the interpreter or analyzer cannot infer those types without looking at the behavior of the functions or scripts used to produce it (which they often do not). They are types within the underlying package code, but they are not considered as types within the language itself. If you build your pipelines using functions that both accept and return dataframes, you do not know the structure of the new dataframe unless you look at the code used to transform it. In contrast, if you define custom types for the input and output data, you can know without looking at the 
+
+
+They do not appear in your code except at the type of conversion or enforcement, or, even more sketchy. 
+
+but my concern is that the types of individual columns are never known by your interpreter until you actually run the code. While you may specify and enforce column  
 
 or contained elements are not known by your interpreter
 
