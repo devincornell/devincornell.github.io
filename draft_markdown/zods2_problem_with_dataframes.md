@@ -1,5 +1,5 @@
 ---
-title: "Are dataframes too flexible? Choosing the right data structures for your project."
+title: "Are dataframes too flexible? Optimal data structures for data pipelines."
 subtitle: "The challenges with implicit data structures."
 date: "May 28, 2023"
 id: "zods2_problem_with_dataframes"
@@ -20,7 +20,6 @@ For the purpose of this article, I group data structures into two categories: ob
 2. **Method for construction.** Dataframes can be initialized using any number of methods, including transformations from other object types or read directly from csv or excel files on disks. Custom object types ideally have a limited set of methods for construction, and those methods are clear.
 
 3. **Methods for summarizing or characterizing attributes.** There is a wide range of possible methods for summarizing or characterizing data in a dataframe, but, in the ideal case, custom data objects have a small set of methods for summarizing or characterizing their data.
-
 
 Hiiiii^[Note that dataframes themselves are types and their columns have specific types within those objects, but the defining characteristic is that the interpreter or analyzer cannot infer those types without looking at the behavior of the functions or scripts used to produce it (which they often do not). They are types within the underlying package code, but they are not considered as types within the language itself. If you build your pipelines using functions that both accept and return dataframes, you do not know the structure of the new dataframe unless you look at the code used to transform it. In contrast, if you define custom types for the input and output data, you can know without looking at the]
 
