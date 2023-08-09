@@ -18,12 +18,7 @@ I believe that using custom data types, rather than dataframes or other less-exp
 
 A _data pipeline_ is a series of sequential steps for changing data from one format to another - the essential core of all data science projects. Maybe you want to visualize some variables from a CSV file in a 2-dimensional plot, produce a statistical model to capture trends of Tweets in json format, or even build a classifier to identify cats from an image training data set. In each of these cases, the data pipeline simply describes the set of transformations and intermediary representations needed to produce the final form from the given input data.
 
-I refer to the intermediary representations of data in these pipelines as _data structures_. Essentially, this means the format in which your data is represented in your computer system, and the interface in your code used to access and manipulate it. Any [computer science cirriculum](https://ocw.mit.edu/courses/6-851-advanced-data-structures-spring-2012/) includes an analysis of common data structures and optimal algorithms for manipulating and analyzing them, but they play what is perhaps a more important role in software engineering of data pipelines: they can be used to make your data pipelines easier to understand, less error-prone, and more efficient to maintain.
-
-In computer science, data structures are defined as formats for organizing, processing, retrieving, and storing data^[Note that the term "data structure" has a somewhat institutionalized and more specific meaning within the field, but I will use this definition more literally and loosely.]. The way you choose to structure your data determines 
-
-
-At every stage in the pipeline, your data is represented as a kind of structure 
+I use the term _data structures_ to describe the intermediary representations of data in these pipelines. Essentially, this means the format in which your data is represented in your computer system and the interface (API) in your code used to access and manipulate it. Any [computer science cirriculum](https://ocw.mit.edu/courses/6-851-advanced-data-structures-spring-2012/) includes an analysis of common data structures and optimal algorithms for manipulating and analyzing them, but they play what is perhaps a more important role in software engineering of data pipelines: they can be used to make your data pipelines easier to understand, less error-prone, and more efficient to maintain.
 
 While the input and output data structures are often fixed according to the desired analysis, the analyst has a lot of flexibility over the way they construct the intermediary representations - so it is there that I will focus.
 
