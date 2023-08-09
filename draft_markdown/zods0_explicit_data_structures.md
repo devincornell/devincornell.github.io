@@ -14,28 +14,23 @@ In this article, I will describe what I mean by data structures within the conte
 I believe that using custom data types, rather than dataframes or other less-explicit schemes, can make pipelines easier to understand, easier to maintain, and less error-prone.
 
 
-## Data structures and pipelines
+## Data Structures and Pipelines
 
 A _data pipeline_ is a series of sequential steps for changing data from one format to another - the essential core of all data science projects. Maybe you want to visualize some variables from a CSV file in a 2-dimensional plot, produce a statistical model to capture trends of Tweets in json format, or even build a classifier to identify cats from an image training data set. In each of these cases, the data pipeline simply describes the set of transformations and intermediary representations needed to produce the final form from the given input data.
 
 I use the term _data structures_ to describe the intermediary representations of data in these pipelines. Essentially, this means the format in which your data is represented in your computer system and the interface (API) in your code used to access and manipulate it. Any [computer science cirriculum](https://ocw.mit.edu/courses/6-851-advanced-data-structures-spring-2012/) includes an analysis of common data structures and optimal algorithms for manipulating and analyzing them, but they play what is perhaps a more important role in software engineering of data pipelines: they can be used to make your data pipelines easier to understand, less error-prone, and more efficient to maintain.
 
-While the input and output data structures are often fixed according to the desired analysis, the analyst has a lot of flexibility over the way they construct the intermediary representations - so it is there that I will focus.
 
+<div id="illustration">.</div>
 
-At every stage in the pipeline, your data takes on a format that makes it more or less easy to manipulate and run computations. 
-
-In all cases, these data objects are stages in the data pipeline with a particular structure. A data structure means that the way that particular pieces of information are organized within your computers system - that is, how it is accessed and changed.
-
-
-## Data pipelines: separating the "what" from the "how"
-
+#### Illustration of Data Pipeline
 
 For illustration of a data pipeline, below I created a simple diagram with two linear data pipelines depicting the transformation of the input data into an intermediate data structure which is changed into the final data to be shared with the customer (a table or figure, let's say). 
 
 ![data science pipeline overview](https://storage.googleapis.com/public_data_09324832787/pipeline_structures.png)
 
 The topmost path in the figure shows the case where we do not keep track of the structure of the input or intermediate data in our code explicitly (imagine using a list of dictionaries or a dataframe read from a csv file), wheras in the bottom pipeline we represent them as objects A, B, and C explicitly in our code. The idea is that pipelines with explicit references to data structure in the code make it easier to understand what each transformation is doing - in theory, we (and the static analyzer in your IDE) could understand the entire pipeline without ever _running_ our code.
+
 
 
 
@@ -78,6 +73,7 @@ For a further elaboration on what I mean by adding more structure, see
 . As an example, if you read a csv file as a dataframe, consider creating a class definition that represents a single row of that dataframe and include the code to parse that data within the same class, as well as any methods that operate on that class' data. Then encapsulate those objects into collections in which you can build additional methods for parsing, grouping, filtering, or transforming collections/lists/etc. By defining classes explicitly, your analyzer knows which attributes and methods are available on that object at any point in time. Avoid using lists of dictionaries or other datastructures without defined types, as they have the same pitfalls as dataframes.
 
 
+## Data pipelines: separating the "what" from the "how"
 
 
 ## Debugging Pipelines
