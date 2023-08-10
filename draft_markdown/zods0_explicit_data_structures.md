@@ -23,30 +23,99 @@ I use the term _data structures_ to describe the intermediary representations of
 
 <div id="illustration">.</div>
 
-#### Illustration of Data Pipeline
+### Illustration of Data Pipeline
 
-For illustration of a data pipeline, below I created a simple diagram with two linear data pipelines depicting the transformation of the input data into an intermediate data structure which is changed into the final data to be shared with the customer (a table or figure, let's say). 
+Below I created a simple diagram with two linear data pipelines depicting the transformation of the input data into an intermediate data structure which is changed into the final data to be shared with the customer (a table or figure, let's say). 
 
 ![data science pipeline overview](https://storage.googleapis.com/public_data_09324832787/pipeline_structures.png)
 
-The topmost path in the figure shows the case where we do not keep track of the structure of the input or intermediate data in our code explicitly (imagine using a list of dictionaries or a dataframe read from a csv file), wheras in the bottom pipeline we represent them as objects A, B, and C explicitly in our code. The idea is that pipelines with explicit references to data structure in the code make it easier to understand what each transformation is doing - in theory, we (and the static analyzer in your IDE) could understand the entire pipeline without ever _running_ our code.
+Anything represented in the computer is a data structure. For instance, the input could be a CSV file that you first read as a dataframe (intermediate data structure), average a set of values to produce another dataframe (another intermediate structure), and then convert to a figure which you then display on your screen (the final data structure). Or, for instance, the input could be a set of images and classification labels and the output could be a machine learning model trained to identify the classes. In this way, the pipeline captures the essence of any data analysis project. 
 
 
-
+<div id="features">.</div>
 
 ### Features of Data Structures
 
-In this article I will draw a dichotomy between two primary types of data structures: the dataframe, a tabular data structure with any number of columns and where each column is an array of numbers or objects; and custom data object types, implemented as structs or classes with project-specific representations and methods.
+I will focus on three aspects of data structures which are relevant for design patterns I will discuss. They exist in almost every type of data structure, and the key is in where and how they appear in your code.
 
-For the purpose of this article, I group data structures into two categories: objects such as dataframes or dictionaries/maps and custom object types with defined attributes such as classes or structs that are project/application-specific. I construct this dichotomy as it is essentially divided by three particular characteristics.
+1. **Properties or attributes.** Data structures often include sets of properties, attributes, or features that are associated with a single element - the "what" of your data pipelines. These might be represented as columns in dataframes where each row is an element, attributes in custom types, or as separate variables. They can be defined at instantiation (point where the structures are created) or later added, modified, or removed throughout your pipeline. The data is called _immutable_ if it cannot be changed, and _mutable_ otherwise. 
 
-1. **Properties or attributes the elements contain.** Dataframes are flexible enough to allow you to dynamically add or remove columns, and custom object types tend to have a fixed set of properties which can be accessed/changed. 
+2. **Transformation methods.** These are the methods which actually convert your data structures from one form to the next - the "how" of your data pipelines. They may appear in your code as class methods, functions, or entire scripts. Common transformations might include filtering, summarizing, or normalizing your data.
 
-2. **Method for construction.** Dataframes can be initialized using any number of methods, including transformations from other object types or read directly from csv or excel files on disks. Custom object types ideally have a limited set of methods for construction, and those methods are clear.
+2. **Construction methods.** The construction of data includes the point at which your data representations are constructed - a special and important case of transformation methods. They include any functionality used to instantiate the data representiation in your computer, and are essential for understanding the flow of your data pipeline. These methods can also appear in your code as class methods, functions, or entire scripts. These, for instance, might include the code used to parse json data or a csv file.
 
-3. **Methods for summarizing or characterizing attributes.** There is a wide range of possible methods for summarizing or characterizing data in a dataframe, but, in the ideal case, custom data objects have a small set of methods for summarizing or characterizing their data.
+Next I will use these three features as comparison points.
 
-Hiiiii^[Note that dataframes themselves are types and their columns have specific types within those objects, but the defining characteristic is that the interpreter or analyzer cannot infer those types without looking at the behavior of the functions or scripts used to produce it (which they often do not). They are types within the underlying package code, but they are not considered as types within the language itself. If you build your pipelines using functions that both accept and return dataframes, you do not know the structure of the new dataframe unless you look at the code used to transform it. In contrast, if you define custom types for the input and output data, you can know without looking at the]
+<div id="attributes">.</div>
+
+## Comparison of Data Structures
+
+I will now compare dataframes with other data structures using Python examples, although I believe these points apply to many different languages. Specifically I will use the classic Iris datasets loaded from the seaborn package.
+
+In Python, we would load the Iris dataset using the following code (note that seaborn is only used to load the data).
+
+    import seaborn
+    import pandas as pd
+
+    iris_df = seaborn.load_dataset("iris")
+    iris_df.head()
+
+The dataframe looks like the following.
+
+    sepal_length  sepal_width  petal_length  petal_width species
+    0           5.1          3.5           1.4          0.2  setosa
+    1           4.9          3.0           1.4          0.2  setosa
+    2           4.7          3.2           1.3          0.2  setosa
+    3           4.6          3.1           1.5          0.2  setosa
+    4           5.0          3.6           1.4          0.2  setosa
+
+### 1. Properties or Attributes of Data Structures
+
+Dataframes typically represent data attrbutes as columns, and each column is represented as an array of an internal type, rather than a type within the langauge. Python, for instance, implements int and float objects, but Pandas dataframes include more specific types like 64 bit integers and floating point numbers (following Numpy arrays) that do not appear in the Python specification.
+
+In Python, you would access columns using the following notation.
+
+    iris_df['species']
+    iris_df.species
+
+And subsets of columns in Python can be extracted using the following.
+
+    iris_df = iris_df[['sepal_length', 'sepal_width', 'species']]
+
+In all of these cases, the existence of a dataframe object does not gaurantee that it will include columns with these exact names. If the dataframe is loaded directly from disk (or the seaborn package, for instance), the structure of that data is determined by the actual input. If a column is renamed in the file, the structure of the data will change and the code used to access the data may fail. The challenge is that you cannot know that the code will fail without looking at the input data itself. 
+
+In a pipeline with a series of transformations, this becomes even more concerning becaue you cannot know if a column exists unless you know the input data and all subsequent transformations up until the point where you try to access it. While there may be tansformations that standardize the format of the data (i.e. select columns in a particular format) you must still know that this transformation occurred to construct the object. 
+
+As an alternative, consider using custom data object types with specified attributes to represent your data. While more code is needed to create the types, the mere existence of the object comes with gaurantees about which attributes they contain. You do not need to understand the transformation used to create the object to know that the attributes will exist.
+
+In most languages, I recommend creating classes or struct types to represent you data. In Python, you can use dataclasses or the attrs package to easily create objects that are meant to store data. The following class represents a single Iris object.
+
+    import dataclasses
+
+    @dataclasses.dataclass
+    class IrisEntry:
+        sepal_length: float
+        sepal_width: float
+        petal_length: float
+        petal_width: float
+        species: str
+        ...
+
+The dataclasses module creates a constructor where all these values are required, so you may instantiate an IrisEntry like the following:
+
+    IrisEntry(1.0, 1.0, 1.0, 1.0, 'best_species')
+
+You can then store these objects in collection types, but I recommend either encapsulating those collections or at least extending an existing collection type to make the intent clearer to the reader - especially in weakly typed langauges. In Python, you might create a class like the following.
+
+    class Irises(typing.List[IrisEntry]):
+        ...
+
+The benefit of this extra effort is that it should be obvious to any reader which properties are associated with witch types of data. If you try to access an attribute that does not exist, you will see an exception, and furthermore your static analyzer or IDE will be able to autocomplete or let you know when you make an error before you ever run your code. You are making a gaurantee that every time an object like this exists, it will have these attributes.
+
+
+
+
+#### VVVVVVVVVVV ALL EXPERIMENTAL VVVVVVVVVVV
 
 
 They do not appear in your code except at the type of conversion or enforcement, or, even more sketchy. 
@@ -73,7 +142,18 @@ For a further elaboration on what I mean by adding more structure, see
 . As an example, if you read a csv file as a dataframe, consider creating a class definition that represents a single row of that dataframe and include the code to parse that data within the same class, as well as any methods that operate on that class' data. Then encapsulate those objects into collections in which you can build additional methods for parsing, grouping, filtering, or transforming collections/lists/etc. By defining classes explicitly, your analyzer knows which attributes and methods are available on that object at any point in time. Avoid using lists of dictionaries or other datastructures without defined types, as they have the same pitfalls as dataframes.
 
 
+#### ^^^^^^^^^^^^^^^^^
+
+
+Hiiiii^[Note that dataframes themselves are types and their columns have specific types within those objects, but the defining characteristic is that the interpreter or analyzer cannot infer those types without looking at the behavior of the functions or scripts used to produce it (which they often do not). They are types within the underlying package code, but they are not considered as types within the language itself. If you build your pipelines using functions that both accept and return dataframes, you do not know the structure of the new dataframe unless you look at the code used to transform it. In contrast, if you define custom types for the input and output data, you can know without looking at the]
+
+#### ^^^^^^^^^^^^^^^^^
+
 ## Data pipelines: separating the "what" from the "how"
+
+The topmost path in the figure shows the case where we do not keep track of the structure of the input or intermediate data in our code explicitly (imagine using a list of dictionaries or a dataframe read from a csv file), wheras in the bottom pipeline we represent them as objects A, B, and C explicitly in our code. The idea is that pipelines with explicit references to data structure in the code make it easier to understand what each transformation is doing - in theory, we (and the static analyzer in your IDE) could understand the entire pipeline without ever _running_ our code.
+
+#### ^^^^^^^^^^^^^^^^^^^ 
 
 
 ## Debugging Pipelines
