@@ -40,9 +40,9 @@ I will focus on three aspects of data structures which are relevant for design p
 
 1. **Properties or attributes.** Data structures often include sets of properties, attributes, or features that are associated with a single element - the "what" of your data pipelines. These might be represented as columns in dataframes where each row is an element, attributes in custom types, or as separate variables. They can be defined at instantiation (point where the structures are created) or later added, modified, or removed throughout your pipeline. The data is called _immutable_ if it cannot be changed, and _mutable_ otherwise. 
 
-2. **Transformation methods.** These are the methods which actually convert your data structures from one form to the next - the "how" of your data pipelines. They may appear in your code as class methods, functions, or entire scripts. Common transformations might include filtering, summarizing, or normalizing your data.
+2. **Construction methods.** Functions used to create and instantiate data structures are called construction methods. These functions are critical because they include at least some, if not all, information about which data will be contained within the structure. As such, the function signature should tell the reader (and compiler or static analyzer) a lot about what type of data is being represented. These methods can appear in your code as class methods, functions, or entire scripts. As an example, they may include the code used to parse json or csv data into a data object.
 
-2. **Construction methods.** The construction of data includes the point at which your data representations are constructed - a special and important case of transformation methods. They include any functionality used to instantiate the data representiation in your computer, and are essential for understanding the flow of your data pipeline. These methods can also appear in your code as class methods, functions, or entire scripts. These, for instance, might include the code used to parse json data or a csv file.
+3. **Transformation methods.** These are the methods which actually convert your data structures from one form to the next - the "how" of your data pipelines. They may appear in your code as class methods, functions, or entire scripts. Common transformations might include filtering, summarizing, or normalizing your data. This is a more general case than construction methods, which could also be considered as transformation methods.
 
 Next I will use these three features as comparison points.
 
@@ -52,7 +52,7 @@ Next I will use these three features as comparison points.
 
 I will now compare dataframes with other data structures using Python examples, although I believe these points apply to many different languages. Specifically I will use the classic Iris datasets loaded from the seaborn package.
 
-In Python, we would load the Iris dataset using the following code (note that seaborn is only used to load the data).
+In Python, we would load the Iris dataset as a dataframe using the following code (note that seaborn is only used to load the data).
 
     import seaborn
     import pandas as pd
@@ -60,7 +60,7 @@ In Python, we would load the Iris dataset using the following code (note that se
     iris_df = seaborn.load_dataset("iris")
     iris_df.head()
 
-The dataframe looks like the following.
+The dataframe looks like this.
 
     sepal_length  sepal_width  petal_length  petal_width species
     0           5.1          3.5           1.4          0.2  setosa
@@ -69,7 +69,34 @@ The dataframe looks like the following.
     3           4.6          3.1           1.5          0.2  setosa
     4           5.0          3.6           1.4          0.2  setosa
 
+However, for illustrative purposes, I convert this dataframe to a list of dict objects.
+
+    iris_data = iris_df.to_dict(orient='records')
+
+The first few elements of this data looks like the following:
+
+    [
+        {
+            'sepal_length': 5.1,
+            'sepal_width': 3.5,
+            'petal_length': 1.4,
+            'petal_width': 0.2,
+            'species': 'setosa'
+        },
+        {
+            'sepal_length': 4.9,
+            'sepal_width': 3.0,
+            'petal_length': 1.4,
+            'petal_width': 0.2,
+            'species': 'setosa'
+        },
+        ...
+    ]
+
+
 ### 1. Properties or Attributes of Data Structures
+
+#### The dataframe approach
 
 Dataframes typically represent data attrbutes as columns, and each column is represented as an array of an internal type, rather than a type within the langauge. Python, for instance, implements int and float objects, but Pandas dataframes include more specific types like 64 bit integers and floating point numbers (following Numpy arrays) that do not appear in the Python specification.
 
@@ -82,9 +109,13 @@ And subsets of columns in Python can be extracted using the following.
 
     iris_df = iris_df[['sepal_length', 'sepal_width', 'species']]
 
-In all of these cases, the existence of a dataframe object does not gaurantee that it will include columns with these exact names. If the dataframe is loaded directly from disk (or the seaborn package, for instance), the structure of that data is determined by the actual input. If a column is renamed in the file, the structure of the data will change and the code used to access the data may fail. The challenge is that you cannot know that the code will fail without looking at the input data itself. 
 
-In a pipeline with a series of transformations, this becomes even more concerning becaue you cannot know if a column exists unless you know the input data and all subsequent transformations up until the point where you try to access it. While there may be tansformations that standardize the format of the data (i.e. select columns in a particular format) you must still know that this transformation occurred to construct the object. 
+#### Combine the following two paragraphs
+The major downside here is that  the existence of a dataframe object alone does not gaurantee that it will include columns with these exact names. If the dataframe is loaded directly from disk (or the seaborn package, for instance), the structure of that data is determined by the actual input. If a column is renamed in the file, the structure of the data will change and the code used to access the data may fail. You cannot know that the code will fail without looking at the input data itself. 
+
+In a pipeline with a series of transformations, this becomes concerning becaue you cannot know if a column exists unless you know the input data and all subsequent transformations up until the point where you try to access it. While there may be tansformations that standardize the format of the data (i.e. select columns in a particular format) you must still know that this transformation occurred to construct the object. 
+
+#### Custom type approach
 
 As an alternative, consider using custom data object types with specified attributes to represent your data. While more code is needed to create the types, the mere existence of the object comes with gaurantees about which attributes they contain. You do not need to understand the transformation used to create the object to know that the attributes will exist.
 
@@ -105,14 +136,93 @@ The dataclasses module creates a constructor where all these values are required
 
     IrisEntry(1.0, 1.0, 1.0, 1.0, 'best_species')
 
-You can then store these objects in collection types, but I recommend either encapsulating those collections or at least extending an existing collection type to make the intent clearer to the reader - especially in weakly typed langauges. In Python, you might create a class like the following.
+You can then store these objects in collection types, but I recommend either encapsulating those collections or at least extending an existing collection type to make the intent clearer to the reader - especially in weakly typed langauges. In Python, you might extend a List using the following.
 
     class Irises(typing.List[IrisEntry]):
         ...
 
-The benefit of this extra effort is that it should be obvious to any reader which properties are associated with witch types of data. If you try to access an attribute that does not exist, you will see an exception, and furthermore your static analyzer or IDE will be able to autocomplete or let you know when you make an error before you ever run your code. You are making a gaurantee that every time an object like this exists, it will have these attributes.
+The benefit of defining these types is that it should be obvious to any reader which properties are associated with witch types of data. If you try to access an attribute that does not exist, you will see an exception, and furthermore your static analyzer or IDE will be able to autocomplete or let you know when you make an error before you ever run your code. You are making a gaurantee that every time an object like this exists, it will have these attributes.
+
+One final note here - in more weakly typed languages like Python or R, I recommend creating immutable types, or objects that cannot be modified or extended after construction. This restriction will make for cleaner methods/functions throughout your pipeline.
+
+### 2. Constuction Methods
+
+Construction methods are critical for understanding your data pipeline because they often reveal which data the structure will encapsulate and the oeprations needed to encapsulate it. 
+
+Moving forward, we're going to be 
+To demonstrate construction methods with dataframes, I'll simply show what it would be like to convert whatever.
+
+For example purposes, lets try deconstructing the original iris dataframe into Python dictionaries and recreate a dataframe from there. First I'll use the `to_dict` method to create the list of dictionaries.
+
+    iris_data = iris_df.to_dict(orient='records')
+
+This data looks like the following:
+
+    [
+        {'sepal_length': 5.1,
+        'sepal_width': 3.5,
+        'petal_length': 1.4,
+        'petal_width': 0.2,
+        'species': 'setosa'},
+        {'sepal_length': 4.9,
+        'sepal_width': 3.0,
+        'petal_length': 1.4,
+        'petal_width': 0.2,
+        'species': 'setosa'},
+        {'sepal_length': 4.7,
+        'sepal_width': 3.2,
+        'petal_length': 1.3,
+        'petal_width': 0.2,
+        'species': 'setosa'},
+        ...
+    ]
+
+And now let us create a function to convert this data from a list of dictionaries to a dataframe. We can do this easily using the `from_records` method, again demonstrating the flexibility and power of dataframe-oriented packages.
+
+    def make_iris_dataframe(iris_data: typing.List[typing.Dict[str, typing.Union[float, str]]]) -> pd.DataFrame:
+        return pd.DataFrame.from_records(iris_data)
+
+The drawback of this design is that we do not know the structure of the output data without both knowing the input data and reading the entirety of the function to see how that input data relates to the output. 
+
+Imagine you have a data pipeline where this function is the first step, and one day the data source changes the "species" attribute to be "type". This example function would not raise any exceptions or flags, but instead propogate this change further in your data pipeline such that you only know it would be broken when you try to access the column with the old name. When the downstream function raises an exception, you will not immediately know whether it was because the original dataset changed or if it was an error in that first function. 
+
+The common solution to this small problem is to add a column selection that would fail if a column has been renamed, but again it requires us to know the content of the function and also remember to build these code lines into any function that makes the dataframe from any source data. 
+
+    def make_iris_dataframe_standardize(iris_data: typing.List[typing.Dict[str, typing.Union[float, str]]]) -> pd.DataFrame:
+        df = pd.DataFrame.from_records(iris_data)
+        return df[['sepal_length', 'sepal_width', 'petal_length', 'petal_width', 'species']]
 
 
+A principle of good design is that your system should fail as early in the pipeline as possible so that you can isolate any issues at the point of the failure rather than to downstream functions which rely on them.
+
+Alternatively, you can consider using a static factory method (see the `classmethod` decorator in Python) to contain code needed to create the object from various sources. This example shows code needed to create a `IrisEntry` object from a single row of the iris dataframe.
+
+    @dataclasses.dataclass
+    class IrisEntry:
+        sepal_length: float
+        sepal_width: float
+        petal_length: float
+        petal_width: float
+        species: str
+        
+        @classmethod
+        def from_series(cls, row: pd.Series):
+            return cls(
+                sepal_length = row['sepal_length'],
+                sepal_width = row['sepal_width'],
+                petal_length = row['petal_length'],
+                petal_width = row['petal_width'],
+                species = row['species'],
+            )
+
+And the collection type could tie it together by calling the static factory method on each row of the dataframe.
+
+    class Irises(typing.List[IrisEntry]):
+        @classmethod
+        def from_iris_df(cls, iris_df: pd.DataFrame):
+            return cls([IrisEntry.from_series(row) for ind, row in iris_df.iterrows()])
+
+One could imagine creating similar static factory methods for constructing this data structure from any type of input data - not just a dataframe.
 
 
 #### VVVVVVVVVVV ALL EXPERIMENTAL VVVVVVVVVVV
