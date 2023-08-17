@@ -349,10 +349,18 @@ There are ways to make this interface clearer by encapsulating the grouped objec
     iris_plotter = IrisAreaPlotter.from_area_averages(averaged_iris_areas)
     iris_plotter.bar()
 
+### Comparison Summary
+
+Where the strengths of working with dataframes is that you can produce compact code by taking advantage of powerful methods built into existing packages, the weakness is that your pipeline codebase will be more difficult to organize and your IDE assistants (including AI-based solutions) will not be able to identify issues until you actually run your code. The benefit of a custom-type solution is that is is more amenable to 
+
+The cost of creating custom types is that you must implement some basic low-level features, but the
+
+
+
 
 <div id="snippets">.</div>
 
-#### Full Code Examples
+### Full Code Examples
 
 These are the full code snippets for convenience.
 
