@@ -9,6 +9,9 @@ Dataframe interfaces are useful because they are so flexible: filtering, mutatat
 
 Over the last decade of teaching and reading about data science practices, I have seen a shift in the way that students are learning. Students start learning with tools like Jupyter and RStudio markdown because they allow for quick experimentation on a step-by-step basis and enable trying new things with near-instant feedback. Expansive packages like Pandas and tidyverse are becoming essential material, and students often engage with them before they even understand the language they are built in (me too, sometimes). There is no doubt that these are learning powerful tools, but my concern is that we are sacraficing fundamentals of programming that are essential for building real-world projects that are maintainable. Anyone can learn to write code, but, in my opinion, we should be teaching how to write _good_ code from the start.
 
+PERSONAL NOTES:
+1. THEY APPLY AT SCALE - LARGE AND DYNAMIC ENOUGH PROJECTS
+
 In this article, I will describe what I mean by data structures within the context of data pipelines, the essential form of any data analysis project, in order to discuss optimal patterns on a theoretical level. Next, I will discuss three patterns for creating data pipelines in Python, although I believe the examples here apply to many languages - especially interpreted ones.
 
 I believe that using custom data types, rather than dataframes or other less-explicit schemes, can make pipelines easier to understand, easier to maintain, and less error-prone.
@@ -69,29 +72,6 @@ The dataframe looks like this.
     3           4.6          3.1           1.5          0.2  setosa
     4           5.0          3.6           1.4          0.2  setosa
 
-However, for illustrative purposes, I convert this dataframe to a list of dict objects.
-
-    iris_data = iris_df.to_dict(orient='records')
-
-The first few elements of this data looks like the following:
-
-    [
-        {
-            'sepal_length': 5.1,
-            'sepal_width': 3.5,
-            'petal_length': 1.4,
-            'petal_width': 0.2,
-            'species': 'setosa'
-        },
-        {
-            'sepal_length': 4.9,
-            'sepal_width': 3.0,
-            'petal_length': 1.4,
-            'petal_width': 0.2,
-            'species': 'setosa'
-        },
-        ...
-    ]
 
 
 ### 1. Properties or Attributes of Data Structures
@@ -152,32 +132,32 @@ Construction methods are critical for understanding your data pipeline because t
 Moving forward, we're going to be 
 To demonstrate construction methods with dataframes, I'll simply show what it would be like to convert whatever.
 
+
 For example purposes, lets try deconstructing the original iris dataframe into Python dictionaries and recreate a dataframe from there. First I'll use the `to_dict` method to create the list of dictionaries.
 
     iris_data = iris_df.to_dict(orient='records')
 
-This data looks like the following:
+The first few elements of this data looks like the following:
 
     [
-        {'sepal_length': 5.1,
-        'sepal_width': 3.5,
-        'petal_length': 1.4,
-        'petal_width': 0.2,
-        'species': 'setosa'},
-        {'sepal_length': 4.9,
-        'sepal_width': 3.0,
-        'petal_length': 1.4,
-        'petal_width': 0.2,
-        'species': 'setosa'},
-        {'sepal_length': 4.7,
-        'sepal_width': 3.2,
-        'petal_length': 1.3,
-        'petal_width': 0.2,
-        'species': 'setosa'},
+        {
+            'sepal_length': 5.1,
+            'sepal_width': 3.5,
+            'petal_length': 1.4,
+            'petal_width': 0.2,
+            'species': 'setosa'
+        },
+        {
+            'sepal_length': 4.9,
+            'sepal_width': 3.0,
+            'petal_length': 1.4,
+            'petal_width': 0.2,
+            'species': 'setosa'
+        },
         ...
     ]
 
-And now let us create a function to convert this data from a list of dictionaries to a dataframe. We can do this easily using the `from_records` method, again demonstrating the flexibility and power of dataframe-oriented packages.
+And now let us create a function to convert this data from a list of dictionaries to a dataframe. We can do this easily using the `DataFrame.from_records` method, again demonstrating the flexibility and power of dataframe-oriented packages.
 
     def make_iris_dataframe(iris_data: typing.List[typing.Dict[str, typing.Union[float, str]]]) -> pd.DataFrame:
         return pd.DataFrame.from_records(iris_data)
@@ -186,7 +166,7 @@ The drawback of this design is that we do not know the structure of the output d
 
 Imagine you have a data pipeline where this function is the first step, and one day the data source changes the "species" attribute to be "type". This example function would not raise any exceptions or flags, but instead propogate this change further in your data pipeline such that you only know it would be broken when you try to access the column with the old name. When the downstream function raises an exception, you will not immediately know whether it was because the original dataset changed or if it was an error in that first function. 
 
-The common solution to this small problem is to add a column selection that would fail if a column has been renamed, but again it requires us to know the content of the function and also remember to build these code lines into any function that makes the dataframe from any source data. 
+The common solution to this problem is to add a standard column selection that would fail if a column has been renamed, but again it requires us to know the content of the function and also remember to build this code into any function that makes the dataframe from any source data. To test whether the function worked, you will need to examine the structure of the dataframe.
 
     def make_iris_dataframe_standardize(iris_data: typing.List[typing.Dict[str, typing.Union[float, str]]]) -> pd.DataFrame:
         df = pd.DataFrame.from_records(iris_data)
@@ -195,7 +175,7 @@ The common solution to this small problem is to add a column selection that woul
 
 A principle of good design is that your system should fail as early in the pipeline as possible so that you can isolate any issues at the point of the failure rather than to downstream functions which rely on them.
 
-Alternatively, you can consider using a static factory method (see the `classmethod` decorator in Python) to contain code needed to create the object from various sources. This example shows code needed to create a `IrisEntry` object from a single row of the iris dataframe.
+As an alternative, you can consider using a static factory method (see the `classmethod` decorator in Python) on a custom type to contain code needed to create the object from various sources. This example shows code needed to create a `IrisEntry` object from a single row of the iris dataframe.
 
     @dataclasses.dataclass
     class IrisEntry:
@@ -222,7 +202,291 @@ And the collection type could tie it together by calling the static factory meth
         def from_iris_df(cls, iris_df: pd.DataFrame):
             return cls([IrisEntry.from_series(row) for ind, row in iris_df.iterrows()])
 
-One could imagine creating similar static factory methods for constructing this data structure from any type of input data - not just a dataframe.
+One could imagine creating similar static factory methods for constructing this data structure from any type of input data - not just dictionaries or dataframes.
+
+### 3. Transformation Methods
+
+Methods that actually transform data from one type to another will probably make up the majority of the work in your data pipeline. Of course, regaurdless of the implementation and language, dataframes have a wide range of standard transformation methods such as mutations, filters, and aggregations that will make up the majority of your workflows. Throughout your pipeline, you will probably at least group application-specific transformations into functions, or operations that operate on dataframes with a specific set of columns and types - the iris dataframe, for instance.
+
+##### Element-wise Transformations
+
+The simplest transformation is where each element (or row in the dataframe) can be transformed into a new type of data. For example, lets say you want to calculate the sepal and petal areas of each iris. The cleanest way to do this would be to create a new dataframe, so you could create a dataframe like the following.
+
+    def calc_iris_area(iris_df: pd.DataFrame) -> pd.DataFrame:
+        return pd.DataFrame({
+            'sepal_area': iris_df['sepal_length'] * iris_df['sepal_width'],
+            'petal_area': iris_df['petal_length'] * iris_df['petal_width'],
+            'species': iris_df['species'],
+        })
+
+Alternatively you could choose to modify the original dataframe in-place - this is less clean and could lead to further downstream errors, but it may be more efficient in some cases.
+
+    def calc_iris_area_inplace(iris_df: pd.DataFrame) -> pd.DataFrame:
+        iris_df['sepal_area'] = iris_df['sepal_length'] * iris_df['sepal_width']
+        iris_df['petal_area'] = iris_df['petal_length'] * iris_df['petal_width']
+        return iris_df
+
+You could even return a subset of the columns as a view, which could lead to slightly less risky workflows.
+        
+        ...
+        return iris_df[['sepal_area', 'petal_area', 'species']]
+
+This again has the same risks as the constructor methods - the types alone do not really give us a sense of what the transformationw will be, becasue both the inputs and outputs are dataframes. We do not really even know if the same dataframe is being returned.
+
+Alternatively, try creating a new object type to represent this new intermediary step in your pipeline. You can again use static factory methods that do a little of the work needed to create the object, although more complicated logic may be better contained elsewhere.
+
+    @dataclasses.dataclass
+    class IrisArea:
+        sepal_area: float
+        petal_area: float
+        species: str
+        
+        @classmethod
+        def calc_from_iris(cls, iris: IrisEntry):
+            return cls(
+                sepal_area = iris.sepal_length * iris.sepal_width, 
+                petal_area = iris.petal_length * iris.petal_width, 
+                species = iris.species,
+            )
+
+You could even call this method back from the original `IrisEntry` object if you'd like to make a simpler high-level interface. Then you could use `IrisEntry.calc_area()` to compute area instead of `IrisArea.calc_from_iris(iris_entry)`.
+
+    class IrisEntry:
+        ...        
+        def calc_area(self):
+            return IrisArea.calc_from_iris(self)
+
+The collection type would simply wrap it, as shown before.
+
+    class IrisAreas(typing.List[IrisArea]):
+        @classmethod
+        def calc_from_irises(cls, irises: Irises):
+            return IrisAreas([IrisArea.calc_from_iris(ir) for ir in irises])
+
+To make the API easier, simply call that method from a new method in the `Irises` class as we did before.
+
+    class Irises(typing.List[IrisEntry]):
+        ...        
+        def calc_areas(self):
+            return IrisAreas.calc_from_irises(self)
+
+The interface for working with these types would look like the following:
+
+    irises = Irises.from_iris_df(iris_df)
+    iris_areas = irises.calc_area()
+
+##### Filtering and Aggregating
+
+In your pipeline, you will likely want to create transformation functions for filtering and aggregating that reference specific columns by names. These are two examples of such functions, that have all the aforementioned readibility problems. That said, they are very compact and somewhat easy to read.
+
+    def filter_lower_sepal_quartile(area_df: pd.DataFrame) -> pd.DataFrame:
+        v = area_df['sepal_area'].quantile(0.25)
+        return area_df.query(f'sepal_area > {v}')
+
+    def av_area_by_species(area_df: pd.DataFrame) -> pd.DataFrame:
+        '''Average iris areas by species.'''
+        return area_df.groupby('species').mean().reset_index(inplace=False, drop=False)
+
+The interface would then look like the following.
+
+    area_df = calc_iris_area(iris_df)
+    filtered_area_df = filter_lower_sepal_quartile(area_df)
+    area_by_species = av_area_by_species(filtered_area_df)
+
+In the custon-type approach, you would attach these functions as methods to your object classes. Notice that grouping and averaging are combinations of two functions here, and the returned value is a mapping from the species type to `IrisArea` objects (which can then retain their own methods). 
+
+    class IrisAreas(typing.List[IrisArea]):
+        ...        
+        def av_area_by_species(self) -> typing.Dict[str, AverageIrisArea]:
+            return {spec: areas.average() for spec, areas in self.group_by_species().items()}
+        
+        def average(self) -> AverageIrisArea:
+            return IrisArea(
+                sepal_area = sum([ia.sepal_area for ia in self])/len(self),
+                petal_area = sum([ia.petal_area for ia in self])/len(self),
+                species = self[0].species,
+            )
+        
+        def group_by_species(self):
+            species_areas: typing.Dict[str, IrisAreas] = dict()
+            for a in self:
+                species_areas.setdefault(a.species, self.__class__())
+                species_areas[a.species].append(a)
+            return species_areas
+
+And the high-level interface for these will look like the following.
+
+    irises = Irises.from_iris_df(iris_df)
+    iris_areas = irises.calc_areas()
+    filtered_iris_areas = iris_areas.filter_lower_sepal_quartile()
+    averaged_iris_areas = filtered_iris_areas.av_area_by_species()
+
+##### Plotting Interfaces
+
+As a natural extension of these approaches, you may also want to implement plotting functions or objects as part of your pipelines. The dataframe approach is again a simple function that returns, in this case, a plotly object.
+
+    import plotly.express as px
+    def plot_sepal_area(areas_by_species: pd.DataFrame) -> pd.DataFrame:
+        '''Plot average sepal area by species.'''
+        return px.bar(areas_by_species, x='species', y='sepal_area')
+
+When using custom types, I recommend creating an additional custom type that contain methods for plotting this particular data in any number of ways. This `IrisAreaPlotter` does a transformation from averaged `IrisArea` objects into a dataframe that plotly uses for plotting (a necessary step for any plotting method used here).
+
+    @dataclasses.dataclass
+    class IrisAreaPlotter:
+        iris_area_df: pd.DataFrame
+        
+        @classmethod
+        def from_area_averages(cls, area_by_species: typing.Dict[str, IrisArea]):
+            df = pd.DataFrame([dataclasses.asdict(a) for a in area_by_species.values()])
+            return cls(df)
+        
+        def bar(self):
+            return px.bar(self.iris_area_df, x='species', y='sepal_area')
+
+There are ways to make this interface clearer by encapsulating the grouped objects into a collection type, but as-is, you'd access this functionality using the following method.
+
+    iris_plotter = IrisAreaPlotter.from_area_averages(averaged_iris_areas)
+    iris_plotter.bar()
+
+
+<div id="snippets">.</div>
+
+#### Full Code Examples
+
+These are the full code snippets for convenience.
+
+##### Dataframe Approach
+
+    def calc_iris_area(iris_df: pd.DataFrame) -> pd.DataFrame:
+        '''Multiplies length and width of sepal and petals of each iris.'''
+        return pd.DataFrame({
+            'sepal_area': iris_df['sepal_length'] * iris_df['sepal_width'],
+            'petal_area': iris_df['petal_length'] * iris_df['petal_width'],
+            'species': iris_df['species'],
+        })
+
+    def calc_iris_area_inplace(iris_df: pd.DataFrame) -> pd.DataFrame:
+        '''Multiplies length and width of sepal and petals of each iris.'''
+        return pd.DataFrame({
+            'sepal_area': iris_df['sepal_length'] * iris_df['sepal_width'],
+            'petal_area': iris_df['petal_length'] * iris_df['petal_width'],
+            'species': iris_df['species'],
+        })
+
+    def filter_lower_sepal_quartile(area_df: pd.DataFrame) -> pd.DataFrame:
+        v = area_df['sepal_area'].quantile(0.25)
+        return area_df.query(f'sepal_area > {v}')
+
+    def av_area_by_species(area_df: pd.DataFrame) -> pd.DataFrame:
+        '''Average iris areas by species.'''
+        return area_df.groupby('species').mean().reset_index(inplace=False, drop=False)
+
+    import plotly.express as px
+    def plot_sepal_area(areas_by_species: pd.DataFrame) -> pd.DataFrame:
+        '''Plot average sepal area by species.'''
+        return px.bar(areas_by_species, x='species', y='sepal_area')
+
+    area_df = calc_iris_area(iris_df)
+    filtered_area_df = filter_lower_sepal_quartile(area_df)
+    area_by_species = av_area_by_species(filtered_area_df)
+    plot_sepal_area(area_by_species)
+
+##### Custom Type Approach
+
+    import dataclasses
+
+    @dataclasses.dataclass
+    class IrisEntry:
+        sepal_length: float
+        sepal_width: float
+        petal_length: float
+        petal_width: float
+        species: str
+        
+        @classmethod
+        def from_series(cls, row: pd.Series):
+            return cls(
+                sepal_length = row['sepal_length'],
+                sepal_width = row['sepal_width'],
+                petal_length = row['petal_length'],
+                petal_width = row['petal_width'],
+                species = row['species'],
+            )
+            
+        def calc_area(self):
+            return IrisArea.calc_from_iris(self)
+        
+    class Irises(typing.List[IrisEntry]):
+        @classmethod
+        def from_iris_df(cls, iris_df: pd.DataFrame):
+            return cls([IrisEntry.from_series(row) for ind, row in iris_df.iterrows()])
+        
+        def calc_areas(self):
+            return IrisAreas.calc_from_irises(self)
+        
+    @dataclasses.dataclass
+    class IrisArea:
+        sepal_area: float
+        petal_area: float
+        species: str
+        
+        @classmethod
+        def calc_from_iris(cls, iris: IrisEntry):
+            return cls(
+                sepal_area = iris.sepal_length * iris.sepal_width, 
+                petal_area = iris.petal_length * iris.petal_width, 
+                species = iris.species,
+            )
+            
+    class IrisAreas(typing.List[IrisArea]):
+        @classmethod
+        def calc_from_irises(cls, irises: Irises):
+            return IrisAreas([IrisArea.calc_from_iris(ir) for ir in irises])
+        
+        def filter_lower_sepal_quartile(self):
+            v = list(sorted([ia.sepal_area for ia in self]))[len(self)//4]
+            return self.__class__([ia for ia in self if ia.sepal_area > v])
+        
+        def av_area_by_species(self) -> typing.Dict[str, IrisArea]:
+            return {spec: areas.average() for spec, areas in self.group_by_species().items()}
+        
+        def average(self) -> IrisArea:
+            return IrisArea(
+                sepal_area = sum([ia.sepal_area for ia in self])/len(self),
+                petal_area = sum([ia.petal_area for ia in self])/len(self),
+                species = self[0].species,
+            )
+        
+        def group_by_species(self):
+            species_areas: typing.Dict[str, IrisAreas] = dict()
+            for a in self:
+                species_areas.setdefault(a.species, self.__class__())
+                species_areas[a.species].append(a)
+            return species_areas
+            
+        def plot(self):
+            return IrisAreaPlotter.from_area_averages(self.average_by_species())
+
+
+    @dataclasses.dataclass
+    class IrisAreaPlotter:
+        iris_area_df: pd.DataFrame
+        
+        @classmethod
+        def from_area_averages(cls, area_by_species: typing.Dict[str, IrisArea]):
+            df = pd.DataFrame([dataclasses.asdict(a) for a in area_by_species.values()])
+            return cls(df)
+        
+        def bar(self):
+            return px.bar(self.iris_area_df, x='species', y='sepal_area')
+
+    irises = Irises.from_iris_df(iris_df)
+    iris_areas = irises.calc_areas()
+    filtered_iris_areas = iris_areas.filter_lower_sepal_quartile()
+    averaged_iris_areas = filtered_iris_areas.av_area_by_species()
+    iris_plotter = IrisAreaPlotter.from_area_averages(averaged_iris_areas)
+    iris_plotter.bar()
 
 
 #### VVVVVVVVVVV ALL EXPERIMENTAL VVVVVVVVVVV
