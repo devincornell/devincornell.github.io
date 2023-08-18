@@ -11,6 +11,7 @@ Over the last decade of teaching and reading about data science practices, I hav
 
 PERSONAL NOTES:
 1. THEY APPLY AT SCALE - LARGE AND DYNAMIC ENOUGH PROJECTS
+2. problem of where your code lives
 
 In this article, I will describe what I mean by data structures within the context of data pipelines, the essential form of any data analysis project, in order to discuss optimal patterns on a theoretical level. Next, I will discuss three patterns for creating data pipelines in Python, although I believe the examples here apply to many languages - especially interpreted ones.
 
@@ -72,13 +73,36 @@ The dataframe looks like this.
     3           4.6          3.1           1.5          0.2  setosa
     4           5.0          3.6           1.4          0.2  setosa
 
+For example purposes, I'll be demonstrating both approaches by starting with a list of dictionary objects representing irises - the most basic built-in data structures in Python. I'll use the `DataFrame.to_dict` method to accomplish this.
+
+    iris_data = iris_df.to_dict(orient='records')
+
+The first few elements of this data looks like the following:
+
+    [
+        {
+            'sepal_length': 5.1,
+            'sepal_width': 3.5,
+            'petal_length': 1.4,
+            'petal_width': 0.2,
+            'species': 'setosa'
+        },
+        {
+            'sepal_length': 4.9,
+            'sepal_width': 3.0,
+            'petal_length': 1.4,
+            'petal_width': 0.2,
+            'species': 'setosa'
+        },
+        ...
+    ]
 
 
 ### 1. Properties or Attributes of Data Structures
 
 #### The dataframe approach
 
-Dataframes typically represent data attrbutes as columns, and each column is represented as an array of an internal type, rather than a type within the langauge. Python, for instance, implements int and float objects, but Pandas dataframes include more specific types like 64 bit integers and floating point numbers (following Numpy arrays) that do not appear in the Python specification.
+Dataframes typically represent data attrbutes as columns, and each column is represented as an array of an internal type, rather than a type within the langauge. Python, for instance, implements int and float objects, but Pandas dataframes include more specific types like 64 bit integers and floating point numbers (following NumPy arrays) that do not appear in the Python specification.
 
 In Python, you would access columns using the following notation.
 
@@ -277,7 +301,7 @@ The interface for working with these types would look like the following:
 
 ##### Filtering and Aggregating
 
-In your pipeline, you will likely want to create transformation functions for filtering and aggregating that reference specific columns by names. These are two examples of such functions, that have all the aforementioned readibility problems. That said, they are very compact and somewhat easy to read.
+In your pipeline, you will likely want to create transformation functions for filtering and aggregating that reference specific columns by names. These are two examples of such functions for dataframes, that have all the aforementioned readibility problems. That said, they are very compact and somewhat easy to read.
 
     def filter_lower_sepal_quartile(area_df: pd.DataFrame) -> pd.DataFrame:
         v = area_df['sepal_area'].quantile(0.25)
@@ -344,17 +368,39 @@ When using custom types, I recommend creating an additional custom type that con
         def bar(self):
             return px.bar(self.iris_area_df, x='species', y='sepal_area')
 
-There are ways to make this interface clearer by encapsulating the grouped objects into a collection type, but as-is, you'd access this functionality using the following method.
+You'd access those methods using this pattern.
 
     iris_plotter = IrisAreaPlotter.from_area_averages(averaged_iris_areas)
     iris_plotter.bar()
 
+Or, with additional changes, you could access it using `averaged_iris_areas.plot.bar()` or something similar.
+
 ### Comparison Summary
 
-Where the strengths of working with dataframes is that you can produce compact code by taking advantage of powerful methods built into existing packages, the weakness is that your pipeline codebase will be more difficult to organize and your IDE assistants (including AI-based solutions) will not be able to identify issues until you actually run your code. The benefit of a custom-type solution is that is is more amenable to 
+Where the strengths of working with dataframes is that you can produce compact code by taking advantage of powerful methods built into existing packages, the weakness is that your pipeline codebase will be more difficult to organize and your IDE assistants (including AI-based solutions) will not be able to identify issues until you actually run your code. 
 
-The cost of creating custom types is that you must implement some basic low-level features, but the
+<div id="conclusions">.</div>
 
+## Conclusions
+
+Finally, it is worth considering these two data pipelines on a theoretical level. First consider the pipeline that involves dataframes which I visualized below. Every intermediary stage in this pipeline takes a dataframe as input and outputs a dataframe, so it is difficult to tell the structure of the data without either checking it at runtime or remembering the expected structure of the input data and reading through the body - a task that becomes difficult as your project grows.
+
+
+    List[Dict[str, float]]
+        -(make_iris_dataframe)> pd.DataFrame 
+        -(calc_iris_area)> pd.DataFrame
+        -(filter_lower_sepal_quartile)> pd.DataFrame
+        -(av_area_by_species)> pd.DataFrame
+        -(plot_sepal_area)> plotly.Plot
+
+In contrast, the approach where I created custom types easily allows us to understand the intermediary structure that this data takes at each point in the pipeline. For instance, we can tell that the `calc_areas` method converts data from `Irises` to `IrisArea`, allowing us to guess about what the function does. Additionally, we gaurantee that the input and output objects will have particular sets of attributes that can be tracked using simple type-checking and static analysis. In Python, simply adding type hints for the input data structure will allow your IDE to provide code completion and identify access to attributes that are not part of the object.
+
+    List[Dict[str, float]]
+        -(Irises.from_dicts)> Irises (List[IrisEntry])
+        -(.calc_areas)> IrisAreas (List[IrisArea])
+        -(.filter_lower_sepal_quartile)> IrisAreas (List[IrisArea])
+        -(.av_area_by_species)> Dict[str, IrisArea]
+        -(.plot.bar)> plotly.Plot
 
 
 
