@@ -1,8 +1,8 @@
 ---
-title: "Are dataframes too flexible? Optimal data structures for data pipelines."
-subtitle: "The challenges with implicit data structures."
+title: "Are dataframes too flexible?"
+subtitle: "Using custom types in your data pipelines."
 date: "May 28, 2023"
-id: "zods2_problem_with_dataframes"
+id: "zods0_problem_with_dataframes"
 ---
 
 Dataframe interfaces are useful because they are so flexible: filtering, mutatating, selecting, and grouping functions have simple interfaces and can be chained to perform a wide range of transformations on tabular data. The cost of this flexibility, I argue, is that your data pipelines are less readable, more difficult to maintain, and more error prone. Instead, I argue that it is better to use more explicit data structures like classes or structs with fixed attributes, specific methods for construction, and specific methods for transformation/analysis. 
