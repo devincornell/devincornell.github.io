@@ -395,7 +395,6 @@ In contrast, the custom data type approach easily allows us to understand the st
 
 * **Less error prone**: smart static analyzers (including AI-assisted ones) can identify issues with accessing attributes and the structure of your data before you ever run it because defined data types provide gaurantees about which attributes your data should contain.
 
-your data pipelines are less readable, more difficult to maintain, and more error prone
 
 
 
@@ -407,6 +406,10 @@ your data pipelines are less readable, more difficult to maintain, and more erro
 These are the full code snippets for convenience.
 
 ##### Dataframe Approach
+
+    def make_iris_dataframe(iris_data: typing.List[typing.Dict[str, typing.Union[float, str]]]) -> pd.DataFrame:
+        df = pd.DataFrame.from_records(iris_data)
+        return df[['sepal_length', 'sepal_width', 'petal_length', 'petal_width', 'species']]
 
     def calc_iris_area(iris_df: pd.DataFrame) -> pd.DataFrame:
         '''Multiplies length and width of sepal and petals of each iris.'''
@@ -437,10 +440,12 @@ These are the full code snippets for convenience.
         '''Plot average sepal area by species.'''
         return px.bar(areas_by_species, x='species', y='sepal_area')
 
+    iris_df = make_iris_dataframe(iris_data)
     area_df = calc_iris_area(iris_df)
     filtered_area_df = filter_lower_sepal_quartile(area_df)
     area_by_species = av_area_by_species(filtered_area_df)
     plot_sepal_area(area_by_species)
+
 
 ##### Custom Type Approach
 
@@ -455,26 +460,27 @@ These are the full code snippets for convenience.
         species: str
         
         @classmethod
-        def from_series(cls, row: pd.Series):
+        def from_dict(cls, entry: typing.Dict[str, float]):
             return cls(
-                sepal_length = row['sepal_length'],
-                sepal_width = row['sepal_width'],
-                petal_length = row['petal_length'],
-                petal_width = row['petal_width'],
-                species = row['species'],
+                sepal_length = entry['sepal_length'],
+                sepal_width = entry['sepal_width'],
+                petal_length = entry['petal_length'],
+                petal_width = entry['petal_width'],
+                species = entry['species'],
             )
-            
+                
         def calc_area(self):
             return IrisArea.calc_from_iris(self)
         
     class Irises(typing.List[IrisEntry]):
-        @classmethod
-        def from_iris_df(cls, iris_df: pd.DataFrame):
-            return cls([IrisEntry.from_series(row) for ind, row in iris_df.iterrows()])
         
+        @classmethod
+        def from_dicts(cls, iris_data: typing.List[typing.Dict[str,float]]):
+            return cls([IrisEntry.from_dict(ie) for ie in iris_data])
+            
         def calc_areas(self):
             return IrisAreas.calc_from_irises(self)
-        
+
     @dataclasses.dataclass
     class IrisArea:
         sepal_area: float
@@ -531,12 +537,13 @@ These are the full code snippets for convenience.
         def bar(self):
             return px.bar(self.iris_area_df, x='species', y='sepal_area')
 
-    irises = Irises.from_iris_df(iris_df)
+    irises = Irises.from_dicts(iris_data)
     iris_areas = irises.calc_areas()
     filtered_iris_areas = iris_areas.filter_lower_sepal_quartile()
     averaged_iris_areas = filtered_iris_areas.av_area_by_species()
     iris_plotter = IrisAreaPlotter.from_area_averages(averaged_iris_areas)
     iris_plotter.bar()
+
 
 
 #### VVVVVVVVVVV ALL EXPERIMENTAL VVVVVVVVVVV
