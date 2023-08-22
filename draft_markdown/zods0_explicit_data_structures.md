@@ -91,8 +91,6 @@ The first few elements of this data looks like the following:
 
 ### 1. Properties or Attributes of Data Structures
 
-#### The dataframe approach
-
 Dataframes typically represent data attrbutes as columns, and each column is represented as an array of an internal type, rather than a type within the langauge. Python, for instance, implements int and float objects, but Pandas dataframes include more specific types like 64 bit integers and floating point numbers (following NumPy arrays) that do not appear in the Python specification.
 
 In Python, you would access columns using the following notation.
@@ -106,7 +104,7 @@ And subsets of columns in Python can be extracted using the following.
 
 The issue I have with these methods for selecting attributes is that you do not actually know if the columns you describe here actually exist within the data set unless you know both the initial dataset being loaded from disk and every subsequent transformation that happens throughout your pipeline until the point where you access it. Nothing about the existence of the dataframe object gaurantees the existence of those attributes, so your IDE or static analyzer do not know whether there is an error here or not, and it will not be able to provide suggestions for autocomplete.
 
-#### Custom type approach
+##### Custom Types With Fixed Attributes
 
 As an alternative, consider using custom data object types with a fixed set of specified attributes to represent your data. While more code is needed to create the types, the mere existence of the object comes with gaurantees about which attributes they contain. You do not need to understand the transformation used to create the object to know that the attributes will exist.
 
@@ -138,40 +136,14 @@ One final note here - in more weakly typed languages like Python or R, I recomme
 
 ### 2. Constuction Methods
 
-Construction methods are critical for understanding your data pipeline because they often reveal which data the structure will encapsulate and the operations needed to encapsulate it. 
-
-For example purposes, lets try deconstructing the original iris dataframe into Python dictionaries and recreate a dataframe from there. First I'll use the `to_dict` method to create the list of dictionaries.
-
-    iris_data = iris_df.to_dict(orient='records')
-
-The first few elements of this data looks like the following:
-
-    [
-        {
-            'sepal_length': 5.1,
-            'sepal_width': 3.5,
-            'petal_length': 1.4,
-            'petal_width': 0.2,
-            'species': 'setosa'
-        },
-        {
-            'sepal_length': 4.9,
-            'sepal_width': 3.0,
-            'petal_length': 1.4,
-            'petal_width': 0.2,
-            'species': 'setosa'
-        },
-        ...
-    ]
-
-And now let us create a function to convert this data from a list of dictionaries to a dataframe. We can do this easily using the `DataFrame.from_records` method, again demonstrating the flexibility and power of dataframe-oriented packages.
+Construction methods are critical for understanding your data pipeline because they often reveal which data the structure will encapsulate and the operations needed to encapsulate it. As an example, let us create a function to convert the original list of dictionaries to a dataframe. We can do this easily using the Pandas `DataFrame.from_records` method, again demonstrating the flexibility and power of dataframe-oriented packages.
 
     def make_iris_dataframe(iris_data: typing.List[typing.Dict[str, typing.Union[float, str]]]) -> pd.DataFrame:
         return pd.DataFrame.from_records(iris_data)
 
-Imagine you have a data pipeline where this function is the first step, and one day the data source changes the "species" attribute to be "type". This example function would not raise any exceptions or flags, but instead propogate this change further in your data pipeline such that you only know it would be broken when you try to access the column with the old name later in the pipeline. When the downstream function raises an exception, you will not immediately know whether it was because the original dataset changed or if it was an error in that first function. 
+While powerful, the limitation of using such a method is that you rely on the structure of the original dataset to define its structure within your data pipeline, instead of creating a definition that the input must be placed into. To exaggerate the point, imagine you have a data pipeline where this function is the first step, and one day the data source changes the "species" attribute to be "type". This example function would not raise any exceptions or flags, but instead propogate this data structure change further in your data pipeline such that you only know it would be broken when you try to access the column with the old name later in the pipeline. When the downstream function raises an exception, you will not immediately know whether it was because the original dataset changed or if it was an error in that first function. 
 
-The common solution to this problem is to add a standard column selection that would fail if a column has been renamed, but again it requires us to know the content of the function and also remember to build this code into any function that makes the dataframe from source data. To test whether the function worked, you will need to examine the structure of the dataframe.
+The common solution to this problem is to add a standard column selection that would fail if a column has been renamed, but again it requires us to know the content of the function and also remember to build this format-checking code into any function that makes the dataframe from source data. To test whether the function worked, you will need to examine the structure of the dataframe.
 
     def make_iris_dataframe_standardize(iris_data: typing.List[typing.Dict[str, typing.Union[float, str]]]) -> pd.DataFrame:
         df = pd.DataFrame.from_records(iris_data)
@@ -179,7 +151,9 @@ The common solution to this problem is to add a standard column selection that w
 
 A principle of good design is that your system should fail as early in the pipeline as possible so that you can isolate any issues at the point of the failure rather than to downstream functions which rely on them.
 
-As an alternative, you can consider using a static factory method (see the `classmethod` decorator in Python) on a custom type to contain code needed to create the object from various sources. This example shows code needed to create a `IrisEntry` object from a single row of the iris dataframe.
+##### Create type-specific constructors in custom types
+
+As an alternative, consider using a static factory method (see the `classmethod` decorator in Python) on a custom type to contain code needed to create the object from various sources. This example shows code needed to create a `IrisEntry` object from a single row of the iris dataframe.
 
     @dataclasses.dataclass
     class IrisEntry:
@@ -190,21 +164,21 @@ As an alternative, you can consider using a static factory method (see the `clas
         species: str
         
         @classmethod
-        def from_series(cls, row: pd.Series):
+        def from_dict(cls, entry: typing.Dict[str, float]):
             return cls(
-                sepal_length = row['sepal_length'],
-                sepal_width = row['sepal_width'],
-                petal_length = row['petal_length'],
-                petal_width = row['petal_width'],
-                species = row['species'],
+                sepal_length = entry['sepal_length'],
+                sepal_width = entry['sepal_width'],
+                petal_length = entry['petal_length'],
+                petal_width = entry['petal_width'],
+                species = entry['species'],
             )
 
 And the collection type could tie it together by calling the static factory method on each row of the dataframe.
 
     class Irises(typing.List[IrisEntry]):
         @classmethod
-        def from_iris_df(cls, iris_df: pd.DataFrame):
-            return cls([IrisEntry.from_series(row) for ind, row in iris_df.iterrows()])
+        def from_dicts(cls, iris_data: typing.List[typing.Dict[str,float]]):
+            return cls([IrisEntry.from_dict(ie) for ie in iris_data])
 
 One could imagine creating similar static factory methods for constructing this data structure from any type of input data - not just dictionaries or dataframes.
 
@@ -212,7 +186,7 @@ One could imagine creating similar static factory methods for constructing this 
 
 Methods that actually transform data from one type to another will probably make up the majority of the work in your data pipeline. Of course, regaurdless of the implementation and language, dataframes have a wide range of standard transformation methods such as mutations, filters, and aggregations that will make up the majority of your workflows. Throughout your pipeline, you will probably at least group application-specific transformations into functions, or operations that operate on dataframes with a specific set of columns and types - the iris dataframe, for instance.
 
-##### Element-wise Transformations
+#### Element-wise Transformations
 
 The simplest transformation is where each element (or row in the dataframe) can be transformed into a new type of data. For example, lets say you want to calculate the sepal and petal areas of each iris. The cleanest way to do this would be to create a new dataframe, so you could create a dataframe like the following.
 
@@ -236,6 +210,8 @@ You could even return a subset of the columns as a view, which could lead to sli
         return iris_df[['sepal_area', 'petal_area', 'species']]
 
 This again has the same risks as the constructor methods - the types alone do not really give us a sense of what the transformationw will be, becasue both the inputs and outputs are dataframes. We do not really even know if the same dataframe is being returned.
+
+##### Custom types for intermediate data structures
 
 Alternatively, try creating a new object type to represent this new intermediary step in your pipeline. You can again use static factory methods that do a little of the work needed to create the object, although more complicated logic may be better contained elsewhere.
 
@@ -279,7 +255,7 @@ The interface for working with these types would look like the following:
     irises = Irises.from_iris_df(iris_df)
     iris_areas = irises.calc_area()
 
-##### Filtering and Aggregating
+#### Filtering and Aggregating
 
 In your pipeline, you will likely want to create transformation functions for filtering and aggregating that reference specific columns by names. These are two examples of such functions for dataframes, that have all the aforementioned readibility problems. That said, they are very compact and somewhat easy to read.
 
@@ -296,6 +272,8 @@ The interface would then look like the following.
     area_df = calc_iris_area(iris_df)
     filtered_area_df = filter_lower_sepal_quartile(area_df)
     area_by_species = av_area_by_species(filtered_area_df)
+
+##### Re-use custom types in transformations
 
 In the custon-type approach, you would attach these functions as methods to your object classes. Notice that grouping and averaging are combinations of two functions here, and the returned value is a mapping from the species type to `IrisArea` objects (which can then retain their own methods). 
 
@@ -325,7 +303,7 @@ And the high-level interface for these will look like the following.
     filtered_iris_areas = iris_areas.filter_lower_sepal_quartile()
     averaged_iris_areas = filtered_iris_areas.av_area_by_species()
 
-##### Plotting Interfaces
+#### Plotting Interfaces
 
 As a special case of these strategies, you may also want to implement plotting functions or objects as part of your pipelines. The dataframe approach is again a simple function that returns, in this case, a plotly object.
 
@@ -333,6 +311,8 @@ As a special case of these strategies, you may also want to implement plotting f
     def plot_sepal_area(areas_by_species: pd.DataFrame) -> pd.DataFrame:
         '''Plot average sepal area by species.'''
         return px.bar(areas_by_species, x='species', y='sepal_area')
+
+##### Plotting Objects
 
 When using custom types, I recommend creating an additional custom type that contain methods for plotting this particular data in any number of ways. This `IrisAreaPlotter` does a transformation from averaged `IrisArea` objects into a dataframe that plotly uses for plotting (a necessary step for any plotting method used here).
 
@@ -366,22 +346,20 @@ Where the strengths of working with dataframes is that you can produce compact c
 Finally, it is worth considering these two data pipelines on a theoretical level. First consider the pipeline that involves dataframes which I visualized below. Notice that every intermediary stage in this pipeline takes a dataframe as input and outputs a dataframe, so it is difficult to tell the structure of the data without either checking it at runtime or remembering the expected structure of the input data and reading through the body - a task that becomes difficult as your project grows.
 
     List[Dict[str, float]]
-        -(make_iris_dataframe)> pd.DataFrame 
-        -(calc_iris_area)> pd.DataFrame
-        -(filter_lower_sepal_quartile)> pd.DataFrame
-        -(av_area_by_species)> pd.DataFrame
-        -(plot_sepal_area)> plotly.Plot
-
-
+        make_iris_dataframe -> pd.DataFrame 
+        calc_iris_area -> pd.DataFrame
+        filter_lower_sepal_quartile -> pd.DataFrame
+        av_area_by_species -> pd.DataFrame
+        plot_sepal_area -> plotly.Plot
 
 In contrast, the custom data type approach easily allows us to understand the structure that this data takes at each point in the pipeline. For instance, we know that at some point in our pipeline, the relevant data can be represented simply as a set of `IrisAreas` objects, and from the defintion we know what we expect to be the types of the data in those positions.
 
     List[Dict[str, float]]
-        -(Irises.from_dicts)> Irises (List[IrisEntry])
-        -(.calc_areas)> IrisAreas (List[IrisArea])
-        -(.filter_lower_sepal_quartile)> IrisAreas (List[IrisArea])
-        -(.av_area_by_species)> Dict[str, IrisArea]
-        -(.plot.bar)> plotly.Plot
+        Irises.from_dicts -> Irises (List[IrisEntry])
+        .calc_areas -> IrisAreas (List[IrisArea])
+        .filter_lower_sepal_quartile -> IrisAreas (List[IrisArea])
+        .av_area_by_species -> Dict[str, IrisArea]
+        .plot.bar -> plotly.Plot
 
 
 * **More readible**: the reader can identify the structure of the data at any point in the pipeline simply by looking at the data types (with type hints), regaurdless of whether they know the structure of the original data.
@@ -390,8 +368,7 @@ In contrast, the custom data type approach easily allows us to understand the st
 
 * **Less error prone**: smart static analyzers (including AI-assisted ones) can identify issues with accessing attributes and the structure of your data before you ever run it because defined data types provide gaurantees about which attributes your data should contain.
 
-
-
+Even though weakly typed languages such as R or Python offer great flexibility in the way you can build your pipeline, building more structure into your code through the use of custom types can greatly improve your ability to manage projects.
 
 
 <div id="snippets">.</div>
@@ -541,125 +518,3 @@ These are the full code snippets for convenience.
 
 
 
-#### VVVVVVVVVVV ALL EXPERIMENTAL VVVVVVVVVVV
-
-
-They do not appear in your code except at the type of conversion or enforcement, or, even more sketchy. 
-
-but my concern is that the types of individual columns are never known by your interpreter until you actually run the code. While you may specify and enforce column  
-
-or contained elements are not known by your interpreter
-
-by the reader or static analyzer prior to runtime. You can specify and enforce the types of columns in dataframes, but your interpreter or analyzer never actually
-
-
-
-they are not probject-specific - that is, they do not enforce structures that are relevant to the specific project for which the pipeline is being built. When you read a dataframe from a csv file, for example, you can specify the code 
-
-As such, simply knowing the type of an object does not give us insight into the representations that appear in the pipeline. 
-
-Dataframes maintain types for the columns they maintain, however, you cannot see the types unless you do some introspection into the 
-
-
-
-For a further elaboration on what I mean by adding more structure, see 
-
-
-. As an example, if you read a csv file as a dataframe, consider creating a class definition that represents a single row of that dataframe and include the code to parse that data within the same class, as well as any methods that operate on that class' data. Then encapsulate those objects into collections in which you can build additional methods for parsing, grouping, filtering, or transforming collections/lists/etc. By defining classes explicitly, your analyzer knows which attributes and methods are available on that object at any point in time. Avoid using lists of dictionaries or other datastructures without defined types, as they have the same pitfalls as dataframes.
-
-
-#### ^^^^^^^^^^^^^^^^^
-
-
-Hiiiii^[Note that dataframes themselves are types and their columns have specific types within those objects, but the defining characteristic is that the interpreter or analyzer cannot infer those types without looking at the behavior of the functions or scripts used to produce it (which they often do not). They are types within the underlying package code, but they are not considered as types within the language itself. If you build your pipelines using functions that both accept and return dataframes, you do not know the structure of the new dataframe unless you look at the code used to transform it. In contrast, if you define custom types for the input and output data, you can know without looking at the]
-
-#### ^^^^^^^^^^^^^^^^^
-
-## Data pipelines: separating the "what" from the "how"
-
-The topmost path in the figure shows the case where we do not keep track of the structure of the input or intermediate data in our code explicitly (imagine using a list of dictionaries or a dataframe read from a csv file), wheras in the bottom pipeline we represent them as objects A, B, and C explicitly in our code. The idea is that pipelines with explicit references to data structure in the code make it easier to understand what each transformation is doing - in theory, we (and the static analyzer in your IDE) could understand the entire pipeline without ever _running_ our code.
-
-#### ^^^^^^^^^^^^^^^^^^^ 
-
-
-## Debugging Pipelines
-
-Let us explore the case where you do not use custom data objects, and instead use dataframes or lists of dictionary/collections, or some other non-explicit data structures. As a hypothetical, say you are seeing a potential issue in your final data structure - a figure, let's say - and you want to investigate why you observe a given value. First, you hypothesize that the issue may have been with function/script 2, and so we first need to understand the structure of the intermediary data which it transformed. There are three approaches to understanding the intermediate data structure when we have not been explicit in our code: 
-
-1. remember the structure of that data - generally a bad thing to rely on in software design because you may be looking at this years later or someone else may be looking at it;
-
-2. run the first pipeline component and use some runtime introspection tool (breakpoints, print statements, debuggers, etc) to look at the data - possible but clunky and time-consuming; or 
-
-3. do some mental bookkeeping to trace the original input data (which may also require introspection) through the pipeline - also a time-consuming activity. 
-
-None of these options look good - the best scenario is option 3, and even that is only viable if you know both the structure of the input data and are okay reading through the logic up until that point. Unfortunately, debugging or changing intermediary stages of your data pipeline will happen all the time - this can create some big problems as your project grows and your requirements change.
-
-What is the problem with running the code in real time? In my experience, this simply takes a lot longer than keeping track of the code itself (either reading it or using a static analyzer) when it comes to large data pipelines. Each step or set of steps in your pipeline are expensive and probably time-consuming. To make it easier, you might optimize the pipeline by storing intermediary steps (RData or pickle files) so you can load them into separate notebooks more quickly, but this optimization is time-consuming and would need to be done every time you set out to work. In software engineering, it is generally far better to detect any problems without needing to actually run your code.
-
-In the case where you represent the structure of your data as part of the code itself (i.e. use classes/structs to define intermediate structures), however, you (and your compiler/static analyzer) know the structure of the data at every stage of the pipeline because it is explicitly defined. From this alone you know not only that your data will appear in the specified formats (providing some gaurantees), but also that the role of that particular function/script is to convert data of type B to type C. In this case, the pipeline issue will be much easier to identify.
-
-
-
-
-### Case Against Dataframes
-While dataframes are important data structures that a large suite of languages and packages have been built around, I have two primary concerns about using them as a central feature of your data pipelines: (1) all of the problems we observe above, and (2) they are often the wrong tools for the job (performance-wise) - even though they may be fine for many tasks involving small datasets.
-
-The first point appears to be acceptable for many data scientists given that it is common to use Jupyter or R Markdown notebooks to write large portions of code. Except in initial development or in your toplevel scripts, I recommend using project file structures that are recommended for your language of choice - in Python, this means separating functions and classes (including the data containers) into modules, but there are equivalent recommended project structures for most langauges. Data science projects in particular tend to grow in scope or change in structure often, so modular project structures are especially important. The more complex your code becomes, the more important this is.
-
-More concretely, lets refer to the iris example dataset we loaded. We access a column of that data using a subscript or as a property of the dataframe (although be careful with the latter):
-
-    iris_df['species']
-    iris_df.species
-
-Or, similarly in R:
-
-    iris_df[:,'species']
-    iris_df$species
-
-The problem with this is that you have no gaurantees that this property exists with this name in your input data. Even though the R and Python versions are both written as if the columns are object properties, they are not - they are simply syntactic sugar used to make it feel like they are - the reader, and your static analyzer, cannot gaurantee they exist except in runtime.
-
-Sure, you could run a verification or transformation function that selects/orders columns and does some validation, but this code is implemented as part of the script loading the data, not in the definition of the data itself.
-
-    iris_df = iris_df[['sepal_length', 'sepal_width', 'species']]
-    assert((iris_df['sepal_length']>0).sum() == iris_df.shape[0])
-
-In short, you have no gaurantees that a property will exist in runtime (assuming, as in the case of weakly typed languages, you follow the hints/gaurantees that you yourself provided).
-
-I a also caution against using dataframes for performance reasons. Traditional data structures like `set`s, `dict`s (any kind of map), or `list`s (arrays) in Python all have implementations that are akin to different tasks. If you want to store an unordered set of unique elements, use a `set` object. If you want to perform lookups from a string or other hashable object to another object directly (i.e. in O(1) time), use a `dict`. If you want to store an ordered sequence of elements that can be indexed by their order in the sequence, use a `list`.
-
-As an example of this issue, lets say that you want to perform a join on a two unindexed dataframes A with `n` rows and B with `m` rows that have a many-to-one relationship: that is there are zero or more rows of A that correspond to a single row of B. Because dataframe columns are implemented as sequential elements, the time it will take for this join to complete will be proportional to `n*m`: you would iterate through every element of A to find the associated row in B (note that this is worst case: `O(n*m)`). This is the wrong tool for the job because it could be done faster with a dictionary or hash map that allows you to look up the associated row in dataframe B instantly, so the time would be proportional to `n` (even if you have to create the dictionary first, you end up with `n + m ~ O(n)`).
-
-Note that indexing dataframes is an operation that would allow for faster joins (typically through binary search, which is `O(n*log(m))`), indexing and multiindexing implementations are somewhat clunky to use and often involve explicit indexing between transformations. It is worth noting they exist, though I don't often see them used.
-
-Dataframes can also be more memory intensive because joins and most other operations often create copies of data - even when it may be unnessecary. Be wary of this as your dataset gets larger.
-
-As an alternative, I recommend creating an object to represent each row of your dataset, and parsing each row using a factory method - I will give some examples later.
-
-### Nested Iterables are Also Bad
-
-It may also be tempting to use raw nested iterables like `set`s, `dict`s, or `list`s either because they follow directly from the structure of the input data (especially json data) or because they solve the second issue I have with dataframes - you can use the right tool for the job. My main concern with these structures is that they can get very complicated with high levels of nesting and requre missing data/error handling at every point of usage.
-
-As another example, let us consider a json dataset parsed as a list of dictionaries with properties associated with irises. The type hint for the parsed structure would be `typing.List[typing.Dict[str, typing.Union[float, str]]]`.
-
-    [
-        {
-            "sepal_length": 5.1, 
-            "sepal_width": 3.5, 
-            "species": "setosa"
-        }, 
-        {
-            "sepal_length": 4.9, 
-            "sepal_width": 3.0, 
-            "species": "setosa"
-        },
-        ...
-    ]
-
-Sqy we want to get the average petal length for irises in our dataset, so we do this:
-
-    import statistics
-    statistics.mean([iris['petal_length'] for iris in irises])
-
-The problem here is the same as that of selecting columns in dataframes: we have no gaurantees that each iris will include a member called 'petal_length' until runtime. We can't know it exists unless we recall the data being passed in, and static analysis tools cannot help us.
-
-The solution to these problems would again be to create a class representing a single Iris object and parsing them into a list of these objects. Even better, we could encapsulate the sequence of irises to add additional convenience. I will show some examples in the next sections.
