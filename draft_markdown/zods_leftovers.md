@@ -126,7 +126,7 @@ As another example, let us consider a json dataset parsed as a list of dictionar
         ...
     ]
 
-Sqy we want to get the average petal length for irises in our dataset, so we do this:
+Say we want to get the average petal length for irises in our dataset, so we do this:
 
     import statistics
     statistics.mean([iris['petal_length'] for iris in irises])

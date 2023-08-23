@@ -5,9 +5,12 @@ date: "May 28, 2023"
 id: "zods0_problem_with_dataframes"
 ---
 
+
+![Dataframes vs Custom Objects](https://storage.googleapis.com/public_data_09324832787/dataframe_vs_custom_obj.svg)
+
 Dataframe interfaces are useful because they are so flexible: filtering, mutatating, selecting, and grouping functions have simple interfaces and can be chained to perform a wide range of transformations on tabular data. The cost of this flexibility, I argue, is that your data pipelines are less readable, more difficult to maintain, and more error prone. Instead, I argue that it is better to use more explicit data structures like classes or structs with fixed attributes, specific methods for construction, and specific methods for transformation/analysis. 
 
-In this article, I will contrast dataframes with what I will refer to as custom data types, or data types that you define yourself as part of your data pipeline. Using custom data types means you explicitly define the structure of a particular dataset in your code before you actually attempt to use it. While I recognize that dataframes do have strengths, I argue that custom data types are far better options as your projects grow and become more complex, and will be especially important moving forward as the average developer uses more advance static analysis or other assistance tools for writing code more efficiently.
+In this article, I will contrast dataframes with what I will refer to as custom data types, or data types that you define yourself as part of your data pipeline. Using custom data types means you explicitly define the structure of a particular dataset in your code before you actually attempt to use it. While I recognize that dataframes do have strengths, I argue that custom data types are a better option as your projects grow and become more complex, and will be especially important moving forward as the average developer uses more advance static analysis or other assistance tools for writing code more efficiently.
 
 ## Data Structures and Pipelines
 
@@ -47,7 +50,7 @@ Next I will use these three features as comparison points.
 
 I will now compare dataframes with custom data types using Python examples, although I believe these points apply to approaches and strategies in many different languages. Specifically, I will use the classic Iris datasets loaded from the seaborn package.
 
-In Python, we would load the Iris dataset as a dataframe using the following code (note that seaborn is only used to load the data).
+In Python, we can load the Iris dataset as a dataframe using the following code (note that seaborn is only used to load the data).
 
     import seaborn
     import pandas as pd
@@ -255,6 +258,8 @@ The interface for working with these types would look like the following:
     irises = Irises.from_iris_df(iris_df)
     iris_areas = irises.calc_area()
 
+Obviously as your transformation code grows and becomes more complicated it would probably be moved outside this static factory method, but this is just a simple example of that approach.
+
 #### Filtering and Aggregating
 
 In your pipeline, you will likely want to create transformation functions for filtering and aggregating that reference specific columns by names. These are two examples of such functions for dataframes, that have all the aforementioned readibility problems. That said, they are very compact and somewhat easy to read.
@@ -275,7 +280,7 @@ The interface would then look like the following.
 
 ##### Re-use custom types in transformations
 
-In the custon-type approach, you would attach these functions as methods to your object classes. Notice that grouping and averaging are combinations of two functions here, and the returned value is a mapping from the species type to `IrisArea` objects (which can then retain their own methods). 
+In the custon-type approach, you would attach these functions as methods to your object classes. Notice that grouping and averaging are combinations of two functions here, and the returned value is a mapping from the species type to `IrisArea` objects (which can then retain their own methods). This re-use of existing object types allows you to create very flexible groupings and aggregations all from a small set of base objects.
 
     class IrisAreas(typing.List[IrisArea]):
         ...        
@@ -368,10 +373,10 @@ In contrast, the custom data type approach easily allows us to understand the st
 
 * **Less error prone**: smart static analyzers (including AI-assisted ones) can identify issues with accessing attributes and the structure of your data before you ever run it because defined data types provide gaurantees about which attributes your data should contain.
 
-Even though weakly typed languages such as R or Python offer great flexibility in the way you can build your pipeline, building more structure into your code through the use of custom types can greatly improve your ability to manage projects.
+Even though dataframe structures (especially those written in weakly typed languages such as R or Python) offer great flexibility in the way you can build your pipeline, building more structure into your code through the use of custom types can greatly improve your ability to manage data science projects.
 
 
-<div id="snippets">.</div>
+<div id="appendix">.</div>
 
 ## Apprndix: Full Code Examples
 
