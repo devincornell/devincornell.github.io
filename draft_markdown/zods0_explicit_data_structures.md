@@ -14,23 +14,11 @@ In this article, I will contrast dataframes with what I will refer to as custom 
 
 ## Data Structures and Pipelines
 
-A _data pipeline_ is a series of sequential steps for changing data from one format to another - the essential core of all data science projects. Maybe you want to visualize some variables from a CSV file in a 2-dimensional plot, produce a statistical model to capture trends of Tweets in json format, or even build a classifier to identify cats from an image training data set. In each of these cases, the data pipeline simply describes the set of transformations and intermediary representations needed to produce the final form from the given input data.
-
-I use the term _data structures_ to describe the intermediary representations of data in these pipelines. Essentially, this means the format in which your data is represented in your computer system and the interface (API) in your code used to access and manipulate it. Any [computer science cirriculum](https://ocw.mit.edu/courses/6-851-advanced-data-structures-spring-2012/) includes an analysis of common data structures and optimal algorithms for manipulating and analyzing them, but they play what is perhaps a more important role in software engineering of data pipelines: they can be used to make your data pipelines easier to understand, less error-prone, and more efficient to maintain.
-
-
-<div id="illustration">.</div>
-
-### Illustration of Data Pipeline
-
-Below I created a simple diagram with two linear data pipelines depicting the transformation of the input data into an intermediate data structure which is changed into the final data to be shared with the customer (a table or figure, let's say). 
-
 ![data science pipeline overview](https://storage.googleapis.com/public_data_09324832787/pipeline_structures.png)
 
-Anything represented in the computer is a data structure. For instance, the input could be a CSV file that you first read as a dataframe (intermediate data structure), average a set of values to produce another dataframe (another intermediate structure), and then convert to a figure which you then display on your screen (the final data structure). Or, for instance, the input could be a set of images and classification labels and the output could be a machine learning model trained to identify the classes. In this way, the pipeline captures the essence of any data analysis project. 
+A _data pipeline_ is a series of sequential steps for changing data from one format to another - the essential core of all data science projects. Maybe you want to visualize some variables from a CSV file in a 2-dimensional plot, produce a statistical model to capture trends of Tweets in json format, or even build a classifier to identify cats from an image training data set. In each of these cases, the data pipeline simply describes the set of transformations and intermediary representations needed to produce the final form from the given input data.
 
-
-<div id="features">.</div>
+I use the term _data structures_ to describe the intermediary representations of data in these pipelines. Essentially, this means the format in which your data is represented in your computer system and the interface (API) in your code used to access and manipulate it. In data science^[In computer science, the term data structures is often associated with a more specific set of types and algorithms, but here I use the term more liberally.], data structures can refer to csv or json files on disk, array or dataframe objects, and even figures.
 
 ### Features of Data Structures
 
@@ -43,8 +31,6 @@ I will focus on three aspects of data structures which are relevant for design p
 3. **Transformation methods.** These are the methods which actually convert your data structures from one form to the next - the "how" of your data pipelines. They may appear in your code as class methods, functions, or entire scripts. Common transformations might include filtering, summarizing, or normalizing your data. This is a more general case than construction methods, which could also be considered as transformation methods.
 
 Next I will use these three features as comparison points.
-
-<div id="attributes">.</div>
 
 ## Comparison of Data Structures
 
@@ -367,16 +353,16 @@ In contrast, the custom data type approach easily allows us to understand the st
         .plot.bar -> plotly.Plot
 
 
-* **More readible**: the reader can identify the structure of the data at any point in the pipeline simply by looking at the data types (with type hints), regaurdless of whether they know the structure of the original data.
++ **More readible**: the reader can identify the structure of the data at any point in the pipeline simply by looking at the data types (with type hints), regaurdless of whether they know the structure of the original data.
 
-* **Easier to maintain**: the data scientist could replace or modify sections of the pipeline without needing to examine transformations that occur before or after, since the structure of the data will remain the same as long as the expected types are the same.
++ **Easier to maintain**: the data scientist could replace or modify sections of the pipeline without needing to examine transformations that occur before or after, since the structure of the data will remain the same as long as the expected types are the same.
 
-* **Less error prone**: smart static analyzers (including AI-assisted ones) can identify issues with accessing attributes and the structure of your data before you ever run it because defined data types provide gaurantees about which attributes your data should contain.
++ **Less error prone**: smart static analyzers (including AI-assisted ones) can identify issues with accessing attributes and the structure of your data before you ever run it because defined data types provide gaurantees about which attributes your data should contain.
 
 Even though dataframe structures (especially those written in weakly typed languages such as R or Python) offer great flexibility in the way you can build your pipeline, building more structure into your code through the use of custom types can greatly improve your ability to manage data science projects.
 
 
-<div id="appendix">.</div>
+<p id="appendix">.</p>
 
 ## Apprndix: Full Code Examples
 
