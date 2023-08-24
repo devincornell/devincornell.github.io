@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta name="description" content="" />
         <meta name="author" content="" />
-        <title>Devin J. Cornell: Dataclass Collection Types</title>
+        <title>Devin J. Cornell: Patterns for Dataclass Collection Types</title>
         <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
         <!-- Font Awesome icons (free version)-->
         <!--<script src="https://use.fontawesome.com/releases/v5.15.3/js/all.js" crossorigin="anonymous"></script>-->
@@ -47,7 +47,7 @@
                 <div class="row gx-4 gx-lg-5 justify-content-center">
                     <div class="col-md-10 col-lg-8 col-xl-8">
                         <div class="post-heading">
-                            <h1>Dataclass Collection Types</h1>
+                            <h1>Patterns for Dataclass Collection Types</h1>
                             <h2 class="subheading">Patterns for creating collections of dataclass (or data-oriented type) objects.</h2>
                             <span class="meta">
                                 Posted by
@@ -64,7 +64,15 @@
             <div class="container px-4 px-lg-5">
                 <div class="row gx-4 gx-lg-5 justify-content-center">
                     <div class="col-md-10 col-lg-8 col-xl-7">
-                        
+                        <h2>Two Approaches</h2>
+<p>In Python, there are two primary ways to create collection types: (1) extend an existing collection type such as Dict, List, or Set, or (2) encapsulate a collection in another custom type. The former is best for simple cases, where the latter is best for more complex use-cases.</p>
+<h3>Extending Existing Types</h3>
+<p>To extend an existing type in Python, you will probably want to use the <code>typing</code> module instead of <code>list</code>, <code>dict</code>, or <code>set</code> directly.</p>
+<pre><code>import typing
+
+class MyCollection(typing.List):
+    pass
+</code></pre>
                     </div>
                 </div>
             </div>

@@ -64,7 +64,163 @@
             <div class="container px-4 px-lg-5">
                 <div class="row gx-4 gx-lg-5 justify-content-center">
                     <div class="col-md-10 col-lg-8 col-xl-7">
-                        <p>Since <a href="https://www.google.com/search?client=firefox-b-1-d&amp;q=dataclasses+pep">introduction</a> to the Python standard library, the <a href="https://docs.python.org/3/library/dataclasses.html"><code>dataclasses</code></a> module has been pushing many data scientists to adopt more object-oriented patterns in their pipelines. This module makes it easy to create data types by offering a decorator that automatically generates <code>__init__</code> and a number of other boilerplate dunder methods you would be writing for classes primarily intended to store data. While the module offers great flexibility, not all options</p>
+                        <p>The popular <a href="https://docs.python.org/3/library/dataclasses.html"><code>dataclasses</code></a> module has been pushing many data scientists to adopt more object-oriented patterns in their data pipelines since its <a href="https://www.google.com/search?client=firefox-b-1-d&amp;q=dataclasses+pep">introduction</a> to the Python standard library. This module makes it easy to create data types by offering a decorator that automatically generates <code>__init__</code> and a number of other boilerplate dunder methods from only a set of statically defined attributes with type hints (I recommend <a href="https://realpython.com/python-data-classes/">this tutorial</a>). I wanted to share a few patterns I use for working with dataclasses.</p>
+<h3>Static Attributes and Slots</h3>
+<p>My first recommendation is to create dataclasses that contain only the attributes that are provided in the original definition, and no more. If you are willing to commit to this restriction, Python can also offer a performance improvement through the <em>slots</em> interface. You can read more about it <a href="https://wiki.python.org/moin/UsingSlots">on the Python wiki page</a>, but essentially it allows Python to refrain from creating a dictionary for every instance of the object and instead allocate a fixed memory space that only has room for references to the attributes you defined.</p>
+<p>This example below shows how to use slots - simply provide the attribute names as a list of strings associated with the <code>__slots__</code> static attribute. </p>
+<pre><code>import dataclasses
+
+@dataclasses.dataclass
+class MyType:
+    __slots__ = ['a', 'b']
+    a: int
+    b: float
+</code></pre>
+<p>This object will refrain from creating a <code>.__dict__</code> object that would be used to add a new property to the instance - you would get an error if you tried to define a new one.</p>
+<pre><code>obj = MyType(1, 0.0)
+obj.c = 5
+
+ERROR!!!
+</code></pre>
+<p>Starting in Python 3.11, you can alternatively provide the <code>slots=True</code> argument to the <code>dataclasses.dataclass</code> decorator to accomplish this (read more <a href="https://docs.python.org/3/library/dataclasses.html">here</a>).</p>
+<pre><code>@dataclasses.dataclass(slots=True)
+class MyType:
+    a: int
+    b: float
+</code></pre>
+<h3>Frozen and Immutabile</h3>
+<p>Next I recommend creating immutable dataclass objects - that is, objects that cannot change after being created. Most of the time you would implement your pipeline as a series of transformations, each of which results in a new object. You may add this restriction to your objects explicitly by passing the <code>frozen=True</code> argument to the <code>dataclasses.dataclass</code> decorator.</p>
+<pre><code>@dataclasses.dataclass(frozen=True)
+class MyType:
+    a: int
+    b: float
+</code></pre>
+<p>You will then see an exception when you attempt to assign a value to one of these attributes.</p>
+<pre><code>obj = MyType(1, 0.0)
+obj.b = 5
+
+ERROR!
+</code></pre>
+<h3>Static Factory Methods</h3>
+<p>I recommend using static factory methods to instantiate dataclasses for all cases other than direct assignment of attributes. The <code>dataclasses</code> module allows you to create a <code>__post_init__</code> method that will be called at the end of the generated <code>__init__</code> after attribute assignment is complete, but this is not a good solution in most cases. </p>
+<p>In Python, you can use the <code>classmethod</code> decorator to create a static factory method like the example below. You can see that <code>new</code> just passes <code>a</code> and <code>b</code> directly to the object constructor - essentially doing nothing except acting as a pass-through.</p>
+<pre><code>@dataclasses.dataclass
+class MyType:
+    a: int
+    b: float
+
+    @classmethod
+    def new(cls, a: int, b: float):
+        return cls(a=a, b=b)
+</code></pre>
+<p>Alternatively, you would define the <code>__post_init__</code> method like the example below. Notice there are no parameters because all necessary information should already be bound to the object in the generated <code>__init__</code>.</p>
+<pre><code>    ...
+    def __post_init__(self):
+        # post-init code here
+        pass
+</code></pre>
+<p>As a new example, let us say that you may not always know both <code>a</code> and <code>b</code> but you know that the relationship <code>a = b/2</code>. We can solve this issue by setting <code>default=None</code> parameters to <code>dataclasses.field</code> and modifying <code>__post_init__</code> to look like the following. Note that we throw an exception if neither <code>a</code> nor <code>b</code> are not <code>None</code>.</p>
+<pre><code>@dataclasses.dataclass
+class MyType:
+    a: int = dataclasses.field(default=None)
+    b: float = dataclasses.field(default=None)
+
+    def __post_init__(self):
+        if self.b is None and a is not None:
+            self.b = self.a * 2
+        elif self.a is None and self.b is not None:
+            self.a = self.b / 2
+        elif self.a is None and self.b is None:
+            raise Exception('Neither a nor b were provided.')
+</code></pre>
+<p>From that logic we know that an instance of <code>MyType</code> should always have values for <code>a</code> and <code>b</code> that are not None, so instead we should build that into the object interface. One approach (although not the best) would be to place this logic in a classmethod called <code>new</code> so that one can still create a <code>MyType</code> instance if both <code>a</code> and <code>b</code> are known. </p>
+<pre><code>@dataclasses.dataclass
+class MyType:
+    a: int
+    b: float
+
+    @classmethod
+    def new_partial(cls, a: int = None, b: float = None):
+        if b is None and a is not None:
+            b = a * 2
+        elif a is None and b is not None:
+            a = b / 2
+        elif a is None and b is None:
+            raise Exception('Neither a nor b were provided.')
+        return cls(a=a, b=b)
+</code></pre>
+<p>Following the <a href="https://peps.python.org/pep-0020/">Zen of Python</a>, however, we know that "explicit is better than implicit," and so instead of using the defaulted parameters we should create separate class methods for cases where we know <code>a</code> but not <code>b</code> and vice-versa. This is the best approach.</p>
+<pre><code>@dataclasses.dataclass
+class MyType:
+    a: int
+    b: float
+
+    @classmethod
+    def from_a_only(a: int):
+        return cls(a=a, b=a*2)
+
+    @classmethod
+    def from_b_only(b: float):
+        return cls(a=b/2, b=b)
+</code></pre>
+<p>This pattern is quite useful because the method of creation appears simply as part of the design rather than sequences of if-else logic within functions. This makes the object interface very clear.</p>
+<p>In many cases, static factory methods provide cleaner alternatives to using <code>default_factory</code> parameters or anything that requires more complex logic. For instance, here I create a more complicated <code>now_utc</code> static factory method to record the current datetime with a timestamp. This is better than creating a wrapper or lambda function to pass to <code>default_factory</code>.</p>
+<pre><code>import datetime
+
+@dataclasses.dataclass(slots=True)
+class MyType:
+    ts: datetime.datetime
+
+    @classmethod
+    def now_naive(cls):
+        return cls(datetime.datetime.now())
+
+    @classmethod
+    def now_utc(cls):
+        return cls(datetime.datetime.now(tz=datetime.timezone.utc))
+</code></pre>
+<h3>Add Functionality Using Composition</h3>
+<p>As projects grow and requirements change, the number of methods associated with a single dataclass might become unweildy. To organize some of these methods, I recommend creating a new container object that contains only an instance of the original object and operates on that instance. The interface can be exposed from the original object using a <code>property</code> method that simply returns a new instance of the container object.</p>
+<pre><code>@dataclasses.dataclass
+class MyType:
+    a: int
+    b: float
+
+    @property
+    def math(self):
+        return MyTypeMath(self)
+
+@dataclasses.dataclass
+class MyTypeMath:
+    mt: MyType
+
+    def product(self):
+        return self.mt.a * self.mt.b
+
+    def sum(self)
+        return self.mt.a + self.mt.b
+</code></pre>
+<p>And the interface would look like this:</p>
+<pre><code>obj = MyType(1.0, 1.0)
+obj.math.product()
+obj.math.sum()
+</code></pre>
+<p>If the container object does any other transformation, you could create the new container and then access it's many methods directly.</p>
+<pre><code>mather = obj.math
+mather.sum()
+mather.product()
+</code></pre>
+<h3>Handle Missing Data</h3>
+<p>In many projects, the analyst expects missing data ...</p>
+<pre><code>@dataclasses.dataclass
+class MyType:
+    a: int
+    b: float
+
+    @property
+    def is_missing_a(self) -&gt; bool:
+        return self.a is None
+</code></pre>
                     </div>
                 </div>
             </div>
