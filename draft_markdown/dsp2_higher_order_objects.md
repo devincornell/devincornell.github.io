@@ -1,8 +1,8 @@
 ---
 title: "Higher Order Objects for Data Objects"
-subtitle: "Building pipelines."
+subtitle: "Building more complex pipelines around data objects."
 date: "August 24, 2023"
-id: "zods3_higher_order_objects"
+id: "dsp2_higher_order_objects"
 ---
 
 
