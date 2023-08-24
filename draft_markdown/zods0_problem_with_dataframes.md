@@ -1,15 +1,15 @@
 ---
-title: "Are dataframes too flexible?"
-subtitle: "Custom types VS dataframes: choosing the right data structures for your project."
+title: "Are data frames too flexible?"
+subtitle: "Custom types VS data frames: choosing the right data structures for your project."
 date: "August 24, 2023"
 id: "zods0_problem_with_dataframes"
 ---
 
-![Dataframes vs Custom Objects](https://storage.googleapis.com/public_data_09324832787/dataframe_vs_custom_obj2.svg)
+![Data frames vs Custom Objects](https://storage.googleapis.com/public_data_09324832787/dataframe_vs_custom_obj2.svg)
 
 Dataframe interfaces are useful because they are so flexible: filtering, mutatating, selecting, and grouping functions have simple interfaces and can be chained to perform a wide range of transformations on tabular data. The cost of this flexibility, I argue, is that your data pipelines are less readable, more difficult to maintain, and more error prone. Instead, I argue that it is better to use more explicit data structures like classes or structs with fixed attributes, specific methods for construction, and specific methods for transformation/analysis. 
 
-In this article, I will contrast dataframes with what I will refer to as custom data types, or data types that you define yourself as part of your data pipeline. Using custom data types means you explicitly define the structure of a particular dataset in your code before you actually attempt to use it. While I recognize that dataframes do have strengths, I argue that custom data types are a better option as your projects grow and become more complex, and will be especially important moving forward as the average developer uses more advance static analysis or other assistance tools for writing code more efficiently.
+In this article, I will contrast data frames with what I will refer to as custom data types, or data types that you define yourself as part of your data pipeline. Using custom data types means you explicitly define the structure of a particular dataset in your code before you actually attempt to use it. While I recognize that data frames do have strengths, I argue that custom data types are a better option as your projects grow and become more complex, and will be especially important moving forward as the average developer uses more advance static analysis or other assistance tools for writing code more efficiently.
 
 ## Data Structures and Pipelines
 
@@ -17,13 +17,13 @@ In this article, I will contrast dataframes with what I will refer to as custom 
 
 A _data pipeline_ is a series of sequential steps for changing data from one format to another - the essential core of all data science projects. Maybe you want to visualize some variables from a CSV file in a 2-dimensional plot, produce a statistical model to capture trends of Tweets in json format, or even build a classifier to identify cats from an image training data set. In each of these cases, the data pipeline simply describes the set of transformations and intermediary representations needed to produce the final form from the given input data.
 
-I use the term _data structures_ to describe the intermediary representations of data in these pipelines. Essentially, this means the format in which your data is represented in your computer system and the interface (API) in your code used to access and manipulate it. In data science^[In computer science, the term data structures is often associated with a more specific set of types and algorithms, but here I use the term more liberally.], data structures can refer to csv or json files on disk, array or dataframe objects, and even figures.
+I use the term _data structures_ to describe the intermediary representations of data in these pipelines. Essentially, this means the format in which your data is represented in your computer system and the interface (API) in your code used to access and manipulate it. In data science, data structures can refer to csv or json files on disk, array or dataframe objects, and even figures.
 
 ### Features of Data Structures
 
 I will focus on three aspects of data structures which are relevant for design patterns I will discuss. They exist in almost every type of data structure, and the key is in where and how they appear in your code.
 
-1. **Properties or attributes.** Data structures often include sets of properties, attributes, or features that are associated with a single element - the "what" of your data pipelines. These might be represented as columns in dataframes where each row is an element, attributes in custom types, or as separate variables. They can be defined at instantiation (point where the structures are created) or later added, modified, or removed throughout your pipeline. The data is called _immutable_ if it cannot be changed, and _mutable_ otherwise. 
+1. **Properties or attributes.** Data structures often include sets of properties, attributes, or features that are associated with a single element - the "what" of your data pipelines. These might be represented as columns in data frames where each row is an element, attributes in custom types, or as separate variables. They can be defined at instantiation (point where the structures are created) or later added, modified, or removed throughout your pipeline. The data is called _immutable_ if it cannot be changed, and _mutable_ otherwise. 
 
 2. **Construction methods.** Functions used to create and instantiate data structures are called construction methods. These functions are critical because they include at least some, if not all, information about which data will be contained within the structure. As such, the function signature should tell the reader (and compiler or static analyzer) a lot about what type of data is being represented. These methods can appear in your code as class methods, functions, or entire scripts. As an example, they may include the code used to parse json or csv data into a data object.
 
@@ -31,9 +31,9 @@ I will focus on three aspects of data structures which are relevant for design p
 
 Next I will use these three features as comparison points.
 
-## Comparison of Data Structures
+## Examples in Python
 
-I will now compare dataframes with custom data types using Python examples, although I believe these points apply to approaches and strategies in many different languages. Specifically, I will use the classic Iris datasets loaded from the seaborn package.
+I will now compare data frames with custom data types using Python examples, although I believe these points apply to approaches and strategies in many different languages. Specifically, I will use the classic Iris datasets loaded from the seaborn package.
 
 In Python, we can load the Iris dataset as a dataframe using the following code (note that seaborn is only used to load the data).
 
@@ -79,7 +79,7 @@ The first few elements of this data looks like the following:
 
 ### 1. Properties or Attributes of Data Structures
 
-Dataframes typically represent data attrbutes as columns, and each column is represented as an array of an internal type, rather than a type within the langauge. Python, for instance, implements int and float objects, but Pandas dataframes include more specific types like 64 bit integers and floating point numbers (following NumPy arrays) that do not appear in the Python specification.
+Data frames typically represent data attrbutes as columns, and each column is represented as an array of an internal type, rather than a type within the langauge. Python, for instance, implements int and float objects, but Pandas data frames include more specific types like 64 bit integers and floating point numbers (following NumPy arrays) that do not appear in the Python specification.
 
 In Python, you would access columns using the following notation.
 
@@ -168,11 +168,11 @@ And the collection type could tie it together by calling the static factory meth
         def from_dicts(cls, iris_data: typing.List[typing.Dict[str,float]]):
             return cls([IrisEntry.from_dict(ie) for ie in iris_data])
 
-One could imagine creating similar static factory methods for constructing this data structure from any type of input data - not just dictionaries or dataframes.
+One could imagine creating similar static factory methods for constructing this data structure from any type of input data - not just dictionaries or data frames.
 
 ### 3. Transformation Methods
 
-Methods that actually transform data from one type to another will probably make up the majority of the work in your data pipeline. Of course, regaurdless of the implementation and language, dataframes have a wide range of standard transformation methods such as mutations, filters, and aggregations that will make up the majority of your workflows. Throughout your pipeline, you will probably at least group application-specific transformations into functions, or operations that operate on dataframes with a specific set of columns and types - the iris dataframe, for instance.
+Methods that actually transform data from one type to another will probably make up the majority of the work in your data pipeline. Of course, regaurdless of the implementation and language, data frames have a wide range of standard transformation methods such as mutations, filters, and aggregations that will make up the majority of your workflows. Throughout your pipeline, you will probably at least group application-specific transformations into functions, or operations that operate on data frames with a specific set of columns and types - the iris dataframe, for instance.
 
 #### Element-wise Transformations
 
@@ -197,7 +197,7 @@ You could even return a subset of the columns as a view, which could lead to sli
         ...
         return iris_df[['sepal_area', 'petal_area', 'species']]
 
-This again has the same risks as the constructor methods - the types alone do not really give us a sense of what the transformationw will be, becasue both the inputs and outputs are dataframes. We do not really even know if the same dataframe is being returned.
+This again has the same risks as the constructor methods - the types alone do not really give us a sense of what the transformationw will be, becasue both the inputs and outputs are data frames. We do not really even know if the same dataframe is being returned.
 
 ##### Custom types for intermediate data structures
 
@@ -247,7 +247,7 @@ Obviously as your transformation code grows and becomes more complicated it woul
 
 #### Filtering and Aggregating
 
-In your pipeline, you will likely want to create transformation functions for filtering and aggregating that reference specific columns by names. These are two examples of such functions for dataframes, that have all the aforementioned readibility problems. That said, they are very compact and somewhat easy to read.
+In your pipeline, you will likely want to create transformation functions for filtering and aggregating that reference specific columns by names. These are two examples of such functions for data frames, that have all the aforementioned readibility problems. That said, they are very compact and somewhat easy to read.
 
     def filter_lower_sepal_quartile(area_df: pd.DataFrame) -> pd.DataFrame:
         v = area_df['sepal_area'].quantile(0.25)
@@ -325,11 +325,11 @@ You'd access those methods using this pattern.
 
 Or, with additional changes, you could access it using `averaged_iris_areas.plot.bar()` or something similar.
 
-Where the strengths of working with dataframes is that you can produce compact code by taking advantage of powerful methods built into existing packages, the weakness is that your pipeline codebase will be more difficult to organize and your IDE assistants (including AI-based solutions) will not be able to identify issues until you actually run your code. 
+Where the strengths of working with data frames is that you can produce compact code by taking advantage of powerful methods built into existing packages, the weakness is that your pipeline codebase will be more difficult to organize and your IDE assistants (including AI-based solutions) will not be able to identify issues until you actually run your code. 
 
 ## Data Types in Pipelines
 
-Finally, it is worth considering these two data pipelines on a theoretical level. First consider the pipeline that involves dataframes which I visualized below. Notice that every intermediary stage in this pipeline takes a dataframe as input and outputs a dataframe, so it is difficult to tell the structure of the data without either checking it at runtime or remembering the expected structure of the input data and reading through the body - a task that becomes difficult as your project grows.
+Finally, it is worth considering these two data pipelines on a theoretical level. First consider the pipeline that involves data frames which I visualized below. Notice that every intermediary stage in this pipeline takes a dataframe as input and outputs a dataframe, so it is difficult to tell the structure of the data without either checking it at runtime or remembering the expected structure of the input data and reading through the body - a task that becomes difficult as your project grows.
 
     List[Dict[str, float]]
         make_iris_dataframe -> pd.DataFrame 
@@ -359,7 +359,7 @@ Even though dataframe structures (especially those written in weakly typed langu
 
 <p id="appendix">.</p>
 
-## Apprndix: Full Code Examples
+## Appendix: Full Code Examples
 
 These are the full code snippets for convenience.
 
