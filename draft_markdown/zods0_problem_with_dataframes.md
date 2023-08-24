@@ -326,13 +326,9 @@ You'd access those methods using this pattern.
 
 Or, with additional changes, you could access it using `averaged_iris_areas.plot.bar()` or something similar.
 
-### Comparison Summary
-
 Where the strengths of working with dataframes is that you can produce compact code by taking advantage of powerful methods built into existing packages, the weakness is that your pipeline codebase will be more difficult to organize and your IDE assistants (including AI-based solutions) will not be able to identify issues until you actually run your code. 
 
-<div id="conclusions">.</div>
-
-## Conclusions
+## Data Types in Pipelines
 
 Finally, it is worth considering these two data pipelines on a theoretical level. First consider the pipeline that involves dataframes which I visualized below. Notice that every intermediary stage in this pipeline takes a dataframe as input and outputs a dataframe, so it is difficult to tell the structure of the data without either checking it at runtime or remembering the expected structure of the input data and reading through the body - a task that becomes difficult as your project grows.
 
