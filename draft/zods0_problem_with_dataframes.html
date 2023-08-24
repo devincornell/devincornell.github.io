@@ -48,7 +48,7 @@
                     <div class="col-md-10 col-lg-8 col-xl-8">
                         <div class="post-heading">
                             <h1>Are dataframes too flexible?</h1>
-                            <h2 class="subheading">Choosing the right data structures for your project.</h2>
+                            <h2 class="subheading">Custom types VS dataframes: choosing the right data structures for your project.</h2>
                             <span class="meta">
                                 Posted by
                                 <a href="/">Devin J. Cornell</a>
@@ -64,7 +64,7 @@
             <div class="container px-4 px-lg-5">
                 <div class="row gx-4 gx-lg-5 justify-content-center">
                     <div class="col-md-10 col-lg-8 col-xl-7">
-                        <p><img alt="Dataframes vs Custom Objects" src="https://storage.googleapis.com/public_data_09324832787/dataframe_vs_custom_obj.svg" /></p>
+                        <p><img alt="Dataframes vs Custom Objects" src="https://storage.googleapis.com/public_data_09324832787/dataframe_vs_custom_obj2.svg" /></p>
 <p>Dataframe interfaces are useful because they are so flexible: filtering, mutatating, selecting, and grouping functions have simple interfaces and can be chained to perform a wide range of transformations on tabular data. The cost of this flexibility, I argue, is that your data pipelines are less readable, more difficult to maintain, and more error prone. Instead, I argue that it is better to use more explicit data structures like classes or structs with fixed attributes, specific methods for construction, and specific methods for transformation/analysis. </p>
 <p>In this article, I will contrast dataframes with what I will refer to as custom data types, or data types that you define yourself as part of your data pipeline. Using custom data types means you explicitly define the structure of a particular dataset in your code before you actually attempt to use it. While I recognize that dataframes do have strengths, I argue that custom data types are a better option as your projects grow and become more complex, and will be especially important moving forward as the average developer uses more advance static analysis or other assistance tools for writing code more efficiently.</p>
 <h2>Data Structures and Pipelines</h2>
@@ -325,11 +325,8 @@ class IrisAreaPlotter:
 iris_plotter.bar()
 </code></pre>
 <p>Or, with additional changes, you could access it using <code>averaged_iris_areas.plot.bar()</code> or something similar.</p>
-<h3>Comparison Summary</h3>
 <p>Where the strengths of working with dataframes is that you can produce compact code by taking advantage of powerful methods built into existing packages, the weakness is that your pipeline codebase will be more difficult to organize and your IDE assistants (including AI-based solutions) will not be able to identify issues until you actually run your code. </p>
-<div id="conclusions">.</div>
-
-<h2>Conclusions</h2>
+<h2>Data Types in Pipelines</h2>
 <p>Finally, it is worth considering these two data pipelines on a theoretical level. First consider the pipeline that involves dataframes which I visualized below. Notice that every intermediary stage in this pipeline takes a dataframe as input and outputs a dataframe, so it is difficult to tell the structure of the data without either checking it at runtime or remembering the expected structure of the input data and reading through the body - a task that becomes difficult as your project grows.</p>
 <pre><code>List[Dict[str, float]]
     make_iris_dataframe -&gt; pd.DataFrame 
