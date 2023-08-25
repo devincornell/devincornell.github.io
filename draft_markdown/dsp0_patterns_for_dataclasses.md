@@ -115,7 +115,7 @@ Using this approach, instantiating a new object is straightforward.
 
     obj = MyType.new(1.0, 2.0)
 
-Alternatively, some logic requred to instantiate the object may be placed in a method called `__post_init__`, which will be called at the end of the generated `__init__` after attribute assignment is complete. This method accepts a single argument: a reference to the object itself.
+Alternatively, the `dataclass` decorator allows you to place some logic requred to instantiate the object in a method called `__post_init__`, which will be called at the end of the generated `__init__` after attribute assignment is complete. This method accepts a single argument: a reference to the object itself after assignment.
         
         ...
         def __post_init__(self):

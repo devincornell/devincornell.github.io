@@ -149,7 +149,7 @@ class MyType:
 <p>Using this approach, instantiating a new object is straightforward.</p>
 <pre><code>obj = MyType.new(1.0, 2.0)
 </code></pre>
-<p>Alternatively, some logic requred to instantiate the object may be placed in a method called <code>__post_init__</code>, which will be called at the end of the generated <code>__init__</code> after attribute assignment is complete. This method accepts a single argument: a reference to the object itself.</p>
+<p>Alternatively, the <code>dataclass</code> decorator allows you to place some logic requred to instantiate the object in a method called <code>__post_init__</code>, which will be called at the end of the generated <code>__init__</code> after attribute assignment is complete. This method accepts a single argument: a reference to the object itself after assignment.</p>
 <pre><code>    ...
     def __post_init__(self):
         # post-init code here
