@@ -1,7 +1,7 @@
 ---
 title: "Are data frames too flexible?"
 subtitle: "Custom types VS data frames: choosing the right data structures for your project."
-date: "August 24, 2023"
+date: "August 23, 2023"
 id: "zods0_problem_with_dataframes"
 ---
 
