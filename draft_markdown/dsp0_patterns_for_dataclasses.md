@@ -5,7 +5,8 @@ date: "August 24, 2023"
 id: "dsp0_patterns_for_dataclasses"
 ---
 
-The popular [`dataclasses`](https://docs.python.org/3/library/dataclasses.html) module has been pushing many data scientists to adopt more object-oriented patterns in their data pipelines since its [introduction](https://www.google.com/search?client=firefox-b-1-d&q=dataclasses+pep) to the Python standard library. This module makes it easy to create data types by offering a decorator that automatically generates `__init__` and a number of other boilerplate dunder methods from only a set of statically defined attributes with type hints (I recommend [this tutorial](https://realpython.com/python-data-classes/)). I wanted to share a few patterns I use for working with dataclasses.
+The popular [`dataclasses`](https://docs.python.org/3/library/dataclasses.html) module has been pushing many data scientists to adopt more object-oriented patterns in their data pipelines since its [introduction](https://www.google.com/search?client=firefox-b-1-d&q=dataclasses+pep) to the Python standard library. This module makes it easy to create data types by offering a decorator that automatically generates `__init__` and a number of other boilerplate dunder methods from only a set of statically defined attributes with type hints (I recommend [this tutorial](https://realpython.com/python-data-classes/)). I wanted to share a few patterns I use for using dataclasses in my own work.
+
 
 ### Dataclass Basics
 
@@ -63,7 +64,7 @@ And even when creating an additional attribute.
     FrozenInstanceError: cannot assign to field 'c'
 
 
-### Slots
+### Interface
 
 Next I recommend using the _slots_ interface to fix the set of attributes associated with your object, whether or not you choose to make the values immutable. You can read more about this interface [on the related Python wiki page](https://wiki.python.org/moin/UsingSlots), but essentially you make this gaurantee to the interpreter so that it doesn't need to create extra resources to allow for the introduction of new attributes dynamically. In my experience, this can cut memory usage down by around half, depending on the number of attributes you use.
 
