@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Devin J. Cornell: Patterns and Antipatterns for Dataclasses</title>
+        <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
+        <!-- Font Awesome icons (free version)-->
+        <!--<script src="https://use.fontawesome.com/releases/v5.15.3/js/all.js" crossorigin="anonymous"></script>-->
+        <!-- Google fonts-->
+        <link href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link href="/css/blog.css" rel="stylesheet" />
+        <style>
+            pre {
+                background-color: #ececec;
+                border-radius: 4px;
+                padding: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Navigation-->
+        <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
+            <div class="container px-4 px-lg-5">
+                <a class="navbar-brand" href="/">devinjcornell.com</a>//<a class="navbar-brand" href="/blog">Blog</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                    Menu
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarResponsive">
+                    <ul class="navbar-nav ms-auto py-4 py-lg-0">
+                        <!--<li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="index.html">Home</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="about.html">About</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="post.html">Sample Post</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="contact.html">Contact</a></li>-->
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <!-- Page Header-->
+        <header class="masthead" style="background-image: url('assets/img/post-bg.jpg')">
+            <div class="container position-relative px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-8">
+                        <div class="post-heading">
+                            <h1>Patterns and Antipatterns for Dataclasses</h1>
+                            <h2 class="subheading">Tips for building clean data objects using the dataclasses module.</h2>
+                            <span class="meta">
+                                Posted by
+                                <a href="/">Devin J. Cornell</a>
+                                on Aug 25, 2023
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <!-- Post Content-->
+        <article class="mb-4">
+            <div class="container px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <p>The popular <a href="https://docs.python.org/3/library/dataclasses.html"><code>dataclasses</code></a> module has been pushing many data scientists to adopt more object-oriented patterns in their data pipelines since it was <a href="https://www.google.com/search?client=firefox-b-1-d&amp;q=dataclasses+pep">introduced</a> to the Python standard library. This module makes it easy to create data types by offering a decorator that automatically generates <code>__init__</code> and a number of other boilerplate dunder methods from only a set of statically defined attributes with type hints (I recommend <a href="https://realpython.com/python-data-classes/">this tutorial</a>). Previously I have written about <a href="/post/zods0_problem_with_dataframes.html">object-oriented alternatives to dataframes</a> for data science, and in this article I wanted to share a few patterns I use for data objects created with <code>dataclasses</code> in my own work.</p>
+<h3>Dataclass Basics</h3>
+<p>I strongly recommend reading more about the <a href="https://docs.python.org/3/library/dataclasses.html"><code>dataclasses</code></a> module before reading this article if you are not familiar, but the general principles may still be useful otherwise.</p>
+<p>You can create a dataclass using the <code>dataclasses.dataclass</code> decorator on a class definition. The class definition should contain a set of static attributes with type hints that can have default values. From this class definition, the decorator creates an <code>__init__</code> method which includes all of these attributes as parameters, and the defaulted attributes are also default parameter values.</p>
+<pre><code>import dataclasses
+
+@dataclasses.dataclass
+class MyType:
+    a: int
+    b: float
+    c: str = ''
+</code></pre>
+<p>You can instantiate this object using the generated constructor as you would expect.</p>
+<pre><code>obj = MyType(1, 1.0)
+obj = MyType(1, 2.0, c='hello')
+obj = MyType(
+    a = 1,
+    b = 2,
+    c = 'hello world',
+)
+</code></pre>
+<p>There are many more features than this that I may bring up when discussing anti-patterns, but it is worth reading more about the module if you are interested in using it.</p>
+<h3>1. Immutabile</h3>
+<p>Firstly, I recommend that you make your dataclass objects immutable - that is, objects with a fixed set of attributes whos values cannot be changed after instantiation. Normally Python objects can have new attrributes assigned to them at any point - this is part of the power and flexibility of the language. That said, adding additional attributes to the object other than those described in the definition tends to weaken the value of dataclasses - I recommend avoiding them. </p>
+<p>You can require that dataclasses enforce this rule by passing the <code>frozen=True</code> argument to the <code>dataclass</code> decorator.</p>
+<pre><code>@dataclasses.dataclass(frozen=True)
+class MyType:
+    a: int
+    b: float
+</code></pre>
+<p>You will then see an exception when you attempt to assign a value to a new or existing attribute.</p>
+<pre><code>obj = MyType(1, 0.0)
+</code></pre>
+<p>You'll see an exception when changing an exising attribute.</p>
+<pre><code>obj.b = 2
+
+&lt;string&gt; in __setattr__(self, name, value)
+FrozenInstanceError: cannot assign to field 'b'
+</code></pre>
+<p>And even when creating an additional attribute.</p>
+<pre><code>obj.c = 5
+
+&lt;string&gt; in __setattr__(self, name, value)
+FrozenInstanceError: cannot assign to field 'c'
+</code></pre>
+<h3>2. Slots</h3>
+<p>Next I recommend using the <em>slots</em> interface to fix the set of attributes associated with your object, whether or not you choose to make the values immutable. You can read more about this interface <a href="https://wiki.python.org/moin/UsingSlots">on the related Python wiki page</a>, but essentially you make this gaurantee to the interpreter so that it doesn't need to create extra resources to allow for the introduction of new attributes dynamically. In my experience, this can cut memory usage down by around half, depending on the number of attributes you use.</p>
+<p>To use the slots interface, simply provide the attribute names as a list of strings associated with the <code>__slots__</code> static attribute. Note that the <code>dataclass</code> decorator will ignore this particular attribute, so it should not affect other aspects of your object.</p>
+<pre><code>@dataclasses.dataclass
+class MyType:
+    __slots__ = ['a', 'b']
+    a: int
+    b: float
+</code></pre>
+<p>It works like a regular dataclass, but will raise an <code>AttributeError</code> if you try to assign a value to a new attribute.</p>
+<pre><code>obj = MyType(1, 0.0)
+obj.b = 2
+obj.c = 5
+</code></pre>
+<p>The error will look like this:</p>
+<pre><code>---&gt; 11 obj.c = 5
+AttributeError: 'MyType' object has no attribute 'c'
+</code></pre>
+<p>Starting in Python 3.11, you can alternatively provide the <code>slots=True</code> argument to the <code>dataclasses.dataclass</code> decorator to accomplish this (read more <a href="https://docs.python.org/3/library/dataclasses.html">here</a>).</p>
+<pre><code>@dataclasses.dataclass(slots=True)
+class MyType:
+    a: int
+    b: float
+</code></pre>
+<h3>3. Static Factory Methods</h3>
+<p>Next I recommend using static factory methods, or static methods that return instances of the containing class, to instantiate dataclasses for cases other than direct assignment of attributes. I believe this is preferable to relying on logic placed in <code>__post_init__</code>, which will be executed any time you instantiate the object, even if no actual work should be done.</p>
+<p>In Python, you can use the <code>classmethod</code> decorator to create a static factory method like the example below. You can see that <code>new</code> just passes <code>a</code> and <code>b</code> directly to the object constructor - essentially doing nothing except acting as a pass-through.</p>
+<pre><code>@dataclasses.dataclass
+class MyType:
+    a: int
+    b: float
+
+    @classmethod
+    def new(cls, a: int, b: float):
+        # logic goes here
+        return cls(a=a, b=b)
+</code></pre>
+<p>Using this approach, instantiating a new object is straightforward.</p>
+<pre><code>obj = MyType.new(1.0, 2.0)
+</code></pre>
+<p>Alternatively, the <code>dataclass</code> decorator allows you to place some logic requred to instantiate the object in a method called <code>__post_init__</code>, which will be called at the end of the generated <code>__init__</code> after attribute assignment is complete. This method accepts a single argument: a reference to the object itself after assignment.</p>
+<pre><code>    ...
+    def __post_init__(self):
+        # post-init code here
+        pass
+</code></pre>
+<p>I will now cover a few use-cases to demonstrate the value of using static factory methods over <code>__post_init__</code>.</p>
+<h5>Non-data Arguments</h5>
+<p>The most obvious use-case for static factory methods arises when the interface you use to create the object will be different than the interface offered in the dataclass-generated <code>__init__</code> method. This might occur, for instance, if some parameters needed to create the object will not be used later, or when the data being stored is actually a function of some other parameters.</p>
+<p>For example, imagine we want to create an object that maintains the current timestamp and some other data. The dataclass will just include a timestamp and the other data, but we shouldn't need to provide a timestamp object directly from the outside since we know that attribute always be a timestamp - we should be able to create it from within the object. To do this, we create a static factory method that just requres a timezone - the timestamp can then use that information, but the timezone itself need not be stored elsewhere because we can always get it from the timestamp.</p>
+<pre><code>import datetime
+
+@dataclasses.dataclass
+class MyTimeKeeper:
+    ts: datetime.datetime
+    other_data: dict
+
+    @classmethod
+    def now(cls, tz: datetime.timezone, **other_data):
+        return cls(datetime.datetime.now(tz=tz), other_data)
+</code></pre>
+<p>Of course, you can build out even higher-level static factory methods to support the object as well. Both of these allow you to create the object without providing a timestamp.</p>
+<pre><code>    ...
+    @classmethod
+    def now_utc(cls, **other_data):
+        return cls.now(datetime.timezone.utc, **other_data)
+
+    @classmethod
+    def now_naive(cls, **other_data):
+        return cls.now(None, **other_data)
+</code></pre>
+<p>Creating these objects only using the static factory methods gaurantees that the stored timestamp will always be a timestamp, but make clear to the reader that we only need the timezone for making the timestamp - not for later use.</p>
+<p>An approach using <code>__post_init__</code> would require us to partially initialize the object by leaving <code>ts = None</code> and then create it later, but this has several downsides: (a) it is unclear to the reader how and if the timestamp may be used in the future, (b) you do not have a lot of flexibility in the ways you instantiate these objects, and (c) the interface for creating the object is not that clean.</p>
+<pre><code>@dataclasses.dataclass
+class MyTimeKeeperPostInit:
+    tz: datetime.timezone
+    other_data: dict
+    ts: datetime.datetime = None
+
+    def __post_init__(self):
+        self.ts = datetime.datetime.now(self.tz)
+</code></pre>
+<h5>Parameter Co-dependence</h5>
+<p>Now lets explore the case where have a dataclass with two attributes <code>a</code> and <code>b</code> and we know that if one of these values is not provided, the object should compute the other following the relationship <code>b = 2a</code>. I create two static factory methods to handle each of these cases. Note that we require the customer (user) to choose this case explicitly following the <a href="https://peps.python.org/pep-0020/">Zen of Python</a>, which suggests that "explicit is better than implicit." This object should not be required to guess which case will need to be handled - the user can do that. </p>
+<pre><code>@dataclasses.dataclass
+class MyType:
+    a: int
+    b: float
+
+    @classmethod
+    def from_a_only(cls, a: int):
+        return cls(a=a, b=a*2)
+
+    @classmethod
+    def from_b_only(cls, b: float):
+        return cls(a=b/2, b=b)
+
+obj = MyType.from_a_only(1)
+obj = MyType.from_b_only(2)
+</code></pre>
+<p>The anti-pattern that relies on <code>__post_init__</code> would require us to place some if-else logic inside the object constructor to be executed depending on the information provided by the user. This partially handles some of the if-else logic that the customer would need to do, but unfortunately this restricts us to determining even when we know that neither value will be <code>None</code>. Unfortunately many Python APIs rely on this type of "guessing", even though the <a href="https://peps.python.org/pep-0020/">Zen of Python</a> says "in the face of ambiguity, refuse the temptation to guess."</p>
+<pre><code>@dataclasses.dataclass
+class MyType:
+    a: int = None
+    b: float = None
+
+    def __post_init__(self):
+        if self.b is None and a is not None:
+            self.b = self.a * 2
+        elif self.a is None and self.b is not None:
+            self.a = self.b / 2
+        elif self.a is None and self.b is None:
+            raise Exception('Neither a nor b were provided.')
+</code></pre>
+<p>It is also worth noting that in many cases, static factory methods provide cleaner alternatives to using <code>default_factory</code> parameters or anything that requires more complex logic. </p>
+<h3>4. Extend Functionality Using Composition</h3>
+<p>As projects grow and requirements change, the number of methods associated with a single dataclass might become unweildy. To organize some of these methods, I recommend creating a new container object that contains only an instance of the original object and operates on that instance. The interface can be exposed from the original object using a <code>property</code> method that simply returns a new instance of the container object.</p>
+<p>In this example, we define <code>MyTypeMath</code> to be a container around <code>MyType</code> using the dataclass decorator, and in methods simply refer to this attribute instead of <code>self</code>. In this way, you can easily grow the code associated with the dataclass.</p>
+<pre><code>@dataclasses.dataclass
+class MyType:
+    a: int
+    b: float
+
+    @property
+    def math(self):
+        return MyTypeMath(self)
+
+@dataclasses.dataclass
+class MyTypeMath:
+    mt: MyType
+
+    def product(self):
+        return self.mt.a * self.mt.b
+
+    def sum(self):
+        return self.mt.a + self.mt.b
+</code></pre>
+<p>And the interface would be used like this:</p>
+<pre><code>obj = MyType(1.0, 1.0)
+obj.math.product()
+obj.math.sum()
+</code></pre>
+<p>If the container object does any other transformation, you could create the new container and then access its many methods directly.</p>
+<pre><code>mather = obj.math
+mather.sum()
+mather.product()
+</code></pre>
+<h3>5. Define custom types for transformations</h3>
+<p>My last patter concerns a pattern for chaining transformations from one dataclass object to another. This will look much like the previous pattern, but instead of creating a wrapper object that only adds functionality, we create a second object that uses a static factory method involving some transformation. In turn, the original class uses that static factory method instead of the basic <code>__init__</code> method provided by <code>dataclasses</code>.</p>
+<pre><code>@dataclasses.dataclass
+class MyType:
+    a: int
+    b: float
+
+    def get_summary(self):
+        return MySummaryType.from_mytype(self)
+
+@dataclasses.dataclass
+class MySummaryType:
+    added: float
+    product: float
+
+    @classmethod
+    def from_mytype(cls, mt: MyType):
+        return cls(mt.a + mt.b, mt.a * mt.b)
+
+print(MyType(1, 4).get_summary())
+</code></pre>
+<p>While most transformations will operate on collections of dataclasses (which I will cover in a future article), this approach works well for basic object-wise transformations.</p>
+<h3>Conclusions</h3>
+<p>Object oriented-design can drastically improve the maintainibility of your data science code, and these patterns will improve the readability and error robustness of those designs.</p>
+<p>In the next article I will be covering patterns for working with collections of dataclasses - aggregation, filtering, grouping, and more.</p>
+                    </div>
+                </div>
+            </div>
+        </article>
+        <!-- Footer-->
+        <footer class="border-top">
+            <div class="container px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <ul class="list-inline text-center">
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-facebook-f fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                        </ul>
+                        <div class="small text-center text-muted fst-italic">Copyright &copy; Devin J. Cornell 2021<br/><hr/></div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        <!-- Bootstrap core JS-->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Core theme JS-->
+        <script src="/js/blog.js"></script>
+    </body>
+</html>
