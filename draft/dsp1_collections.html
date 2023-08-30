@@ -95,10 +95,12 @@ class MyCollection:
 <p>In which case you could use <code>MyCollection()</code> to instantiate a collection with an empty list.</p>
 <h4>Extending Existing Types</h4>
 <p>Alternatively, for simple cases, you may extend an existing collection type. To do this in Python, you will probably want to use the <code>typing</code> module instead of <code>list</code>, <code>dict</code>, or <code>set</code> directly. This object will work almost exactly like the inherited type, but with any additional methods you would like to assign.</p>
-<p>class MyCollectionExtended(typing.List[MyType]):
-    pass</p>
+<pre><code>class MyCollectionExtended(typing.List[MyType]):
+    pass
+</code></pre>
 <p>You would access this the same way you use the list constructor.</p>
-<p>MyCollectionExtended(MyType(i, i + 1) for i in range(10))</p>
+<pre><code>MyCollectionExtended(MyType(i, i + 1) for i in range(10))
+</code></pre>
 <p>For the purpose of this article, I will use the former approach that involves wrapping collections, but I certainly do find extending existing types to be valuable in simple cases where I want to minimize code. Using some of the encapsulation principles I discuss here (namely static factory methods), you could easily design your pipeline such that you could shift from one approach to another as the project changes.</p>
 <p>Now I will cover strategies for building these collection types.</p>
 <h3>Static Factory Methods</h3>
@@ -151,7 +153,7 @@ class MyCollection:
 <pre><code>@dataclasses.dataclass
 class MyCollection:
     objs: typing.List[MyType] = dataclasses.field(default_factory=list)
-
+    ...
     def append(self, *args, **kwargs) -&gt; None:
         return self.objs.append(*args, **kwargs)
 </code></pre>

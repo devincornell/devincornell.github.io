@@ -53,12 +53,12 @@ In which case you could use `MyCollection()` to instantiate a collection with an
 
 Alternatively, for simple cases, you may extend an existing collection type. To do this in Python, you will probably want to use the `typing` module instead of `list`, `dict`, or `set` directly. This object will work almost exactly like the inherited type, but with any additional methods you would like to assign.
 
-class MyCollectionExtended(typing.List[MyType]):
-    pass
+    class MyCollectionExtended(typing.List[MyType]):
+        pass
 
 You would access this the same way you use the list constructor.
 
-MyCollectionExtended(MyType(i, i + 1) for i in range(10))
+    MyCollectionExtended(MyType(i, i + 1) for i in range(10))
 
 For the purpose of this article, I will use the former approach that involves wrapping collections, but I certainly do find extending existing types to be valuable in simple cases where I want to minimize code. Using some of the encapsulation principles I discuss here (namely static factory methods), you could easily design your pipeline such that you could shift from one approach to another as the project changes.
 
@@ -126,7 +126,7 @@ The most basic encapsulation method would simply act as a pass-through.
     @dataclasses.dataclass
     class MyCollection:
         objs: typing.List[MyType] = dataclasses.field(default_factory=list)
-        
+        ...
         def append(self, *args, **kwargs) -> None:
             return self.objs.append(*args, **kwargs)
 
