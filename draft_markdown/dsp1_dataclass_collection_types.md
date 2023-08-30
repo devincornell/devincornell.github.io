@@ -98,8 +98,22 @@ This greatly simplifies the process of creating new collections using only the d
 
     MyCollection.from_numbers(range(10))
 
+### Exposing collection methods
 
-### Manipulating Collections
+Whereas extending existing types gives you access to behavior of collections directly, building custom wrapper types may require you to implement some boilerplate functionality such as iteration and numerical (or other) indexing. You can do some of this by creating `__iter__` and `__getitem__` attributes.
+
+    @dataclasses.dataclass
+    class MyCollection:
+        objs: typing.List[MyType] = dataclasses.field(default_factory=list)
+        ...
+        def __iter__(self) -> typing.Iterator[MyType]:
+            return iter(self.objs)
+        
+        def __getitem__(self, ind: int) -> MyType:
+            return self.objs[ind]
+
+
+### Interface for adding elements
 
 The essential characteristic of the collections I am discussing here is that they contain only objects of the specified type. Without further work, you would rely on the customer to create a new instance of the containing type before it can be added. Basic software engineering principles suggest that we should encapsulate relevant functionality for the contained function, so we could add an `.append()` method to the collection (although obviously, and less ideally, the customer could add to the list directly).
 
@@ -112,31 +126,42 @@ The most basic encapsulation method would simply act as a pass-through.
         def append(self, *args, **kwargs) -> None:
             return self.objs.append(*args, **kwargs)
 
-A better solution would be to add object construction code from within the append method so that you do not need to create it.
-
+A better solution would be to add object construction code from within the append method so that you do not need to create it each time. You can use either the constructor or a static factory method to make this.
+    
+    @dataclasses.dataclass
+    class MyCollection:
+        objs: typing.List[MyType] = dataclasses.field(default_factory=list)
         ...
         def append_mytype(self, *args, **kwargs) -> None:
             return self.objs.append(MyType(*args, **kwargs))
+        
+        def append_from_number(self, *args, **kwargs) -> None:
+            return self.objs.append(MyType.from_number(*args, **kwargs))
 
 
     mc = MyCollection()
     mc.append(MyType(1, 2.0))
 
-It would be better, however, to be able to create an 
+Adding this to an extended collection type involves use of builtin collection methods directly, instead of manipulating the contained collection.
 
+    class MyCollectionExtended(typing.List[MyType]):
+        ...    
+        def append_mytype(self, *args, **kwargs) -> None:
+            return self.append(MyType(*args, **kwargs))
+        
+        def append_from_number(self, *args, **kwargs) -> None:
+            return self.append(MyType.from_number(*args, **kwargs))
 
-MyCollectionExtended
-
-Instead, it is best to encapsulate this functionality within static factory methdods to make the interface simpler.
-
-
-The useful characteristic of default types in weakly-typed languages is that 
-
+You would create interfaces for similar methods such as element removal by following a similar pattern.
 
 ### Filtering
 
-Filtering functions are used to return a collection of the same type that excludes some elements. To return the same type, you will likely need to access the `self.__class__` attribute.
+Filtering functions are used to return a collection of the same type that includes only a subset of the original elements. To return the same type, you will likely need to access the `self.__class__` attribute.
         
+
+    @dataclasses.dataclass
+    class MyCollection:
+        objs: typing.List[MyType] = dataclasses.field(default_factory=list)
         ...
         def filter(self, keep_if: typing.Callable[[MyType], bool]):
             return self.__class__([o for o in self.objs if keep_if(o)])
@@ -185,9 +210,116 @@ Then simply call that from the collection object.
 
 ### Grouping and Aggregation
 
-Aggregation is often used in conjunction with grouping, or splitting elements into subgroups according to some criteria.
+Aggregation is often used in conjunction with grouping, or splitting elements into subgroups according to some criteria and aggregating within those groups. In Python, you could represent groups as a dictionary mapping some key to our collection objects. It will be important to reference the `self.__class__` to ensure you are creating groups that are the same type as the original collection - this is important.
+
+    @dataclasses.dataclass
+    class MyCollection:
+        objs: typing.List[MyType] = dataclasses.field(default_factory=list)
+        ...
+        def group_by_as_dict(self, key_func: typing.Callable[[MyType], typing.Hashable]) -> typing.Dict[str, MyCollection]:
+            groups = dict()
+            for el in self.objs:
+                k = key_func(el)
+                if k not in groups:
+                    groups[k] = list()
+                groups[k].append(el)
+            return {k:self.__class__(grp) for k,grp in groups.items()}
+
+For readability, it may also be helpful to create a custom type, however simple, to represent the grouped objects.
+
+class GroupedMyCollection(typing.Dict[typing.Hashable, MyCollection]):
+    pass
+
+Because the return type of these functions is a set of the original collection types, you can use the previously defined aggregation functions on each group.
+
+    @dataclasses.dataclass
+    class MyCollection:
+        objs: typing.List[MyType] = dataclasses.field(default_factory=list)
+        ...
+        def group_by_average(self, *args, **kwargs) -> typing.Dict[typing.Hashable, MyTypeAverage]:
+            return {k:grp.average() for k,grp in self.group_by(*args, **kwargs).items()}
+
+A better approach may be to add functionality to the grouping object such that you can apply the groupby first and then perform additional operations on the grouping.
+
+    class GroupedMyCollection(typing.Dict[typing.Hashable, MyCollection]):
+        def average(self) -> typing.Dict[typing.Hashable, MyTypeAverage]:
+            return {k:grp.average() for k,grp in self.items()}
+
+To do this, you'd wrap the grouping function with the custom grouping type.
+
+    @dataclasses.dataclass
+    class MyCollection:
+        objs: typing.List[MyType] = dataclasses.field(default_factory=list)
+        ...
+
+        def group_by(self, key_func: typing.Callable[[MyType], typing.Hashable]):
+            groups = dict()
+            for el in self.objs:
+                k = key_func(el)
+                if k not in groups:
+                    groups[k] = list()
+                groups[k].append(el)
+            return GroupedMyCollection({k:self.__class__(grp) for k,grp in groups.items()})
+
+This way, instead of using `.group_by_average()`, you could use `.group_by().average()`. For instance, to split the values into true or false, you would use the following expression.
+
+    mytypes.group_by(lambda mt: int(mt.a) % 2 == 0).average()
+
+And the output would look like the following:
+
+    {
+        True: MyTypeAverage(a=4, b=0.3574603174603175),
+        False: MyTypeAverage(a=3.5, b=0.7052083333333333)
+    }
+
+Note that for practical purposes, I recommend fixing the key function so that the customer can see all the types of groupings that one would expect to use with a given collection. This improves readability and avoids leaving the key function specification to the customer since there may be many cases they must consider.
 
 
 ### Mutations and Element-wise Transformations
+
+The way that I use mutations always involves transforming objects from one type to another - rarely would I output a simple list/array of numbers, for instance, as you might in the `mutate` function in R dplyr. As such, we would create a new type for the result of the transformation as well as the associated collection type. We would also define static factory methods on each to support the transformation.
+
+    @dataclasses.dataclass
+    class MyTypeTwo:
+        sum: int
+        prod: float
+        
+        @classmethod
+        def from_mytype(cls, mt: MyType):
+            return cls(sum = mt.a + mt.b, prod = mt.a * mt.b)
+
+    @dataclasses.dataclass
+    class MyCollectionTwo:
+        objs: typing.List[MyType] = dataclasses.field(default_factory=list)
+        
+        @classmethod
+        def from_mycollection(cls, mytypes: MyCollection):
+            return MyCollectionTwo([MyTypeTwo.from_mytype(mt) for mt in mytypes])
+
+To further improve readability, I further recommend adding a method to call the static factory method from within the original collection object. You can then call this method to return a new collection of the transformed types.
+
+    @dataclasses.dataclass
+    class MyCollection:
+        objs: typing.List[MyType] = dataclasses.field(default_factory=list)
+        ...
+
+        def transform_to_two(self) -> MyCollectionTwo:
+            return MyCollectionTwo.from_mycollection(self)
+
+##### Parallelized transformations
+
+In the case where you want to implement parallelization, you can call the element-level static factory method directly in each process.
+
+    import multiprocessing
+
+    @dataclasses.dataclass
+    class MyCollection:
+        objs: typing.List[MyType] = dataclasses.field(default_factory=list)
+        ...
+        def transform_parallelized(self) -> MyCollectionTwo:
+            with multiprocessing.Pool() as p:
+                results = p.map(MyTypeTwo.from_mytype, self)
+            return MyCollectionTwo(results)
+
 
 
