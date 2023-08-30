@@ -5,18 +5,13 @@ date: "August 25, 2023"
 id: "dsp0_patterns_for_dataclasses"
 ---
 
-
-
+The popular [`dataclasses`](https://docs.python.org/3/library/dataclasses.html) module has been pushing many data scientists to adopt more object-oriented patterns in their data pipelines since it was [introduced](https://www.google.com/search?client=firefox-b-1-d&q=dataclasses+pep) to the Python standard library. This module makes it easy to create data types by offering a decorator that automatically generates `__init__` and a number of other boilerplate dunder methods from only a set of statically defined attributes with type hints (I recommend [this tutorial](https://realpython.com/python-data-classes/)). Previously I have written about [object-oriented alternatives to dataframes](/post/zods0_problem_with_dataframes.html) for data science, and in this article I wanted to share a few patterns I use for data objects created with `dataclasses` in my own work.
 
 ![Dataclass transformation visualization.](https://storage.googleapis.com/public_data_09324832787/dataclasses.svg)
 
-
-
-The popular [`dataclasses`](https://docs.python.org/3/library/dataclasses.html) module has been pushing many data scientists to adopt more object-oriented patterns in their data pipelines since it was [introduced](https://www.google.com/search?client=firefox-b-1-d&q=dataclasses+pep) to the Python standard library. This module makes it easy to create data types by offering a decorator that automatically generates `__init__` and a number of other boilerplate dunder methods from only a set of statically defined attributes with type hints (I recommend [this tutorial](https://realpython.com/python-data-classes/)). Previously I have written about [object-oriented alternatives to dataframes](/post/zods0_problem_with_dataframes.html) for data science, and in this article I wanted to share a few patterns I use for data objects created with `dataclasses` in my own work.
-
 ### Dataclass Basics
 
-I strongly recommend reading more about the [`dataclasses`](https://docs.python.org/3/library/dataclasses.html) module before reading this article if you are not familiar, but the general principles may still be useful otherwise.
+Firstly, I strongly recommend reading more about the [`dataclasses`](https://docs.python.org/3/library/dataclasses.html) module before reading this article if you are not familiar, but the general principles may still be useful otherwise.
 
 You can create a dataclass using the `dataclasses.dataclass` decorator on a class definition. The class definition should contain a set of static attributes with type hints that can have default values. From this class definition, the decorator creates an `__init__` method which includes all of these attributes as parameters, and the defaulted attributes are also default parameter values.
 
