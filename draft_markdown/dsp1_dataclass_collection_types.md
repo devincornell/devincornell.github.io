@@ -1,13 +1,17 @@
 ---
-title: "Patterns for Collection Types"
-subtitle: "Patterns for creating useful collections of data objects."
+title: "Patterns for data object collections."
+subtitle: "Patterns for creating useful collections of data objects: filtering, grouping, aggregation, and mutation."
 date: "August 24, 2023"
 id: "dsp1_collections"
 ---
 
 
-By _data collection types_, I mean types that act as collections of basic data objects that offer special functionality (or minimally annotation) relevant to collections of a particular type.
+![Data collection visualization.](https://storage.googleapis.com/public_data_09324832787/data_collections2.svg)
 
+In this article I discuss some patterns and anti-patterns for building types that act as collections of basic data objects with special functionality relevant to the contained type. This serves as a natural progression from my article on [patterns for dataclasses](/post/dsp0_patterns_for_dataclasses.html) and builds on some of the basic strategies described in my article discussing the [weaknesses of using dataframes in your pipelines](/post/zods0_problem_with_dataframes.html). The examples I offer here are based in Python, but I believe they could apply to most other data sources.
+
+
+### Data Objects and `dataclasses`
 
 Here I start by creating a basic data object using the `dataclasses` module. The goal of collection types is to manipulate these objects.
 

@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta name="description" content="" />
         <meta name="author" content="" />
-        <title>Devin J. Cornell: Patterns for Collection Types</title>
+        <title>Devin J. Cornell: Patterns for data object collections.</title>
         <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
         <!-- Font Awesome icons (free version)-->
         <!--<script src="https://use.fontawesome.com/releases/v5.15.3/js/all.js" crossorigin="anonymous"></script>-->
@@ -47,8 +47,8 @@
                 <div class="row gx-4 gx-lg-5 justify-content-center">
                     <div class="col-md-10 col-lg-8 col-xl-8">
                         <div class="post-heading">
-                            <h1>Patterns for Collection Types</h1>
-                            <h2 class="subheading">Patterns for creating useful collections of data objects.</h2>
+                            <h1>Patterns for data object collections.</h1>
+                            <h2 class="subheading">Patterns for creating useful collections of data objects: filtering, grouping, aggregation, and mutation.</h2>
                             <span class="meta">
                                 Posted by
                                 <a href="/">Devin J. Cornell</a>
@@ -64,7 +64,9 @@
             <div class="container px-4 px-lg-5">
                 <div class="row gx-4 gx-lg-5 justify-content-center">
                     <div class="col-md-10 col-lg-8 col-xl-7">
-                        <p>By <em>data collection types</em>, I mean types that act as collections of basic data objects that offer special functionality (or minimally annotation) relevant to collections of a particular type.</p>
+                        <p><img alt="Data collection visualization." src="https://storage.googleapis.com/public_data_09324832787/data_collections2.svg" /></p>
+<p>In this article I discuss some patterns and anti-patterns for building types that act as collections of basic data objects with special functionality relevant to the contained type. This serves as a natural progression from my article on <a href="/post/dsp0_patterns_for_dataclasses.html">patterns for dataclasses</a> and builds on some of the basic strategies described in my article discussing the <a href="/post/zods0_problem_with_dataframes.html">weaknesses of using dataframes in your pipelines</a>. The examples I offer here are based in Python, but I believe they could apply to most other data sources.</p>
+<h3>Data Objects and <code>dataclasses</code></h3>
 <p>Here I start by creating a basic data object using the <code>dataclasses</code> module. The goal of collection types is to manipulate these objects.</p>
 <pre><code>import dataclasses
 import typing
