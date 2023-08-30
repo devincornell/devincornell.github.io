@@ -1,8 +1,8 @@
 ---
-title: "Patterns for Data Collection Types"
-subtitle: "Patterns for creating collections of dataclasses and data objects."
+title: "Patterns for Collection Types"
+subtitle: "Patterns for creating useful collections of data objects."
 date: "August 24, 2023"
-id: "dsp1_dataclass_collections"
+id: "dsp1_collections"
 ---
 
 
