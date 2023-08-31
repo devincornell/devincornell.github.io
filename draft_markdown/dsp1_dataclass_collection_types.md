@@ -1,7 +1,7 @@
 ---
-title: "Patterns for data collections."
-subtitle: "Patterns for creating useful collections of data objects: filtering, grouping, aggregation, and mutation."
-date: "August 24, 2023"
+title: "Patterns for data collection types"
+subtitle: "Patterns for creating useful collections of data objects: filtering, grouping, aggregation, mutation, and parallelization."
+date: "August 31, 2023"
 id: "dsp1_collections"
 ---
 
