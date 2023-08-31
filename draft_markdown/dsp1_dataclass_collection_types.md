@@ -374,6 +374,37 @@ And you can access all the additional methods through temporary instances of the
 
     mytypes.math.total_a()
 
+
+### Plotting Objects
+
+The last pattern I will discuss involves specifically managing interfaces for plotting results, although it could apply to many scenarios where extending your collection types involves some type of transformation. I recommend creating objects specifically for plotting values in your collection types. To do this, you can create a wrapper object similar to my pattern for extending collections, except have it instead wrap a dataframe and create a static factory method to create the dataframe from the original collection. You can then add any plotting functionality to that object - here I chose a function to create a bar graph.
+
+    import plotly.express as px
+    import pandas as pd
+
+    @dataclasses.dataclass
+    class MyCollectionPlotter:
+        df: pd.DataFrame
+        
+        @classmethod
+        def from_mycollection(cls, mc: MyCollection):
+            df = pd.DataFrame([dataclasses.asdict(mt) for mt in mc])
+            return cls(df)
+        
+        def bar(self):
+            return px.bar(self.df, x='a', y='b')
+
+And to make the interface clean you can simply add it to a method of the original collection.
+
+    @dataclasses.dataclass
+    class MyCollection:
+        objs: typing.List[MyType] = dataclasses.field(default_factory=list)
+        ...
+        def plotter(self):
+            return MyCollectionPlotter.from_mycollection(self)
+
+This is a method for extending the object with plotting functionality even when it requires a transformation to a transformation prior to plotting. In many cases you would likely want to call multiple plotting functions in the same script/function, so this gives you that ability. Plotting is a good use-case because it offers an easy to organize a large number of plotting functions with different aesthetics, but this may be an appropriate pattern for other problem types as well.
+
 ### Conclusions
 
 Creating custom types for collections makes your code more readable and generally has the same benefits I discussed in my article about the [challenges with dataframes](/post/zods0_problem_with_dataframes.html). The general idea is that more structure is better - it can make your code more readable, easier to maintain, and less error-prone. While at first glance it may feel like overkill because it requires so much additional code, the payoff surely comes as projects become large or dynamic enough such that you need better ways to organize your code.
