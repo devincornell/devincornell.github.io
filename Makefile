@@ -1,4 +1,4 @@
 all:
 	python make.py
-	git commit -a -m "adding all changes (automated commit)."
+	git commit -a -m "compiling articles to html (automated commit)."
 	git push
