@@ -68,7 +68,7 @@
 <p>In this article I discuss some patterns and anti-patterns for building specialized types that act as data collections, and I will focus on variable-sized collections of fixed-size data types. This will typically mean iterables of structs or classes that exclusively store atomic data types. Built-in lists, dicts, and arrays are all powerful tools for managing data objects, but I argue that either extending or encapsulating them with custom types can improve the readability, maintainability, and error robustness of your data pipelines.</p>
 <p>This article serves as a natural progression from my article on <a href="/post/dsp0_patterns_for_dataclasses.html">patterns for dataclasses</a> (essentially the data objects I reference here) and builds on some of the basic strategies described in my article on <a href="/post/zods0_problem_with_dataframes.html">weaknesses of using dataframes in your pipelines</a>. The examples I offer here are based in Python, but I believe they could apply to most other languages.</p>
 <h3>Data Object Collections</h3>
-<p>Built-in collection types such as lists, arrays, or dicts offer the simplest methods for storing and manipulating sequences of data objects: they are designed to handle collections of any type and are therefore fit for most applications. For example purposes, let us start with a very basic data object in Python built using the <code>dataclasses</code> module. This type has exactly two properties - an int and a float - and is used to represent a single element in your dataset.</p>
+<p>Built-in collection types such as lists, arrays, or dicts offer the simplest methods for storing and manipulating sequences of data objects: they are designed to handle collections of any type and are therefore fit for most applications. For example, let us start with a very basic data object in Python built using the <code>dataclasses</code> module. This type has exactly two properties - an int and a float - and is used to represent a single element in your dataset.</p>
 <pre><code>import dataclasses
 
 @dataclasses.dataclass
@@ -81,13 +81,13 @@ class MyType:
 
 mytypes: typing.List[MyType] = [MyType(i, 1/(i+1)) for i in range(10)]
 </code></pre>
-<p>And, of course, we can continue to use methods that operate on iterables to manipulate these objects, typically in for loops (or list comprehensions). These objects are very general and you can work with them in the same way you work with any other iterable.</p>
+<p>And, of course, we can continue to use methods that operate on iterables to manipulate these objects, typically in for loops (or list comprehensions). These objects are very general, and you can work with them in the same way you work with any other iterable.</p>
 <pre><code>mytype_products = [mt.a * mt.b for mt in mytypes]
 </code></pre>
 <p>The problem, I argue, is that they are a little too general - there is nothing in the code that indicates how these objects will be transformed and any downstream customers/functions must use functions that create iterables from scratch. The alternative is that instead of using these built-in types directly, you can create your own application-specific types that can be manipulated according to methods that you define.</p>
 <p>In most languages, there are two primary ways to create collection types: (a) extend an existing collection type, or (b) encapsulate a collection in another custom type. I will discuss each approach below, but most subsequent patterns will focus on the encapsulating approach because it is more complicated and should make clear the approach you would use for extended types.</p>
 <h4>A. Encapsulate Collection Types</h4>
-<p>The most typical approach for building custom collection types is to create a wrapper object that contains and encapsulates a collection type. You may choose which features of the collections (such as iteration or indexing) to expose, and add additional methods  The <code>dataclasses</code> module can be helpful here as it can build a constructor that accepts a single object: a collection of objects of some type (note that it very well could contain more). The constructor simply assigns the collection to an attibute of the object.</p>
+<p>The most typical approach for building custom collection types is to create a wrapper object that contains and encapsulates a collection type. You may choose which features of the collections (such as iteration or indexing) to expose and add additional methods  The <code>dataclasses</code> module can be helpful here as it can build a constructor that accepts a single object: a collection of objects of some type (note that it very well could contain more). The constructor simply assigns the collection to an attribute of the object.</p>
 <pre><code>@dataclasses.dataclass
 class MyCollection:
     objs: typing.List
@@ -109,7 +109,7 @@ class MyCollection:
 <p>You would access this the same way you use the list constructor.</p>
 <pre><code>MyCollectionExtended(MyType(i, i + 1) for i in range(10))
 </code></pre>
-<p>For the purpose of this article, I will use the former approach that involves wrapping collections, but I certainly do find extending existing types to be valuable in simple cases where I want to minimize code. Using some of the encapsulation principles I discuss here (namely static factory methods), you could easily design your pipeline such that you could shift from one approach to another as the project changes.</p>
+<p>For this article, I will use the former approach that involves wrapping collections, but I certainly do find extending existing types to be valuable in simple cases where I want to minimize code. Using some of the encapsulation principles I discuss here (namely static factory methods), you could easily design your pipeline such that you could shift from one approach to another as the project changes.</p>
 <p>Now I will cover strategies for building more features into these collection types.</p>
 <h3>Static Factory Methods</h3>
 <p>The first concern we have for custom collections will be the methods by which they are constructed - for this, I recommend using static factory methods almost exclusively. Static factory methods are static functions that return instances of the parent object. It is generally best to contain any type of working logic into a static factory method instead of the constructor in case there are cases where you want to instantiate it without that logic.</p>
@@ -144,7 +144,7 @@ class MyCollection:
 <p>This greatly simplifies the process of creating new collections using only the data needed for the contained types.</p>
 <pre><code>MyCollection.from_numbers(range(10))
 </code></pre>
-<p>You could imagine how this would scale to more complicated cases.</p>
+<p>You can imagine how this would scale to more complicated cases.</p>
 <h3>Exposing collection methods</h3>
 <p>Whereas extending existing types gives you access to behavior of collections directly, building custom wrapper types may require you to implement some boilerplate functionality such as iteration and numerical (or other) indexing. You can do some of this by creating <code>__iter__</code> and <code>__getitem__</code> attributes. </p>
 <pre><code>@dataclasses.dataclass
@@ -159,7 +159,7 @@ class MyCollection:
 </code></pre>
 <p>In cases where you are wrapping dictionaries or sets, you might want to add additional pass-through functionality.</p>
 <h3>Interface for adding elements</h3>
-<p>The essential characteristic of the collections I am discussing here is that they contain only data objects of the specified type. Without further work, you would rely on the customer to create a new instance of the containing type before it can be added. Basic software engineering principles suggest that we should encapsulate relevant functionality for the contained function, so we could add an <code>.append()</code> method to the collection (although obviously, and less ideally, the customer could add to the list directly).</p>
+<p>The essential characteristic of the collections I am discussing here is that they contain only data objects of the specified type. Without further work, you would rely on the customer to create a new instance of the containing type before it can be added. Basic software engineering principles suggest that we should encapsulate relevant functionality for the contained function, so we could add an <code>append()</code> method to the collection (although obviously, and less ideally, the customer could add to the list directly).</p>
 <p>The most basic encapsulation method would simply act as a pass-through.</p>
 <pre><code>@dataclasses.dataclass
 class MyCollection:
@@ -184,7 +184,7 @@ mc = MyCollection()
 mc.append(MyType(1, 2.0))
 mytypes.append_from_number(1)
 </code></pre>
-<p>Adding this to an extended collection type involves use of builtin collection methods directly, instead of manipulating the contained collection.</p>
+<p>Adding this to an extended collection type involves use of built-in collection methods directly, instead of manipulating the contained collection.</p>
 <pre><code>class MyCollectionExtended(typing.List[MyType]):
     ...    
     def append_mytype(self, *args, **kwargs) -&gt; None:
@@ -205,7 +205,7 @@ class MyCollection:
 </code></pre>
 <p>Returning the same type means that you can still use any methods defined in the original object.</p>
 <h3>Aggregation</h3>
-<p>Aggregation functions are used to reduce a set of contained elements into a single element according to some function. As an example, lets say we want to return the average element in a collection - that is, an element that represents the average of <code>a</code> and <code>b</code> attributes. We would start by creating a custom type for the return value so that the customer knows it is an aggregation of multiple elements and not an observation itself. Not much is needed here unless we want to add new functionality.</p>
+<p>Aggregation functions are used to reduce a set of contained elements into a single element according to some function. As an example, let us say we want to return the average element in a collection - that is, an element that represents the average of <code>a</code> and <code>b</code> attributes. We would start by creating a custom type for the return value so that the customer knows it is an aggregation of multiple elements and not an observation itself. Not much is needed here unless we want to add new functionality.</p>
 <pre><code>class MyTypeAverage(MyType):
     pass
 </code></pre>
@@ -268,7 +268,7 @@ class MyCollection:
     def group_by_average(self, *args, **kwargs) -&gt; typing.Dict[typing.Hashable, MyTypeAverage]:
         return {k:grp.average() for k,grp in self.group_by(*args, **kwargs).items()}
 </code></pre>
-<p>A better approach may be to add functionality to the grouping object such that you can apply the groupby first and then perform additional operations on the grouping.</p>
+<p>A better approach may be to add functionality to the grouping object such that you can apply the grouping first and then perform additional operations on the grouping.</p>
 <pre><code>class GroupedMyCollection(typing.Dict[typing.Hashable, MyCollection]):
     def average(self) -&gt; typing.Dict[typing.Hashable, MyTypeAverage]:
         return {k:grp.average() for k,grp in self.items()}
@@ -288,7 +288,7 @@ class MyCollection:
             groups[k].append(el)
         return GroupedMyCollection({k:self.__class__(grp) for k,grp in groups.items()})
 </code></pre>
-<p>Instead of using <code>.group_by_average()</code>, you could use <code>.group_by().average()</code>. This is possible because you are creating the intermediary collection for the grouping.</p>
+<p>Instead of using <code>.group_by_average()</code>, you could use <code>.group_by().average()</code>. This is possible because you are creating the intermediary type for the grouped collection.</p>
 <pre><code>mytypes.group_by(lambda mt: int(mt.a) % 2 == 0).average()
 </code></pre>
 <p>And the output would look like the following:</p>
@@ -342,7 +342,7 @@ class MyCollection:
 </code></pre>
 <p>The fact that you are using parallelized code need not even be transparent to the customer.</p>
 <h3>Extend Functionality Using Composition</h3>
-<p>Following the recommendation in my previous article discussing <a href="/post/dsp0_patterns_for_dataclasses.html">patterns for dataclasses</a>, I recommend extending functionality using composition in this range too. This addresses the problem of creating collection objects with massive numbers of methods. You simply create a wrapper object that is instanted from the original collection and operates on the original function. For instance, lets say you need to implement a number of math and statistical methods but don't want to clog the main object with these methods. First you would create such a wrapper objects - fairly easy with the <code>dataclasses</code> module. Notice that I am breaking the encapsulation of the original collection - it isn't necessary to do this in my opinion, but it would be a fair choice.</p>
+<p>Following the recommendation in my previous article discussing <a href="/post/dsp0_patterns_for_dataclasses.html">patterns for dataclasses</a>, I recommend extending functionality using composition in this range too. This addresses the problem of creating collection objects with a massive number of methods. You simply create a wrapper object that is instantiated from the original collection and operates on the original function. For instance, let us say you need to implement a number of math and statistical methods but don't want to clog the main object with these methods. First you would create such a wrapper objects - fairly easy with the <code>dataclasses</code> module. Notice that I am breaking the encapsulation of the original collection - it isn't necessary to do this in my opinion, but it would be a fair choice.</p>
 <pre><code>@dataclasses.dataclass
 class MyCollectionMath:
     mc: MyCollection
@@ -390,7 +390,7 @@ class MyCollection:
     def plotter(self):
         return MyCollectionPlotter.from_mycollection(self)
 </code></pre>
-<p>This is a method for extending the object with plotting functionality even when it requires a transformation to a dataframe prior to plotting. In many cases you would likely want to call multiple plotting functions in the same script/function, and you can do that by interacting with the same plotting object. Plotting is a good use-case because it offers an easy to organize a large number of plotting functions with different aesthetics, but this may be an appropriate pattern for other problem types as well.</p>
+<p>This is a method for extending the object with plotting functionality even when it requires a transformation to a dataframe prior to plotting. In many cases you would likely want to call multiple plotting functions in the same script/function, and you can do that by interacting with the same plotting object. Plotting is a good use-case because it offers an easy to organize many plotting functions with different aesthetics, but this may be an appropriate pattern for other problem types as well.</p>
 <h3>Conclusions</h3>
 <p>Creating custom types for collections makes your code more readable and generally has the same benefits I discussed in my article about the <a href="/post/zods0_problem_with_dataframes.html">challenges with dataframes</a>. The general idea is that more structure is better - it can make your code more readable, easier to maintain, and less error-prone. While at first glance it may feel like overkill because it requires so much additional code, the payoff surely comes as projects become large or dynamic enough such that you need better ways to organize your code.</p>
                     </div>
