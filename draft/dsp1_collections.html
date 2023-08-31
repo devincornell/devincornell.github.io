@@ -390,7 +390,7 @@ class MyCollection:
     def plotter(self):
         return MyCollectionPlotter.from_mycollection(self)
 </code></pre>
-<p>This is a method for extending the object with plotting functionality even when it requires a transformation to a transformation prior to plotting. In many cases you would likely want to call multiple plotting functions in the same script/function, so this gives you that ability. Plotting is a good use-case because it offers an easy to organize a large number of plotting functions with different aesthetics, but this may be an appropriate pattern for other problem types as well.</p>
+<p>This is a method for extending the object with plotting functionality even when it requires a transformation to a dataframe prior to plotting. In many cases you would likely want to call multiple plotting functions in the same script/function, and you can do that by interacting with the same plotting object. Plotting is a good use-case because it offers an easy to organize a large number of plotting functions with different aesthetics, but this may be an appropriate pattern for other problem types as well.</p>
 <h3>Conclusions</h3>
 <p>Creating custom types for collections makes your code more readable and generally has the same benefits I discussed in my article about the <a href="/post/zods0_problem_with_dataframes.html">challenges with dataframes</a>. The general idea is that more structure is better - it can make your code more readable, easier to maintain, and less error-prone. While at first glance it may feel like overkill because it requires so much additional code, the payoff surely comes as projects become large or dynamic enough such that you need better ways to organize your code.</p>
                     </div>

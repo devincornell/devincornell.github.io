@@ -403,7 +403,7 @@ And to make the interface clean you can simply add it to a method of the origina
         def plotter(self):
             return MyCollectionPlotter.from_mycollection(self)
 
-This is a method for extending the object with plotting functionality even when it requires a transformation to a transformation prior to plotting. In many cases you would likely want to call multiple plotting functions in the same script/function, so this gives you that ability. Plotting is a good use-case because it offers an easy to organize a large number of plotting functions with different aesthetics, but this may be an appropriate pattern for other problem types as well.
+This is a method for extending the object with plotting functionality even when it requires a transformation to a dataframe prior to plotting. In many cases you would likely want to call multiple plotting functions in the same script/function, and you can do that by interacting with the same plotting object. Plotting is a good use-case because it offers an easy to organize a large number of plotting functions with different aesthetics, but this may be an appropriate pattern for other problem types as well.
 
 ### Conclusions
 
