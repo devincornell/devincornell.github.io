@@ -21,11 +21,11 @@ I use the term _data structures_ to describe the intermediary representations of
 
 ### Features of Data Structures
 
-I will focus on three aspects of data structures which are relevant for design patterns I will discuss. They exist in almost every type of data structure, and the key is in where and how they appear in your code.
+I will focus on three aspects of data structures which are relevant for design patterns I will discuss. They are relevant to almost every type of data structure, and the key question is in where and how they appear in your code.
 
 1. **Properties or attributes.** Data structures often include sets of properties, attributes, or features that are associated with a single element - the "what" of your data pipelines. These might be represented as columns in data frames where each row is an element, attributes in custom types, or as separate variables. They can be defined at instantiation (point where the structures are created) or later added, modified, or removed throughout your pipeline. The data is called _immutable_ if it cannot be changed, and _mutable_ otherwise. 
 
-2. **Construction methods.** Functions used to create and instantiate data structures are called construction methods. These functions are critical because they include at least some, if not all, information about which data will be contained within the structure. As such, the function signature should tell the reader (and compiler or static analyzer) a lot about what type of data is being represented. These methods can appear in your code as class methods, functions, or entire scripts. As an example, they may include the code used to parse json or csv data into a data object.
+2. **Construction methods.** Functions used to create and instantiate data structures are called construction methods. These functions are critical because they include at least some, if not all, information about which data will be contained within the structure. As such, the function signature should tell the reader (and compiler or static analyzer) a lot about what type of data is being represented. These methods can appear in your code as static factory methods, functions, or entire scripts. As an example, they may include the code used to parse json or csv data into a data object.
 
 3. **Transformation methods.** These are the methods which actually convert your data structures from one form to the next - the "how" of your data pipelines. They may appear in your code as class methods, functions, or entire scripts. Common transformations might include filtering, summarizing, or normalizing your data. This is a more general case than construction methods, which could also be considered as transformation methods.
 
@@ -33,7 +33,7 @@ Next I will use these three features as comparison points.
 
 ## Examples in Python
 
-I will now compare data frames with custom data types using Python examples, although I believe these points apply to approaches and strategies in many different languages. Specifically, I will use the classic Iris datasets loaded from the seaborn package.
+I will now compare data frames with custom data types using Python examples, although I believe these points apply to approaches and strategies in many other languages. Specifically, I will use the classic Iris datasets loaded from the seaborn package.
 
 In Python, we can load the Iris dataset as a dataframe using the following code (note that seaborn is only used to load the data).
 
@@ -81,20 +81,20 @@ The first few elements of this data will appear as the following:
 
 Data frames typically represent data attributes as columns, and each column is represented as an array of an internal type, rather than a type within the language. Python, for instance, implements int and float objects, but Pandas data frames include more specific types like 64-bit integers and floating point numbers (following NumPy arrays) that do not appear in the Python specification.
 
-In Python, you can access columns using the following notation.
+In Python, you can access columns using subscripts or (dynamically assigned) attributes.
 
     iris_df['species']
     iris_df.species
 
-And subsets of columns in Python can be extracted using the following.
+And subsets of columns in Python can be extracted using a column name list subscript.
 
     iris_df = iris_df[['sepal_length', 'sepal_width', 'species']]
 
-The issue I have with these methods for selecting attributes is that you do not actually know if the columns you describe here actually exist within the data set unless you know both the initial dataset being loaded from disk and every subsequent transformation that happens throughout your pipeline until the point where you access it. Nothing about the existence of the dataframe object guarantees the existence of those attributes, so your IDE or static analyzer do not know whether there is an error here or not, and it will not be able to provide suggestions for autocomplete.
+The issue with these methods for selecting attributes is that you do not actually know if the columns you describe here actually exist within the data set unless you know both the initial dataset being loaded from disk and every subsequent transformation that occurs throughout your pipeline until the point where you access it. Nothing about the existence of the dataframe object guarantees the existence of those attributes, so your IDE or static analyzer do not know whether there is an error here or not, and it will not be able to provide suggestions for autocomplete.
 
 ##### Custom Types with Fixed Attributes
 
-As an alternative, consider using custom data object types with a fixed set of specified attributes to represent your data. While more code is needed to create the types, the mere existence of the object comes with gaurantees about which attributes they contain. You do not need to understand the transformation used to create the object to know that the attributes will exist.
+As an alternative, consider using custom data object types with a fixed set of specified attributes to represent your data. While more code is needed to create the types, the mere existence of the object comes with gaurantees about which attributes they contain. You do not need to understand the transformation used to create the object to know that the attributes will exist as part of the data object.
 
 In most languages, I recommend creating classes or struct types to represent your data. In Python, you can use `dataclasses` or the `attrs` package to easily create objects that are meant to store data. The following class represents a single Iris object.
 
@@ -113,12 +113,12 @@ The dataclasses module creates a constructor where all these values are required
 
     IrisEntry(1.0, 1.0, 1.0, 1.0, 'best_species')
 
-You can then store these objects in collections, and I recommend either encapsulating those collections or at least extending an existing collection type to make the intent clearer to the reader - especially in weakly typed languages. In Python, you might extend a List using the following.
+You can then store these objects in collections, and I recommend either encapsulating those collections or at least extending an existing collection type to make the intent clearer to the reader - especially in weakly typed languages. In Python, you might extend a List using the typing module.
 
     class Irises(typing.List[IrisEntry]):
         ...
 
-The benefit of defining these types is that it should be obvious to any reader which properties are associated with witch types of data. If you try to access an attribute that does not exist, you will see an exception, and furthermore your static analyzer or IDE will be able to autocomplete or let you know when you make an error before you ever run your code. You are making a guarantee that every time an object like this exists, it will have these attributes.
+The benefit of defining these types is that it should be obvious to any reader which properties are associated with witch types of data. If you try to access an attribute that does not exist, you will see an error from your IDE so that your static analyzer or IDE will be able to autocomplete or let you know when you make an error before you ever run your code. You are making a guarantee that every time an object like this exists, it will have these attributes.
 
 One final note here - in more weakly typed languages like Python or R, I recommend creating immutable types, or objects that cannot be modified or extended after construction. This restriction will make for cleaner methods/functions throughout your pipeline.
 
@@ -139,9 +139,9 @@ The common solution to this problem is to add a standard column selection that w
 
 A principle of good design is that your system should fail as early in the pipeline as possible so that you can isolate any issues at the point of the failure rather than to downstream functions which rely on them.
 
-##### Create type-specific constructors in custom types
+##### Create type-specific constructors
 
-As an alternative, consider using a static factory method (see the `classmethod` decorator in Python) on a custom type to contain code needed to create the object from various sources. This example shows code needed to create an `IrisEntry` object from a single row of the iris dataframe.
+As an alternative, consider using a static factory method (see the `classmethod` decorator in Python) on a custom type to contain code needed to create the object from various sources. This example shows code needed to create an `IrisEntry` object from a single element of the json described before.
 
     @dataclasses.dataclass
     class IrisEntry:
@@ -176,7 +176,7 @@ Methods that actually transform data from one type to another will probably make
 
 #### Element-wise Transformations
 
-The simplest transformation is where each element (or row in the dataframe) can be transformed into a new type of data. For example, let's say you want to calculate the sepal and petal areas of each iris. The cleanest way to do this would be to create a new dataframe, so you could create a dataframe like the following.
+Element-wise transformations are the simplest because they involve the transformation of each object individually. For example, let's say you want to calculate the sepal and petal areas of each iris. The cleanest way to do this with dataframes would be to compute the areas and attach them to a new dataframe. The following function would accomplish this.
 
     def calc_iris_area(iris_df: pd.DataFrame) -> pd.DataFrame:
         return pd.DataFrame({
@@ -192,7 +192,7 @@ Alternatively, you could choose to modify the original dataframe in-place - this
         iris_df['petal_area'] = iris_df['petal_length'] * iris_df['petal_width']
         return iris_df
 
-You could even return a subset of the columns as a view, which could lead to slightly less risky workflows.
+You could even return a subset of the new columns as a view, which could lead to slightly less risky workflows.
         
         ...
         return iris_df[['sepal_area', 'petal_area', 'species']]
@@ -247,7 +247,7 @@ Obviously as your transformation code grows and becomes more complicated it woul
 
 #### Filtering and Aggregating
 
-You will likely want to create transformation functions for filtering and aggregating that reference specific columns by names. These are two examples of such functions for data frames, that have all the aforementioned readability problems. That said, they are very compact and somewhat easy to read.
+You will likely want to create transformation functions for filtering and aggregating that reference specific columns by names. These are two examples of such functions for data frames that have all the aforementioned readability problems. That said, they are very compact and somewhat easy to read.
 
     def filter_lower_sepal_quartile(area_df: pd.DataFrame) -> pd.DataFrame:
         v = area_df['sepal_area'].quantile(0.25)
@@ -257,7 +257,7 @@ You will likely want to create transformation functions for filtering and aggreg
         '''Average iris areas by species.'''
         return area_df.groupby('species').mean().reset_index(inplace=False, drop=False)
 
-The interface would then look like the following.
+You would simply call these functions in sequence as part of your pipeline.
 
     area_df = calc_iris_area(iris_df)
     filtered_area_df = filter_lower_sepal_quartile(area_df)
@@ -286,12 +286,14 @@ In the custom-type approach, you would attach these functions as methods to your
                 species_areas[a.species].append(a)
             return species_areas
 
-And the high-level interface for these will look like the following.
+The high-level interface for these will just look like repeated method calls.
 
     irises = Irises.from_iris_df(iris_df)
     iris_areas = irises.calc_areas()
     filtered_iris_areas = iris_areas.filter_lower_sepal_quartile()
     averaged_iris_areas = filtered_iris_areas.av_area_by_species()
+
+The value of the custom type approach here is that the reader can anticipate which kinds of groupings that are expected to be used, giving further insight into the uses of the object simply from observing that the method is part of this particular collection.
 
 #### Plotting Interfaces
 
@@ -304,7 +306,7 @@ As a special case of these strategies, you may also want to implement plotting f
 
 ##### Plotting Objects
 
-When using custom types, I recommend creating an additional custom type that contain methods for plotting this particular data in any number of ways. This `IrisAreaPlotter` does a transformation from averaged `IrisArea` objects into a dataframe that plotly uses for plotting (a necessary step for any plotting method used here).
+When using custom types, I recommend creating an additional custom type that contains methods for plotting this particular data in any number of ways. This `IrisAreaPlotter` does a transformation from averaged `IrisArea` objects into a dataframe that plotly uses for plotting (a necessary step for any plotting method used here).
 
     @dataclasses.dataclass
     class IrisAreaPlotter:
@@ -318,16 +320,16 @@ When using custom types, I recommend creating an additional custom type that con
         def bar(self):
             return px.bar(self.iris_area_df, x='species', y='sepal_area')
 
-You'd access those methods using this pattern.
+You'd access those methods using the static factory method of the plotter object and calling the relevant plotting function.
 
     iris_plotter = IrisAreaPlotter.from_area_averages(averaged_iris_areas)
     iris_plotter.bar()
 
-Or, with additional changes, you could access it using `averaged_iris_areas.plot.bar()` or something similar.
+Alternatively, following the strategy in the previous example, you could access it using `averaged_iris_areas.plot.bar()` or something similar.
 
-Where the strengths of working with data frames is that you can produce compact code by taking advantage of powerful methods built into existing packages, the weakness is that your pipeline codebase will be more difficult to organize. Furthermore, your IDE assistants (including AI-based solutions) will not be able to identify issues until you actually run your code. 
+Where the strength of working with data frames is that you can produce compact code by taking advantage of powerful methods built into existing packages, the weakness is that your pipeline will be more difficult to refactor or extend later. Furthermore, your IDE assistants (including AI-based solutions) will not be able to identify issues until you actually run your code. 
 
-## Data Types in Pipelines
+## Pipeline View
 
 Finally, it is worth considering these two data pipelines on a theoretical level. First consider the pipeline that involves data frames which I visualized below. Notice that every intermediary stage in this pipeline takes a dataframe as input and outputs a dataframe, so it is difficult to tell the structure of the data without either checking it at runtime or remembering the expected structure of the input data and reading through the body - a task that becomes difficult as your project grows.
 
