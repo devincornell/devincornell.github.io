@@ -3,6 +3,7 @@ title: "Patterns for data collection types"
 subtitle: "Patterns for creating useful collections of data objects: filtering, grouping, aggregation, mutation, parallelization, and plotting."
 date: "August 31, 2023"
 id: "dsp1_data_collection_types"
+blogroll_img_url: "https://storage.googleapis.com/public_data_09324832787/data_collections2.svg"
 ---
 
 
