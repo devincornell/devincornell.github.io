@@ -60,21 +60,13 @@ class BlogPost:
     entered_date: str
     date: datetime.datetime
     tag: str
+    blogroll_img_url: str
     body: str
-
-    def info(self) -> typing.Dict[str,str]:
-        return {
-            'fpath': self.fpath,
-            'html_path': self.html_path,
-            'tag': self.tag,
-            'title': self.title,
-            'subtitle': self.subtitle,
-            'date': self.date,
-            'entered_date': self.entered_date,
-        }
-    
+        
     @classmethod
     def from_markdown_file(cls, fname: str, html_folder: str) -> BlogPost:
+        '''Read and parse a markdown file to create a post.'''
+        
         fpath = pathlib.Path(fname)
         html_folder = pathlib.Path(html_folder)
         
@@ -91,19 +83,27 @@ class BlogPost:
             entered_date = post_data['date'],
             date = dateutil.parser.parse(post_data['date']),
             tag = post_data['id'],
+            blogroll_img_url = post_data.get('blogroll_img_url', ''),
             body = post_data.content,
-            #body_html = markdown.markdown(post_data.content),
         )
+        
+    def as_dict(self) -> typing.Dict[str, typing.Any]:
+        '''Render the body and return all other attributes.'''
+        return {
+            'body_html': self.render_body_html(),
+            **dataclasses.asdict(self),
+        }
+        
+    def info(self) -> typing.Dict[str,str]:
+        '''Get dict minus the html body.'''
+        info = dataclasses.asdict(self)
+        del info['body']
+        return info
     
     def render_body_html(self) -> str:
         '''Converts article body to html using markdown package.'''
         return markdown.markdown(self.body)
 
-    def as_dict(self) -> typing.Dict[str, typing.Any]:
-        return {
-            'body_html': self.render_body_html(),
-            **dataclasses.asdict(self),
-        }
 
     
 
