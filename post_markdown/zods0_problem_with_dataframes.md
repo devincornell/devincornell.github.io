@@ -3,6 +3,7 @@ title: "Are data frames too flexible?"
 subtitle: "Custom types VS data frames: choosing the right data structures for your project."
 date: "August 23, 2023"
 id: "zods0_problem_with_dataframes"
+blogroll_img_url: "https://storage.googleapis.com/public_data_09324832787/dataframe_vs_custom_obj2.svg"
 ---
 
 ![Data frames vs Custom Objects](https://storage.googleapis.com/public_data_09324832787/dataframe_vs_custom_obj2.svg)
