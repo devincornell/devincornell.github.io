@@ -7,7 +7,13 @@ id: "zods_leftovers"
 
 # VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
 
-Over the last decade of teaching and reading about data science practices, I have seen a shift in the way that students are learning. Students start learning with tools like Jupyter and RStudio markdown because they allow for quick experimentation and enable near-instant feedback. Expansive packages like Pandas and tidyverse are becoming essential material, and students often engage with them before they even understand the language they are built in (me too, sometimes). There is no doubt that these are powerful and useful tools, but I argue that we should return to the basics if we want to create maintainable data pipelines.
+Are data frames too flexible?
+Custom types VS data frames: choosing the right data structures for your project.
+
+Over the last decade of teaching and reading about data science practices, I have seen data frame-oriented tools like Pandas and tidyverse become essential reading materials for any student of data science. While these tools are undoubtedly valuable, they make data pipelines error-prone and difficult to maintain as projects grow and requirements change. In my recent blog article, I discuss some of the challenges with using them in larger projects and provide some alternative patterns that are more effective in many scenarios.
+
+
+Jupyter and RStudio markdown because they allow for quick experimentation and enable near-instant feedback. Expansive packages like Pandas and tidyverse are becoming essential material, and students often engage with them before they even understand the language they are built in (me too, sometimes). There is no doubt that these are powerful and useful tools, but I argue that we should return to the basics if we want to create maintainable data pipelines.
 
 # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
