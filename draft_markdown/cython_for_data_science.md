@@ -2,7 +2,7 @@
 title: "Lessons from the Rust Language"
 subtitle: "Ideas we can use to improve our data pipelines in any language."
 date: "Sept 6, 2023"
-id: "lessons_from_rust"
+id: "Cython for Data Science applications."
 ---
 
 ## 1. Immutability
