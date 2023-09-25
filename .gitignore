@@ -1,6 +1,8 @@
 # Byte-compiled / optimized / DLL files
 example_code/enron/*
 __pycache__/
+*.prof
+*.lprof
 *.py[cod]
 *$py.class
 
