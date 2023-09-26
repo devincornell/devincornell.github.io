@@ -5,7 +5,7 @@ date: "Sept 26, 2023"
 id: "lessons_from_rust"
 ---
 
-The Rust programming language has taken the award for "most loved programming language" in the [Stack Overflow Developer Survey](https://survey.stackoverflow.co/2022#overview) since 2016. The power of Rust comes in that it is nearly as fast as C++ without the potential issues that come with pointers and manual memory management. I argue that this advantage comes as much from what the languages allows you to do as what it restricts you from doing. Whether or not you can convince your stakeholders or company to allow you to write your data pipelines in Rust, there are some lessons we can learn from Rust that we can apply to our data pipelines in any language. 
+The Rust programming language has taken the award for "most loved programming language" in the [Stack Overflow Developer Survey](https://survey.stackoverflow.co/2022#overview) since 2016. The power of Rust comes in that it is nearly as fast as C++ without the potential issues that come with pointers and manual memory management. This advantage comes as much from what the languages allows you to do as what it restricts you from doing, and we can learn much from understanding the design of the language. Whether or not you can convince your stakeholders or company to allow you to write your data pipelines in Rust, there are some lessons we can learn from Rust that we can apply to our data pipelines in any language. 
 
 In this article, I will describe some patterns for Python code that mimic the features and, perhaps more importantly, the restrictions built into the language that improve safety and readability.
 
@@ -47,7 +47,7 @@ The solution is to remove the `Optional` component of the hint after you have fi
     b: typing.List[int] = [v for v in a if v is not None]
     sum(b)
 
-#### Generic Types
+#### `typing.TypeVar` for Generic Types
 
 In strongly typed languages there is typically syntax to denote cases where the client can decide the type downstream. The `typing` module implements something similar using `TypeVar`, which allows you to define a new template type prior to function or class definitions
 
@@ -319,7 +319,7 @@ Note that in some cases it may be valuable to avoid using status enums, in which
 
 This approach would work very similarly but the client would not need to reference the enum.
 
-## 3. Use Composition over Inheritance and Generally Avoid OOP Practices
+## 5. Use Composition over Inheritance and Generally Avoid OOP Practices
 
 Over the last decade we have seen a shift away from complex inheritance heirarchies that were common (and even necessary) in OOP-heavy design patterns towards more functional approaches (see [this example][https://www.youtube.com/watch?v=0mcP8ZpUR38&t=3s] for more information). This is perhaps best embodied by the use of the `dataclasses` package, which allows you to create what are essentially structs in Python (see my previous article on [best practices for dataclasses](/post/dsp0_patterns_for_dataclasses.html)). The motivation for these changes is that inheritance-heavy codebases tend to be more difficult to read and refactor.
 
