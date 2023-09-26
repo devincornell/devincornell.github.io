@@ -122,11 +122,9 @@ class Ok2(typing.Generic[T]):
 class Err2(typing.Generic[E]):
     error: E
     is_ok: bool = False
-    
-
 
 if __name__ == '__main__':
-    k = 100000
+    k = 100
     test_values = [None]*k*3 + list(range(k))
     
     objs1 = [ExDataType1(v) for v in test_values]
@@ -138,3 +136,7 @@ if __name__ == '__main__':
     #with Profiler(f'prof_exc.prof'):
     u = average_values_exc(objs2)
     print(u)
+    
+    a: typing.Optional[int] = 1.0
+    
+    
