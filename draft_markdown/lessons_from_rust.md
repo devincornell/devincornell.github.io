@@ -1,7 +1,7 @@
 ---
 title: "Lessons from the Rust Language"
-subtitle: "Ideas we can use to improve our data pipelines in any language."
-date: "Sept 6, 2023"
+subtitle: "Patterns and concepts we can use to improve our data pipelines in any language."
+date: "Sept 26, 2023"
 id: "lessons_from_rust"
 ---
 
