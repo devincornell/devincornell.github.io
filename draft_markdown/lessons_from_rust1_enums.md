@@ -24,7 +24,7 @@ We can access the attribute directly, but then we would have to check the value 
     @dataclasses.dataclass
     class MyObj:
         x: typing.Optional[int]
-            
+        
         def access_x_exception(self) -> typing.Optional[int]:
             if self.x is None or self.x >= 0:
                 return self.x
@@ -33,7 +33,7 @@ We can access the attribute directly, but then we would have to check the value 
 
 As a use case, lets say we have a list of these objects and for each object we want to print the value if it is valid, and otherwise state that it is invalid. We would handle this the same way we handle any other exception.
 
-    def print_values(objs: typing.List[MyObj]) -> None:
+    def print_values_exception(objs: typing.List[MyObj]) -> None:
         for obj in objs:
             try:
                 print(obj.access_x_exception())
@@ -57,7 +57,7 @@ A better solution that emulates the `Option[T]` enum would be to create custom w
             raise AttributeError(f'{self.__class__.__name__} has no attribute "error"')
         
     @dataclasses.dataclass
-    class Invalid(typing.Generic[E]):
+    class Err(typing.Generic[E]):
         error: typing.Optional[E] = None
         is_ok: bool = False
         
@@ -65,16 +65,20 @@ A better solution that emulates the `Option[T]` enum would be to create custom w
         def data(self) -> typing.NoReturn:
             raise AttributeError(f'{self.__class__.__name__} has no attribute "data"')
         
-    ValidOrInvalid = typing.Union[Valid[T],  Invalid[E]]
+    Result = typing.Union[Valid[T],  Err[E]]
 
 We then create a new accessor which returns one of the new type hints we created.
 
-    def access_x(self) -> ValidOrInvalid[typing.Optional[int], None]:
-        if self.x is None or self.x >= 0:
-            return Valid(self.x)
-        else:    
-            return Invalid()
-
+    @dataclasses.dataclass
+    class MyObj:
+        x: typing.Optional[int]
+        
+        def access_x(self) -> Result[typing.Optional[int], None]:
+            if self.x is None or self.x >= 0:
+                return Valid(self.x)
+            else:    
+                return Err()
+                
 In the use case, we first check if the results is valid and then either print the value or the error information (which will always be `None` in this example).
 
     def print_values(objs: typing.List[MyObj]) -> None:
@@ -95,7 +99,7 @@ The exception approach is fairly simple: we could create custom exceptions, or, 
     class MyObj:
         x: typing.Optional[int]
             
-        def access_x_notnone(self) -> int:
+        def access_x_notnone_exception(self) -> int:
             if self.x is None:
                 raise TypeError('x is None so it is invalid')
             elif self.x < 0:
@@ -109,7 +113,7 @@ In the use case we simply catch the exceptions and handle them as expected.
         values = list()
         for obj in objs:
             try:
-                values.append(obj.access_x_exception())
+                values.append(obj.access_x_notnone_exception())
             except ValueError:
                 values.append(0)
             except TypeError:
@@ -119,7 +123,7 @@ In the use case we simply catch the exceptions and handle them as expected.
 The alternative approach would be to re-use the wrapper objects from before but provide a custom error enum to indicate which type of error was encountered. The enum module can be used to create a new enum type describing our two error types.
 
     import enum
-    class InvalidErrorType(enum.Enum):
+    class MyErrorType(enum.Enum):
         IS_NONE = enum.auto()
         IS_NEGATIVE = enum.auto()
 
@@ -129,11 +133,11 @@ The accessor just performs the checks and returns invalid objects with teh expec
     class MyObj:
         x: typing.Optional[int]
 
-        def access_x_notnone(self) -> ValidOrInvalid[int, InvalidErrorType]:
+        def access_x_notnone(self) -> Result[int, MyErrorType]:
             if self.x is None:
-                return Invalid(InvalidErrorType.IS_NONE)
+                return Err(MyErrorType.IS_NONE)
             elif self.x < 0:
-                return Invalid(InvalidErrorType.IS_NEGATIVE)
+                return Err(MyErrorType.IS_NEGATIVE)
             else:
                 return Valid(self.x)
 
@@ -145,7 +149,7 @@ The client can then check the error type and handle it appropriately.
             v = obj.access_x_notnone()
             if v.is_ok:
                 values.append(v.data)
-            elif v.error is InvalidErrorType.IS_NEGATIVE:
+            elif v.error is MyErrorType.IS_NEGATIVE:
                 values.append(0)
         return sum(values)/len(values)
 
@@ -154,7 +158,7 @@ To see the true value of this approach, imagine we are propogating these types o
     @dataclasses.dataclass
     class MyObjWrapper:
         obj: MyObj
-        def access_value(self) -> ValidOrInvalid[int, InvalidErrorType]:
+        def access_value(self) -> Result[int, MyErrorType]:
             return self.obj.access_x_notnone()
         
     @dataclasses.dataclass
