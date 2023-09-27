@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Devin J. Cornell: Lessons from Rust 3: Ownership and Scope</title>
+        <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
+        <!-- Font Awesome icons (free version)-->
+        <!--<script src="https://use.fontawesome.com/releases/v5.15.3/js/all.js" crossorigin="anonymous"></script>-->
+        <!-- Google fonts-->
+        <link href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link href="/css/blog.css" rel="stylesheet" />
+        <style>
+            pre {
+                background-color: #ececec;
+                border-radius: 4px;
+                padding: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Navigation-->
+        <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
+            <div class="container px-4 px-lg-5">
+                <a class="navbar-brand" href="/">devinjcornell.com</a>//<a class="navbar-brand" href="/blog">Data Science Blog</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                    Menu
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarResponsive">
+                    <ul class="navbar-nav ms-auto py-4 py-lg-0">
+                        <!--<li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="index.html">Home</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="about.html">About</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="post.html">Sample Post</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="contact.html">Contact</a></li>-->
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <!-- Page Header-->
+        <header class="masthead" style="background-image: url('assets/img/post-bg.jpg')">
+            <div class="container position-relative px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-8">
+                        <div class="post-heading">
+                            <h1>Lessons from Rust 3: Ownership and Scope</h1>
+                            <h2 class="subheading">Use the ownership pattern from Rust to increase_safety.</h2>
+                            <span class="meta">
+                                Posted by
+                                <a href="/">Devin J. Cornell</a>
+                                on Sep 27, 2023
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <!-- Post Content-->
+        <article class="mb-4">
+            <div class="container px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <p>The key to memory safety in Rust comes from a concept called <em>ownership</em>. As an example, it is common practice to allocate a piece of heap memory (e.g. list or vector) at the top level of your program and then pass a reference or pointer into a function that will use or modify it. In languages such as Python or C++, you can continue to use that allocated memory after the function has returned, and either you must remember to free the memory manually or let the garbage collector take care of it after it is no longer needed.</p>
+<p>Rust adds the restriction that only one scope can <em>own</em> a variable, so by passing a mutable variable into the function you are actually transferring ownership to it - you cannot continue to access that memory from outside the function. You can, however, return ownership to the outer scope by returning the reference. This makes it clear to the reader that you are, in fact modifying some of the data being passed into the function.</p>
+<p>While we cannot place this restriction into our Python code explicitly, we can force ourselves to use patterns consistent with the ownership concept. As a first example, let us say that you have a list and you want to write a function that counts the number of even elements in the list. Let us say that you want to keep track of this information in a custom counter object that simply records the count.</p>
+<pre><code>from __future__ import annotations
+import typing
+
+class MyCounter:
+    def __init__(self):
+        self.count = 0
+
+    def increment(self):
+        self.count += 1
+
+    def combine(self, other: MyCounter):
+        self.count += other.count
+</code></pre>
+<p>One solution to this problem is to write a function that accepts a counter and simply increments it within the function, allowing you to use it afterwards. The advantage of this approach is that it is memory efficient - you only need to maintain a single counter in memory in your program at a time. The downside is that the reader cannot tell that the counter will be modified within the function - the reader can only see that by looking into the function.</p>
+<pre><code>def count_even_inplace(values: typing.List[int], ctr: MyCounter) -&gt; None:
+    for v in values:
+        if v % 2 == 0:
+            ctr.increment()
+</code></pre>
+<p>You can still access the updated data in the outer scope using the same variable name.</p>
+<pre><code>mylist1 = list(range(10))
+ctr1 = MyCounter()
+count_even_inplace(mylist1, ctr1)
+</code></pre>
+<p>An alternative would be to write a more "pure" function - that is, a function with no side effects. One could do this by accepting only a list and returning a new counter that would need to be merged back into the original counter. This is a more functional approach, but it is less memory efficient because you need to maintain two counters in memory at the same time. The upside is that there are no side-effects - no objects are being modified in-place.</p>
+<pre><code>def count_even_newctr(values: typing.List[int]) -&gt; MyCounter:
+    ctr = MyCounter()
+    for v in values:
+        if v % 2 == 0:
+            ctr.increment()
+    return ctr
+</code></pre>
+<p>Assuming you have an existing counter, you simply call the function on the list and then combine the returned counter with the existing one to be used downstream.</p>
+<pre><code>ctr1 = MyCounter()
+ctr2 = count_even_newctr(mylist1)
+ctr1.count += ctr2.count
+</code></pre>
+<p>An alternative approach that follows the ownership model would be to accept and modify the existing counter, but return ownership by returning a reference to the same modified counter.This combines some of the advantages of both: it makes it clear that the counter is being modified but does not need to create a copy of the counter. There is essentially no side-effect because you are returning a reference to the same object.</p>
+<p>def count_even_transfer_ownership(values: typing.List[int], ctr: MyCounter) -&gt; MyCounter:
+    for v in values:
+        if v % 2 == 0:
+            ctr.increment()
+    return ctr</p>
+<p>To use this function, you would modify an existing counter in-place, and re-assign the reference to the modified counter to a variable with the same name. </p>
+<pre><code>ctr1 = MyCounter()
+ctr1 = count_even_transfer_ownership(mylist1, ctr1)
+</code></pre>
+<p>To further drive home this point, imagine we want to create a function that returns a list with zero values removed. The memory-efficient approach that decreases readability would be to modify the list in-place and return nothing.</p>
+<pre><code>def remove_zeroes_inplace(values: typing.List[int]) -&gt; typing.List[int]:
+    while True:
+        try:
+            values.remove(0)
+        except ValueError:
+            break
+</code></pre>
+<p>The more "pure" and readable approach would be to return a new list with the zeroes removed.</p>
+<pre><code>def remove_zeroes_newlist(values: typing.List[int]) -&gt; typing.List[int]:
+    return [v for v in values if v != 0]
+</code></pre>
+<p>And the solution using the ownership model would be to modify the existing list in-place and return a reference to the same list that would be used in the outer scope.</p>
+<pre><code>def remove_zeroes_transfer_ownership(values: typing.List[int]) -&gt; typing.List[int]:
+    while True:
+        try:
+            values.remove(0)
+        except ValueError:
+            break
+    return values
+</code></pre>
+<p>Rust has even more complicated rules for ownership that allow for memory safety, but these examples simply show patterns .</p>
+                    </div>
+                </div>
+            </div>
+        </article>
+        <!-- Footer-->
+        <footer class="border-top">
+            <div class="container px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <ul class="list-inline text-center">
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-facebook-f fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                        </ul>
+                        <div class="small text-center text-muted fst-italic">Copyright &copy; Devin J. Cornell 2021<br/><hr/></div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        <!-- Bootstrap core JS-->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Core theme JS-->
+        <script src="/js/blog.js"></script>
+    </body>
+</html>

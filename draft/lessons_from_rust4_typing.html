@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Devin J. Cornell: Lessons from Rust 4: Stronger Typing</title>
+        <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
+        <!-- Font Awesome icons (free version)-->
+        <!--<script src="https://use.fontawesome.com/releases/v5.15.3/js/all.js" crossorigin="anonymous"></script>-->
+        <!-- Google fonts-->
+        <link href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link href="/css/blog.css" rel="stylesheet" />
+        <style>
+            pre {
+                background-color: #ececec;
+                border-radius: 4px;
+                padding: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Navigation-->
+        <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
+            <div class="container px-4 px-lg-5">
+                <a class="navbar-brand" href="/">devinjcornell.com</a>//<a class="navbar-brand" href="/blog">Data Science Blog</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                    Menu
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarResponsive">
+                    <ul class="navbar-nav ms-auto py-4 py-lg-0">
+                        <!--<li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="index.html">Home</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="about.html">About</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="post.html">Sample Post</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="contact.html">Contact</a></li>-->
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <!-- Page Header-->
+        <header class="masthead" style="background-image: url('assets/img/post-bg.jpg')">
+            <div class="container position-relative px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-8">
+                        <div class="post-heading">
+                            <h1>Lessons from Rust 4: Stronger Typing</h1>
+                            <h2 class="subheading">Use the ownership pattern from Rust to increase_safety.</h2>
+                            <span class="meta">
+                                Posted by
+                                <a href="/">Devin J. Cornell</a>
+                                on Sep 27, 2023
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <!-- Post Content-->
+        <article class="mb-4">
+            <div class="container px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <p>Part of the appeal of Rust and other statitically typed languages such as C++ is the strong typing system - that is, the user must specify the type of each variable and function parameter. While the effort involved in this specification may not always be advantageous, it certainly contributes to the correctness of your code: your compiler will be able to identify basic errors even prior to runtime. A strong typing system creates gaurantees about the structure of your data at various points in your code, and this can be very useful for data pipelines with many steps.</p>
+<p>While Python is a dynamically typed language, there has been a lot of interest recently in using type hints to improve the readability and correctness of code. The syntax of type hints tends to be fairly close to typing specifications in Rust, and much of the support for typing has come as part of the <a href="https://docs.python.org/3/library/typing.html"><code>typing</code></a> module in the Python standard library. Type hints are especially useful when working with static analysis tools such as <a href="https://github.com/python/mypy"><code>mypy</code></a> that can check types at every point in your code to identify potential issues prior to runtime. I will now cover some features of the type hint system that I have found to follow Rust's design in useful ways.</p>
+<h4><code>typing.Optional</code> for Potentially Missing Data</h4>
+<p>Where Rust relies on the popular <a href="https://doc.rust-lang.org/book/ch06-01-defining-an-enum.html?highlight=Option%3C#the-option-enum-and-its-advantages-over-null-values"><code>Option</code> enum</a> to specify when a returned value may be a valid value or <code>None</code>, in Python we can use the <code>typing.Optional[T]</code> hint to specify that we may expect a <code>None</code> value. Adding this type hint will notify type checkers such as <code>mypy</code> that any downstream functions should be able to filter or otherwise deal with <code>None</code> values (ideally also with type hints).</p>
+<p>As an example, imagine we have a list of integers where some elements may take the value of <code>None</code> because they are missing.</p>
+<pre><code>import typing
+a: typing.List[typing.Optional[int]] = [None, 1, 2, 3]
+</code></pre>
+<p>This type hint is basically giving your downstream program a heads up that some values may be None and therefore it should be able to handle them. Using <code>mypy</code>, we can see an error when we try to use the sum function on the list of this type.</p>
+<pre><code>    sum(a)
+</code></pre>
+<p>You will see an error suggesting that the <code>sum</code> function cannot accept None values.</p>
+<pre><code>typing_examples.py:38: error: Argument 1 to "sum" has incompatible type "list[Optional[int]]"; expected "Iterable[bool]"  [arg-type]
+</code></pre>
+<p>You will receive the following error because you expliictly include a <code>None</code> element in your list.</p>
+<pre><code>typing_examples.py:28: error: List item 0 has incompatible type "None"; expected "int"  [list-item]
+</code></pre>
+<p>The solution is to remove the <code>Optional</code> component of the hint after you have filtered <code>None</code> values at some point in your code.</p>
+<pre><code>b: typing.List[int] = [v for v in a if v is not None]
+sum(b)
+</code></pre>
+<h4><code>typing.TypeVar</code> for Generic Types</h4>
+<p>In strongly typed languages there is typically syntax to denote cases where the client can decide the type downstream. The <code>typing</code> module implements something similar using <code>TypeVar</code>, which allows you to define a new template type prior to function or class definitions</p>
+<pre><code>T = typing.TypeVar("T")
+</code></pre>
+<p>You then may use it in a function or class by inheriting from <code>typing.Generic[T]</code>. This makes it clear to the reader that the type specified in one location is the same as the type in the next location. Building on the previous example, imagine a scenario where we have a dataclass containing an attribute that could be <code>None</code>, and we want the client to see an exception when they attempt to get the variable through a particular interface. We can specify that the attribute in the dataclass is <code>typing.Optional[T]</code> and in the accessor function either raise the exception or return a value of type <code>T</code> (notice that I used the <code># type: ignore</code> comment to avoid strict typing). </p>
+<pre><code>import dataclasses
+
+@dataclasses.dataclass
+class MyType(typing.Generic[T]):
+    x: typing.Optional[T]
+
+    def access_z(self) -&gt; T:
+        if self.x is None:
+            raise ValueError("z is missing")
+        else:
+            return self.x # type: ignore
+
+    def set_z(self, x: T) -&gt; None:
+        self.x = x
+</code></pre>
+<h4><code>typing.Union</code> Instead of Enums</h4>
+<p>Rust allows you to define related objects as enums objects with different attributes and methods for operation. In Python, we can instead use the <code>typing.Union</code> hint to specify that a function may accept one of several (ideally related) types. To do this, you may simply assign a type hint to a variable that can then be used in a downstream function definition. </p>
+<p>For example, imagine that we want to make a function that accepts either a generic <code>MyType[T]</code> object  can store a <code>None</code> value, or a value of type <code>T</code>. We simply assign the full type hint to a variable.</p>
+<pre><code>MyValue = typing.Union[MyType[T], T]
+</code></pre>
+<p>In the case where we pass a <code>MyType[T]</code> object, we can access the value using the <code>access_z</code> method which will raise a <code>ValueError</code> if it is <code>None</code>. In the case where we pass a value of type <code>T</code>, we can deal with it directly. For practical purposes I would not recommend using this strategy for this particular example, but you can see how it might be the best option in other cases.</p>
+<pre><code>def convert_to_string(val: MyValue[T]) -&gt; str:
+    try:
+        return str(val.access_x())
+    except AttributeError:
+        return str(val)
+</code></pre>
+<p>Using these tools you have all the powerful advantages of a dynamically types languages with the extra security that static analysis can provide. I highly recommend using type hints - especially for critical aspects of your code.</p>
+                    </div>
+                </div>
+            </div>
+        </article>
+        <!-- Footer-->
+        <footer class="border-top">
+            <div class="container px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <ul class="list-inline text-center">
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-facebook-f fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                        </ul>
+                        <div class="small text-center text-muted fst-italic">Copyright &copy; Devin J. Cornell 2021<br/><hr/></div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        <!-- Bootstrap core JS-->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Core theme JS-->
+        <script src="/js/blog.js"></script>
+    </body>
+</html>

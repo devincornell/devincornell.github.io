@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Devin J. Cornell: Lessons from Rust 2: Composition over Inheritance.</title>
+        <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
+        <!-- Font Awesome icons (free version)-->
+        <!--<script src="https://use.fontawesome.com/releases/v5.15.3/js/all.js" crossorigin="anonymous"></script>-->
+        <!-- Google fonts-->
+        <link href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link href="/css/blog.css" rel="stylesheet" />
+        <style>
+            pre {
+                background-color: #ececec;
+                border-radius: 4px;
+                padding: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Navigation-->
+        <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
+            <div class="container px-4 px-lg-5">
+                <a class="navbar-brand" href="/">devinjcornell.com</a>//<a class="navbar-brand" href="/blog">Data Science Blog</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                    Menu
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarResponsive">
+                    <ul class="navbar-nav ms-auto py-4 py-lg-0">
+                        <!--<li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="index.html">Home</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="about.html">About</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="post.html">Sample Post</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="contact.html">Contact</a></li>-->
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <!-- Page Header-->
+        <header class="masthead" style="background-image: url('assets/img/post-bg.jpg')">
+            <div class="container position-relative px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-8">
+                        <div class="post-heading">
+                            <h1>Lessons from Rust 2: Composition over Inheritance.</h1>
+                            <h2 class="subheading">Consider abandoning classical OOP patterns like inheritance to make your data pipelines more maintainable.</h2>
+                            <span class="meta">
+                                Posted by
+                                <a href="/">Devin J. Cornell</a>
+                                on Sep 27, 2023
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <!-- Post Content-->
+        <article class="mb-4">
+            <div class="container px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <p>Classical OOP design patterns have fallen in popularity compared to compositional-based approaches, and there is much we can from looking at the Rust language</p>
+<p>Over the last decade we have seen a shift away from complex inheritance heirarchies that were common (and even necessary) in OOP-heavy design patterns towards more functional approaches (see [this example][https://www.youtube.com/watch?v=0mcP8ZpUR38&amp;t=3s] for more information). This is perhaps best embodied by the use of the <code>dataclasses</code> package, which allows you to create what are essentially structs in Python (see my previous article on <a href="/post/dsp0_patterns_for_dataclasses.html">best practices for dataclasses</a>). The motivation for these changes is that inheritance-heavy codebases tend to be more difficult to read and refactor.</p>
+<p>In Rust, there is little support for inheritance or other OOP concepts at all - instead you create structs that can contain and operate on other structs using methods. This is called <em>composition</em> and it is a more flexible approach that creates weaker coupling between your objects.</p>
+<h4>Example Using Inheritance</h4>
+<p>For example, consider the case where we want to create a result object that can generate summary statistics to describe a set of numbers. In some cases, we only need to track the set of numbers, but there is a special case where we need to calculate statistics that consider an additional baseline parameter. </p>
+<p>An inheritance-based approach would suggest that we should start by creating a base class that handles some functionality that is shared between the two object types. This base class provides some functionality that makes assumption about the implementations we will create later.</p>
+<pre><code>class BaseResult:
+    def summary_stats(self) -&gt; typing.Dict[str, float]:
+        return {
+            'mean': self.mean(),
+            'variance': self.variance()
+        }
+
+    def variance(self) -&gt; float:
+        raise NotImplementedError()
+
+    def mean(self) -&gt; float:
+        return sum(self.numbers)/len(self.numbers)
+</code></pre>
+<p>First we implement the simpler result object which only tracks the set of numbers from which to generate statistics. We should ensure that this object implements the methods and contains attributes expected by the base class. In this case, we need to implement the variance method and make sure our object contains the numbers. It will inherit the base class's mean and summary statistics methods.</p>
+<pre><code>@dataclasses.dataclass
+class SimpleResultInherited(BaseResult):
+    numbers: typing.List[float]
+
+    def variance(self):
+        u = self.mean()
+        return sum([(r - u)**2 for r in self.numbers])/len(self.numbers)
+</code></pre>
+<p>The more complex object should track the set of numbers and an additional offset value that is needed for the summary statistics. First we overload the variance and mean functions to take the baseline into account, and add a method to calculate the median. The new summary statistics method will call the base class summary statistics method which will rely on the overloaded mean and variance methods.</p>
+<pre><code>@dataclasses.dataclass
+class ComplexResultInherited(BaseResult):
+    numbers: typing.List[float]
+    offset: float
+
+    def summary_stats(self) -&gt; typing.Dict[str, float]:
+        return {
+            **super().summary_stats(),
+            'median': self.median(),
+        }
+
+    def variance(self) -&gt; float:
+        u = self.mean()
+        return sum([(r - u)**2 for r in self.numbers])/len(self.numbers)
+
+    def mean(self) -&gt; float:
+        return super().mean() + self.offset
+
+    def median(self) -&gt; float:
+        return sorted(self.numbers)[len(self.numbers)//2] + self.offset
+</code></pre>
+<p>We would create and use these objects in similar ways with the exception that the complex object accepts an offset value.</p>
+<pre><code>mylist1 = list(range(10))
+sri = SimpleResultInherited(mylist1)
+print(sri.summary_stats())
+
+cri = ComplexResultInherited(mylist1, 1.0)
+print(cri.summary_stats())
+</code></pre>
+<p>This approach creates a strong coupling between the base class and derivative objects that makes it more difficult to read and refactor if changes are needed later. </p>
+<h4>Composition Approach</h4>
+<p>Using the composition approach, we would instead wrap the collection of numbers into a separate class which is contained by both our new objects. This collection would include methods for calculating the mean and variance, and the result objects would simply call these methods. We know that methods for the two result objects differ only by the baseline, so we create methods which accept this as a parameter - the simple result object will pass zero as the baseline.</p>
+<p>The container class will wrap the set of numbers and include several methods that all accept offset values.</p>
+<pre><code>@dataclasses.dataclass
+class NumberContainer:
+    numbers: typing.List[float]
+
+    def __len__(self) -&gt; int:
+        return len(self.numbers)
+
+    def mean(self, offset: float) -&gt; float:
+        return sum(self.numbers)/len(self.numbers) + offset
+
+    def variance(self, offset: float) -&gt; float:
+        u = self.mean(offset=offset)
+        return sum([(r - u)**2 for r in self.numbers])/len(self.numbers)
+
+    def median(self, offset: float) -&gt; float:
+        return sorted(self.numbers)[len(self.numbers)//2] + offset
+</code></pre>
+<p>The simple result object will accept these numbers as a parameter, and we construct this object as part of a factory method constructor that takes only the list of numbers. The mean and variance methods call the methods from the numbers container by specifying that the offset should equal zero.</p>
+<pre><code>@dataclasses.dataclass
+class SimpleResult:
+    results: NumberContainer
+
+    @classmethod
+    def from_list(cls, numbers: typing.List[float]):
+        return cls(NumberContainer(numbers))
+
+    def summary_stats(self) -&gt; typing.Dict[str, float]:
+        return {
+            'mean': self.mean(),
+            'variance': self.variance()
+        }
+
+    def variance(self) -&gt; float:
+        return self.results.variance(offset=0)
+
+    def mean(self) -&gt; float:
+        return self.results.mean(offset=0)
+</code></pre>
+<p>In the complex result object we accept the baseline parameter in the factory constructor method and that baseline will be passed to the container functions.</p>
+<pre><code>@dataclasses.dataclass
+class ComplexResult:
+    results: NumberContainer
+    offset: float
+
+    @classmethod
+    def from_list(cls, numbers: typing.List[float], offset: float):
+        return cls(NumberContainer(numbers), offset)
+
+    def summary_stats(self) -&gt; typing.Dict[str, float]:
+        return {
+            'mean': self.mean(),
+            'variance': self.variance(),
+            'median': self.median(),
+        }
+
+    def mean(self) -&gt; float:
+        return self.results.mean(offset=self.offset)
+
+    def variance(self) -&gt; float:
+        return self.results.variance(offset=self.offset)
+
+    def median(self) -&gt; float:
+        return self.results.median(offset=self.offset)
+</code></pre>
+<p>We can create and use these objects in the same way as before with the primary difference being that we use teh factory method constructor to call the constructor for the container class.</p>
+<pre><code>si = SimpleResult.from_list(mylist1)
+print(si.summary_stats())
+
+ci = ComplexResult.from_list(mylist1, 1.0)
+print(ci.summary_stats())
+</code></pre>
+<p>While the interfaces for our inheritance and composition examples are very similar, the patterns we draw on make this code much easier to extend and refactor. We can read it systematically starting with the collections object and progressing to the objects that use it, rather than looking back and forth between the base class and implementations to see how they interact. I highly recommend looking at <a href="https://www.youtube.com/watch?v=0mcP8ZpUR38">more examples</a> if you are interested in learning more about this approach.</p>
+                    </div>
+                </div>
+            </div>
+        </article>
+        <!-- Footer-->
+        <footer class="border-top">
+            <div class="container px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <ul class="list-inline text-center">
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-facebook-f fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                        </ul>
+                        <div class="small text-center text-muted fst-italic">Copyright &copy; Devin J. Cornell 2021<br/><hr/></div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        <!-- Bootstrap core JS-->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Core theme JS-->
+        <script src="/js/blog.js"></script>
+    </body>
+</html>
