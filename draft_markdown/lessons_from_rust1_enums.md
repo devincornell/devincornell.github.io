@@ -14,9 +14,9 @@ The first pattern I will discuss is the use of enums to indicate missing data an
 
 ### When `None` is a Valid Return Value
 
-Our first example will cover the case when you need to access some variable for which `None` might be considered a valid value but there is also a case where the return value may be alltogether invalid. This breaks typical convention where we often use `None` to represent invalid values. The strong typing system in rust necessitates the use of the wrapper class because `None` cannot be a valid integer type, but we can adapt it for our scenario even in weakly typed environments.
+Our first example will cover the case when you need to access some variable for which `None` might be considered a valid value but there is also a case where the return value may be altogether invalid. This breaks typical convention where we often use `None` to represent invalid values. The strong typing system in rust necessitates the use of the wrapper class because `None` cannot be a valid integer type, but we can adapt it for our scenario even in weakly typed environments.
 
-For example purposes we create an object that stores a singele variable that can either be an integer or a `None` value. For a particular application we want to get that value, but we consider it to be invalid if it is not None and it is less than zero.
+For example purposes we create an object that stores a single variable that can either be an integer or a `None` value. For a particular application we want to get that value, but we consider it to be invalid if it is not None and it is less than zero.
 
     @dataclasses.dataclass
     class MyObj:
@@ -34,7 +34,7 @@ We can access the attribute directly, but then we would have to check the value 
             else:    
                 raise ValueError('x is negative so it is invalid')
 
-As a use case, lets say we have a list of these objects and for each object we want to print the value if it is valid, and otherwise state that it is invalid. We would handle this the same way we handle any other exception.
+As a use case, let us say we have a list of these objects and for each object we want to print the value if it is valid, and otherwise state that it is invalid. We would handle this the same way we handle any other exception.
 
     def print_values_exception(objs: typing.List[MyObj]) -> None:
         for obj in objs:
@@ -45,13 +45,13 @@ As a use case, lets say we have a list of these objects and for each object we w
 
 The challenge with this approach is that the user has no way of recognizing that this function will raise an exception unless they read the implementation or details of the documentation, and the point where it should be handled is not clear.
 
-A better solution that emulates the `Option[T]` enum would be to create custom wrapper objects to indicate whether the value is valid aside from looking at the actual value. By adding type hints for this wrapper object we can indicate to the reader exactly where the error will be handled. We can create the wrapper types using generic type hints, and create a union type hint (using `typing.Union`) which indicates the accessor might return either value. Using the dynamic duck typing scheme, we can check which type of object it is by accessing the `is_ok` attribute (there are a number of ways this could be handled), and note that I added dummy property methods so that this design will pass strict typing checks.
+A better solution that emulates the `Option[T]` enum would be to create custom wrapper objects to indicate whether the value is valid aside from looking at the actual value. By adding type hints for this wrapper object, we can indicate to the reader exactly where the error will be handled. We can create the wrapper types using generic type hints, and create a union type hint (using `typing.Union`) which indicates the accessor might return either value. Using the dynamic duck typing scheme, we can check which type of object it is by accessing the `is_ok` attribute (there are a number of ways this could be handled) and further note that I added dummy property methods so that this design will pass strict typing checks.
 
     T = typing.TypeVar("T")
     E = typing.TypeVar("E")
 
     @dataclasses.dataclass
-    class Valid(typing.Generic[T]):
+    class Ok(typing.Generic[T]):
         data: T
         is_ok: bool = True
         
@@ -68,7 +68,7 @@ A better solution that emulates the `Option[T]` enum would be to create custom w
         def data(self) -> typing.NoReturn:
             raise AttributeError(f'{self.__class__.__name__} has no attribute "data"')
         
-    Result = typing.Union[Valid[T],  Err[E]]
+    Result = typing.Union[Ok[T],  Err[E]]
 
 We then create a new accessor which returns one of the new type hints we created.
 
@@ -78,11 +78,11 @@ We then create a new accessor which returns one of the new type hints we created
         
         def access_x(self) -> Result[typing.Optional[int], None]:
             if self.x is None or self.x >= 0:
-                return Valid(self.x)
+                return Ok(self.x)
             else:    
                 return Err()
                 
-In the use case, we first check if the results is valid and then either print the value or the error information (which will always be `None` in this example).
+In the use case, we first check if the result is valid and then either print the value or the error information (which will always be `None` in this example).
 
     def print_values(objs: typing.List[MyObj]) -> None:
         for obj in objs:
@@ -96,7 +96,7 @@ In the use case, we first check if the results is valid and then either print th
 
 In some cases, there may be multiple situations in which the accessed values are invalid, and we want to handle them differently. As a use case, let us say we need to calculate the mean value of an attribute across a set of objects. The `sum` function cannot accept `None` values, and so we should omit those values from the mean; in the case where the value is negative, we want to replace it with a `0`.
 
-The exception approach is fairly simple: we could create custom exceptions, or, perhaps less optimally, use two existing exceptions to indicate the different scenarios (we will do the latter for this example, although I would encourage the former in most cases).
+The exception approach is simple: we could create custom exceptions, or, perhaps less optimally, use two existing exceptions to indicate the different scenarios (we will do the latter for this example, although I would encourage the former in most cases).
 
     @dataclasses.dataclass
     class MyObj:
@@ -130,7 +130,7 @@ The alternative approach would be to re-use the wrapper objects from before but 
         IS_NONE = enum.auto()
         IS_NEGATIVE = enum.auto()
 
-The accessor just performs the checks and returns invalid objects with teh expected error type.
+The accessor just performs the checks and returns invalid objects with the expected error type.
 
     @dataclasses.dataclass
     class MyObj:
@@ -142,7 +142,7 @@ The accessor just performs the checks and returns invalid objects with teh expec
             elif self.x < 0:
                 return Err(MyErrorType.IS_NEGATIVE)
             else:
-                return Valid(self.x)
+                return Ok(self.x)
 
 The client can then check the error type and handle it appropriately.
 
@@ -156,7 +156,7 @@ The client can then check the error type and handle it appropriately.
                 values.append(0)
         return sum(values)/len(values)
 
-To see the true value of this approach, imagine we are propogating these types of errors up multiple levels through a callstack. For example, we could make a wrapper class that wraps another wrapper class that accesses the `ValidOrInvalid` type we defined above, and it includes a method to access the original inner value. When appropriate type hints are used, the client knows when to expect a value that might possibly be invalid, and to be prepared to handle that instance when using the value. This is essentially an elaborate extension of type checking using Python's `typing.Optional[T]` type hint that allows for multiple error types.
+To see the true value of this approach, imagine we are propagating these types of errors up multiple levels through a call stack. For example, we could make a wrapper class that wraps another wrapper class that accesses the `Result` type we defined above, and it includes a method to access the original inner value. When appropriate type hints are used, the client knows when to expect a value that might possibly be invalid, and to be prepared to handle that instance when using the value. This is essentially an elaborate extension of type checking using Python's `typing.Optional[T]` type hint that allows for multiple error types.
 
     @dataclasses.dataclass
     class MyObjWrapper:

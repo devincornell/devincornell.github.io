@@ -13,7 +13,7 @@ T = typing.TypeVar("T")
 E = typing.TypeVar("E")
 
 @dataclasses.dataclass
-class Valid(typing.Generic[T]):
+class Ok(typing.Generic[T]):
     data: T
     is_ok: bool = True
     
@@ -30,7 +30,7 @@ class Err(typing.Generic[E]):
     def data(self) -> typing.NoReturn:
         raise AttributeError(f'{self.__class__.__name__} has no attribute "data"')
     
-Result = typing.Union[Valid[T],  Err[E]]
+Result = typing.Union[Ok[T],  Err[E]]
 
 class MyErrorType(enum.Enum):
     IS_NONE = enum.auto()
@@ -48,7 +48,7 @@ class MyObj:
     
     def access_x(self) -> Result[typing.Optional[int], None]:
         if self.x is None or self.x >= 0:
-            return Valid(self.x)
+            return Ok(self.x)
         else:    
             return Err()
         
@@ -66,7 +66,7 @@ class MyObj:
         elif self.x < 0:
             return Err(MyErrorType.IS_NEGATIVE)
         else:
-            return Valid(self.x)
+            return Ok(self.x)
 
 
 def print_values_exception(objs: typing.List[MyObj]) -> None:
