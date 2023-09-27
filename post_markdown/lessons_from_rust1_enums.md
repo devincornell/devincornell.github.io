@@ -1,6 +1,6 @@
 ---
 title: "Lessons from Rust 1: Enums for Errors and Missing Data"
-subtitle: "Consider using patterns that emulate the Option and Result enums from Rust to make your code more robust and readable."
+subtitle: "The Option and Result enum types from Rust can be useful design patterns for working with missing data and propagating errors."
 date: "Sept 27, 2023"
 id: "lessons_from_rust1_enums"
 blogroll_img_url: "https://storage.googleapis.com/public_data_09324832787/enum_article_image2.svg"
@@ -25,7 +25,11 @@ For example purposes we create an object that stores a single variable that can 
     class MyObj:
         x: typing.Optional[int]
 
-We can access the attribute directly, but then we would have to check the value downstream to see if it is negative - it would be better to indicate the value is invalid when we access it. Perhaps the most Pythonic solution to this problem is to use exceptions. We create an accessor function that raises a `ValueError` exception if the value is negative and passes the value otherwise.
+We can access the attribute directly, but then we would have to check the value downstream to see if it is negative - it would be better to indicate the value is invalid when we access it. 
+
+#### Solution using exceptions
+
+Perhaps the most Pythonic solution to this problem is to use exceptions. We create an accessor function that raises a `ValueError` exception if the value is negative and passes the value otherwise.
 
     @dataclasses.dataclass
     class MyObj:
@@ -47,6 +51,8 @@ As a use case, let us say we have a list of these objects and for each object we
                 print('x is invalid')
 
 The challenge with this approach is that the user has no way of recognizing that this function will raise an exception unless they read the implementation or details of the documentation, and the point where it should be handled is not clear.
+
+#### Solution using the `Option` pattern
 
 A better solution that emulates the `Option[T]` enum would be to create custom wrapper objects to indicate whether the value is valid aside from looking at the actual value. By adding type hints for this wrapper object, we can indicate to the reader exactly where the error will be handled. We can create the wrapper types using generic type hints, and create a union type hint (using `typing.Union`) which indicates the accessor might return either value. Using the dynamic duck typing scheme, we can check which type of object it is by accessing the `is_ok` attribute (there are a number of ways this could be handled) and further note that I added dummy property methods so that this design will pass strict typing checks.
 
@@ -99,6 +105,8 @@ In the use case, we first check if the result is valid and then either print the
 
 In some cases, there may be multiple situations in which the accessed values are invalid, and we want to handle them differently. As a use case, let us say we need to calculate the mean value of an attribute across a set of objects. The `sum` function cannot accept `None` values, and so we should omit those values from the mean; in the case where the value is negative, we want to replace it with a `0`.
 
+#### Solution using exceptions
+
 The exception approach is simple: we could create custom exceptions, or, perhaps less optimally, use two existing exceptions to indicate the different scenarios (we will do the latter for this example, although I would encourage the former in most cases).
 
     @dataclasses.dataclass
@@ -125,6 +133,8 @@ In the use case we simply catch the exceptions and handle them as expected.
             except TypeError:
                 pass
         return sum(values)/len(values)
+
+#### Solutions using the `Result` pattern
 
 The alternative approach would be to re-use the wrapper objects from before but provide a custom error enum to indicate which type of error was encountered. The enum module can be used to create a new enum type describing our two error types.
 

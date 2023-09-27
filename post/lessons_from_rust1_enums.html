@@ -48,7 +48,7 @@
                     <div class="col-md-10 col-lg-8 col-xl-8">
                         <div class="post-heading">
                             <h1>Lessons from Rust 1: Enums for Errors and Missing Data</h1>
-                            <h2 class="subheading">Consider using patterns that emulate the Option and Result enums from Rust to make your code more robust and readable.</h2>
+                            <h2 class="subheading">The Option and Result enum types from Rust can be useful design patterns for working with missing data and propagating errors.</h2>
                             <span class="meta">
                                 Posted by
                                 <a href="/">Devin J. Cornell</a>
@@ -78,7 +78,9 @@
 class MyObj:
     x: typing.Optional[int]
 </code></pre>
-<p>We can access the attribute directly, but then we would have to check the value downstream to see if it is negative - it would be better to indicate the value is invalid when we access it. Perhaps the most Pythonic solution to this problem is to use exceptions. We create an accessor function that raises a <code>ValueError</code> exception if the value is negative and passes the value otherwise.</p>
+<p>We can access the attribute directly, but then we would have to check the value downstream to see if it is negative - it would be better to indicate the value is invalid when we access it. </p>
+<h4>Solution using exceptions</h4>
+<p>Perhaps the most Pythonic solution to this problem is to use exceptions. We create an accessor function that raises a <code>ValueError</code> exception if the value is negative and passes the value otherwise.</p>
 <pre><code>@dataclasses.dataclass
 class MyObj:
     x: typing.Optional[int]
@@ -98,6 +100,7 @@ class MyObj:
             print('x is invalid')
 </code></pre>
 <p>The challenge with this approach is that the user has no way of recognizing that this function will raise an exception unless they read the implementation or details of the documentation, and the point where it should be handled is not clear.</p>
+<h4>Solution using the <code>Option</code> pattern</h4>
 <p>A better solution that emulates the <code>Option[T]</code> enum would be to create custom wrapper objects to indicate whether the value is valid aside from looking at the actual value. By adding type hints for this wrapper object, we can indicate to the reader exactly where the error will be handled. We can create the wrapper types using generic type hints, and create a union type hint (using <code>typing.Union</code>) which indicates the accessor might return either value. Using the dynamic duck typing scheme, we can check which type of object it is by accessing the <code>is_ok</code> attribute (there are a number of ways this could be handled) and further note that I added dummy property methods so that this design will pass strict typing checks.</p>
 <pre><code>T = typing.TypeVar("T")
 E = typing.TypeVar("E")
@@ -144,6 +147,7 @@ class MyObj:
 </code></pre>
 <h3>Multiple Error Types</h3>
 <p>In some cases, there may be multiple situations in which the accessed values are invalid, and we want to handle them differently. As a use case, let us say we need to calculate the mean value of an attribute across a set of objects. The <code>sum</code> function cannot accept <code>None</code> values, and so we should omit those values from the mean; in the case where the value is negative, we want to replace it with a <code>0</code>.</p>
+<h4>Solution using exceptions</h4>
 <p>The exception approach is simple: we could create custom exceptions, or, perhaps less optimally, use two existing exceptions to indicate the different scenarios (we will do the latter for this example, although I would encourage the former in most cases).</p>
 <pre><code>@dataclasses.dataclass
 class MyObj:
@@ -169,6 +173,7 @@ class MyObj:
             pass
     return sum(values)/len(values)
 </code></pre>
+<h4>Solutions using the <code>Result</code> pattern</h4>
 <p>The alternative approach would be to re-use the wrapper objects from before but provide a custom error enum to indicate which type of error was encountered. The enum module can be used to create a new enum type describing our two error types.</p>
 <pre><code>import enum
 class MyErrorType(enum.Enum):
