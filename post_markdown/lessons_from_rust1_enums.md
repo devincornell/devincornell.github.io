@@ -7,6 +7,11 @@ id: "lessons_from_rust1_enums"
 
 The Rust programming language has taken the award for "most loved programming language" in the [Stack Overflow Developer Survey](https://survey.stackoverflow.co/2022#overview) since 2016. The power of Rust comes in that it is nearly as fast as C++ without the potential issues that come with pointers and manual memory management. Whether or not you can convince your stakeholders to write Rust code, there are some lessons we can apply to our data pipelines in any language. In the next several blog articles I will provide some patterns that use ideas from the Rust language to improve your data science code in any language.
 
+
+
+![Rust augmenting Python.](https://storage.googleapis.com/public_data_09324832787/enum_article_image.svg)
+
+
 + (current article) Lessons from Rust 1: Enums for Errors and Missing Data
 + (future article) Lessons from Rust 2: Composition over Inheritance
 
