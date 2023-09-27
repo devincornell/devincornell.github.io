@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Devin J. Cornell: Lessons from Rust 1: Enums for Errors and Missing Data</title>
+        <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
+        <!-- Font Awesome icons (free version)-->
+        <!--<script src="https://use.fontawesome.com/releases/v5.15.3/js/all.js" crossorigin="anonymous"></script>-->
+        <!-- Google fonts-->
+        <link href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link href="/css/blog.css" rel="stylesheet" />
+        <style>
+            pre {
+                background-color: #ececec;
+                border-radius: 4px;
+                padding: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Navigation-->
+        <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
+            <div class="container px-4 px-lg-5">
+                <a class="navbar-brand" href="/">devinjcornell.com</a>//<a class="navbar-brand" href="/blog">Data Science Blog</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                    Menu
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarResponsive">
+                    <ul class="navbar-nav ms-auto py-4 py-lg-0">
+                        <!--<li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="index.html">Home</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="about.html">About</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="post.html">Sample Post</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="contact.html">Contact</a></li>-->
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <!-- Page Header-->
+        <header class="masthead" style="background-image: url('assets/img/post-bg.jpg')">
+            <div class="container position-relative px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-8">
+                        <div class="post-heading">
+                            <h1>Lessons from Rust 1: Enums for Errors and Missing Data</h1>
+                            <h2 class="subheading">Consider using patterns that emulate the Option and Result enums from Rust to make your code more robust and readable.</h2>
+                            <span class="meta">
+                                Posted by
+                                <a href="/">Devin J. Cornell</a>
+                                on Sep 27, 2023
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <!-- Post Content-->
+        <article class="mb-4">
+            <div class="container px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <p>The Rust programming language has taken the award for "most loved programming language" in the <a href="https://survey.stackoverflow.co/2022#overview">Stack Overflow Developer Survey</a> since 2016. The power of Rust comes in that it is nearly as fast as C++ without the potential issues that come with pointers and manual memory management. Whether or not you can convince your stakeholders to write Rust code, there are some lessons we can apply to our data pipelines in any language. In the next several blog articles I will provide some patterns that use ideas from the Rust language to improve your data science code in any language.</p>
+<ul>
+<li>(current article) Lessons from Rust 1: Enums for Errors and Missing Data</li>
+<li>(future article) Lessons from Rust 2: Composition over Inheritance</li>
+</ul>
+<p>The first pattern I will discuss is the use of enums to indicate missing data and errors. Rust has a robust infrastructure for handling enum types compared to languages like Python or C++, but there are two particular built-in enums that may be useful for data pipelines: <a href="https://doc.rust-lang.org/book/ch06-01-defining-an-enum.html?highlight=Option%3C#the-option-enum-and-its-advantages-over-null-values"><code>Option[T]</code></a> and <a href="https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html?highlight=Result%3C#recoverable-errors-with-result"><code>Result[T, E]</code></a>. The <code>Option[T]</code> enum is used to represent a value that may or may not be present (equivalent of None in Python), and the <code>Result</code> enum is used to represent a return value that is either a value or an error. </p>
+<h3>When <code>None</code> is a Valid Return Value</h3>
+<p>Our first example will cover the case when you need to access some variable for which <code>None</code> might be considered a valid value but there is also a case where the return value may be altogether invalid. This breaks typical convention where we often use <code>None</code> to represent invalid values. The strong typing system in rust necessitates the use of the wrapper class because <code>None</code> cannot be a valid integer type, but we can adapt it for our scenario even in weakly typed environments.</p>
+<p>For example purposes we create an object that stores a single variable that can either be an integer or a <code>None</code> value. For a particular application we want to get that value, but we consider it to be invalid if it is not None and it is less than zero.</p>
+<pre><code>@dataclasses.dataclass
+class MyObj:
+    x: typing.Optional[int]
+</code></pre>
+<p>We can access the attribute directly, but then we would have to check the value downstream to see if it is negative - it would be better to indicate the value is invalid when we access it. Perhaps the most Pythonic solution to this problem is to use exceptions. We create an accessor function that raises a <code>ValueError</code> exception if the value is negative and passes the value otherwise.</p>
+<pre><code>@dataclasses.dataclass
+class MyObj:
+    x: typing.Optional[int]
+
+    def access_x_exception(self) -&gt; typing.Optional[int]:
+        if self.x is None or self.x &gt;= 0:
+            return self.x
+        else:    
+            raise ValueError('x is negative so it is invalid')
+</code></pre>
+<p>As a use case, let us say we have a list of these objects and for each object we want to print the value if it is valid, and otherwise state that it is invalid. We would handle this the same way we handle any other exception.</p>
+<pre><code>def print_values_exception(objs: typing.List[MyObj]) -&gt; None:
+    for obj in objs:
+        try:
+            print(obj.access_x_exception())
+        except ValueError:
+            print('x is invalid')
+</code></pre>
+<p>The challenge with this approach is that the user has no way of recognizing that this function will raise an exception unless they read the implementation or details of the documentation, and the point where it should be handled is not clear.</p>
+<p>A better solution that emulates the <code>Option[T]</code> enum would be to create custom wrapper objects to indicate whether the value is valid aside from looking at the actual value. By adding type hints for this wrapper object, we can indicate to the reader exactly where the error will be handled. We can create the wrapper types using generic type hints, and create a union type hint (using <code>typing.Union</code>) which indicates the accessor might return either value. Using the dynamic duck typing scheme, we can check which type of object it is by accessing the <code>is_ok</code> attribute (there are a number of ways this could be handled) and further note that I added dummy property methods so that this design will pass strict typing checks.</p>
+<pre><code>T = typing.TypeVar("T")
+E = typing.TypeVar("E")
+
+@dataclasses.dataclass
+class Ok(typing.Generic[T]):
+    data: T
+    is_ok: bool = True
+
+    @property
+    def error(self) -&gt; typing.NoReturn:
+        raise AttributeError(f'{self.__class__.__name__} has no attribute "error"')
+
+@dataclasses.dataclass
+class Err(typing.Generic[E]):
+    error: typing.Optional[E] = None
+    is_ok: bool = False
+
+    @property
+    def data(self) -&gt; typing.NoReturn:
+        raise AttributeError(f'{self.__class__.__name__} has no attribute "data"')
+
+Result = typing.Union[Ok[T],  Err[E]]
+</code></pre>
+<p>We then create a new accessor which returns one of the new type hints we created.</p>
+<pre><code>@dataclasses.dataclass
+class MyObj:
+    x: typing.Optional[int]
+
+    def access_x(self) -&gt; Result[typing.Optional[int], None]:
+        if self.x is None or self.x &gt;= 0:
+            return Ok(self.x)
+        else:    
+            return Err()
+</code></pre>
+<p>In the use case, we first check if the result is valid and then either print the value or the error information (which will always be <code>None</code> in this example).</p>
+<pre><code>def print_values(objs: typing.List[MyObj]) -&gt; None:
+    for obj in objs:
+        result = obj.access_x()
+        if result.is_ok:
+            print(result.data)
+        else:
+            print(f'x is invalid: {result.error}')
+</code></pre>
+<h3>Multiple Error Types</h3>
+<p>In some cases, there may be multiple situations in which the accessed values are invalid, and we want to handle them differently. As a use case, let us say we need to calculate the mean value of an attribute across a set of objects. The <code>sum</code> function cannot accept <code>None</code> values, and so we should omit those values from the mean; in the case where the value is negative, we want to replace it with a <code>0</code>.</p>
+<p>The exception approach is simple: we could create custom exceptions, or, perhaps less optimally, use two existing exceptions to indicate the different scenarios (we will do the latter for this example, although I would encourage the former in most cases).</p>
+<pre><code>@dataclasses.dataclass
+class MyObj:
+    x: typing.Optional[int]
+
+    def access_x_notnone_exception(self) -&gt; int:
+        if self.x is None:
+            raise TypeError('x is None so it is invalid')
+        elif self.x &lt; 0:
+            raise ValueError('x is negative so it is invalid')
+        else:
+            return self.x
+</code></pre>
+<p>In the use case we simply catch the exceptions and handle them as expected.</p>
+<pre><code>def average_values_exception(objs: typing.List[MyObj]) -&gt; float:
+    values = list()
+    for obj in objs:
+        try:
+            values.append(obj.access_x_notnone_exception())
+        except ValueError:
+            values.append(0)
+        except TypeError:
+            pass
+    return sum(values)/len(values)
+</code></pre>
+<p>The alternative approach would be to re-use the wrapper objects from before but provide a custom error enum to indicate which type of error was encountered. The enum module can be used to create a new enum type describing our two error types.</p>
+<pre><code>import enum
+class MyErrorType(enum.Enum):
+    IS_NONE = enum.auto()
+    IS_NEGATIVE = enum.auto()
+</code></pre>
+<p>The accessor just performs the checks and returns invalid objects with the expected error type.</p>
+<pre><code>@dataclasses.dataclass
+class MyObj:
+    x: typing.Optional[int]
+
+    def access_x_notnone(self) -&gt; Result[int, MyErrorType]:
+        if self.x is None:
+            return Err(MyErrorType.IS_NONE)
+        elif self.x &lt; 0:
+            return Err(MyErrorType.IS_NEGATIVE)
+        else:
+            return Ok(self.x)
+</code></pre>
+<p>The client can then check the error type and handle it appropriately.</p>
+<pre><code>def average_values(objs: typing.List[MyObj]) -&gt; float:
+    values = list()
+    for obj in objs:
+        v = obj.access_x_notnone()
+        if v.is_ok:
+            values.append(v.data)
+        elif v.error is MyErrorType.IS_NEGATIVE:
+            values.append(0)
+    return sum(values)/len(values)
+</code></pre>
+<p>To see the true value of this approach, imagine we are propagating these types of errors up multiple levels through a call stack. For example, we could make a wrapper class that wraps another wrapper class that accesses the <code>Result</code> type we defined above, and it includes a method to access the original inner value. When appropriate type hints are used, the client knows when to expect a value that might possibly be invalid, and to be prepared to handle that instance when using the value. This is essentially an elaborate extension of type checking using Python's <code>typing.Optional[T]</code> type hint that allows for multiple error types.</p>
+<pre><code>@dataclasses.dataclass
+class MyObjWrapper:
+    obj: MyObj
+    def access_value(self) -&gt; Result[int, MyErrorType]:
+        return self.obj.access_x_notnone()
+
+@dataclasses.dataclass
+class MySecondWrapper:
+    obj_wrapper: MyObjWrapper
+    def access_value_wrapper(self) -&gt; int:
+        val = self.obj_wrapper.access_value()
+        if val.is_ok:
+            return val.data
+        else:
+            raise ValueError('SOMETHING BAD HAPPENED')
+</code></pre>
+<p>Precisely because exceptions are exceptional, they break the regular control flow in a way that may obscure important cases that you want to handle explicitly.</p>
+                    </div>
+                </div>
+            </div>
+        </article>
+        <!-- Footer-->
+        <footer class="border-top">
+            <div class="container px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <ul class="list-inline text-center">
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-facebook-f fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                        </ul>
+                        <div class="small text-center text-muted fst-italic">Copyright &copy; Devin J. Cornell 2021<br/><hr/></div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        <!-- Bootstrap core JS-->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Core theme JS-->
+        <script src="/js/blog.js"></script>
+    </body>
+</html>
