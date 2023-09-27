@@ -92,7 +92,7 @@ In the use case, we first check if the results is valid and then either print th
             else:
                 print(f'x is invalid: {result.error}')
 
-# Multiple Error Types
+### Multiple Error Types
 
 In some cases, there may be multiple situations in which the accessed values are invalid, and we want to handle them differently. As a use case, let us say we need to calculate the mean value of an attribute across a set of objects. The `sum` function cannot accept `None` values, and so we should omit those values from the mean; in the case where the value is negative, we want to replace it with a `0`.
 
