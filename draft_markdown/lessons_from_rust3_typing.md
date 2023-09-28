@@ -1,10 +1,11 @@
 ---
-title: "Lessons from Rust 4: Stronger Typing"
+title: "Lessons from Rust 3: Stronger Typing"
 subtitle: "Use the ownership pattern from Rust to increase_safety."
 date: "Sept 27, 2023"
-id: "lessons_from_rust4_typing"
+id: "lessons_from_rust3_typing"
 ---
 
+https://realpython.com/python312-typing/
 
 Part of the appeal of Rust and other statitically typed languages such as C++ is the strong typing system - that is, the user must specify the type of each variable and function parameter. While the effort involved in this specification may not always be advantageous, it certainly contributes to the correctness of your code: your compiler will be able to identify basic errors even prior to runtime. A strong typing system creates gaurantees about the structure of your data at various points in your code, and this can be very useful for data pipelines with many steps.
 

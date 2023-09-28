@@ -1,14 +1,11 @@
 ---
-title: "Lessons from Rust 2: Composition over Inheritance."
+title: "Lessons from Rust 3: Composition over Inheritance."
 subtitle: "Consider abandoning classical OOP patterns like inheritance to make your data pipelines more maintainable."
 date: "Sept 27, 2023"
-id: "lessons_from_rust2_composition"
+id: "lessons_from_rust3_composition"
 ---
 
-Classical OOP design patterns have fallen in popularity compared to compositional-based approaches, and there is much we can from looking at the Rust language
-
-
-Over the last decade we have seen a shift away from complex inheritance heirarchies that were common (and even necessary) in OOP-heavy design patterns towards more functional approaches (see [this example][https://www.youtube.com/watch?v=0mcP8ZpUR38&t=3s] for more information). This is perhaps best embodied by the use of the `dataclasses` package, which allows you to create what are essentially structs in Python (see my previous article on [best practices for dataclasses](/post/dsp0_patterns_for_dataclasses.html)). The motivation for these changes is that inheritance-heavy codebases tend to be more difficult to read and refactor.
+Over the last decade we have seen a big shift away from complex inheritance heirarchies in object oriented design patterns towards more functional approaches that lead to modular designs. I believe the reasons for this shift are described well by [Augie Fackler and Nathaniel Manista in their talk on object inheritance](https://www.youtube.com/watch?v=3MNVP9-hglc) at PyCon 2013: inheritance leads to a strong coupling between object definitions that makes code difficult to maintain (see [this video by ArjanCodes](https://www.youtube.com/watch?v=3MNVP9-hglc) for a practical introduction). This is perhaps best embodied by the rise in popularity of the `dataclasses` package, which allows you to create what are essentially structs in Python (see my previous article on [best practices for dataclasses](/post/dsp0_patterns_for_dataclasses.html)). 
 
 In Rust, there is little support for inheritance or other OOP concepts at all - instead you create structs that can contain and operate on other structs using methods. This is called _composition_ and it is a more flexible approach that creates weaker coupling between your objects.
 
