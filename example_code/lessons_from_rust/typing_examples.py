@@ -3,44 +3,77 @@
 import typing
 import dataclasses
 
+@dataclasses.dataclass
+class MyBasicType:
+    x: typing.Any
+
 T = typing.TypeVar("T")
 
 @dataclasses.dataclass
 class MyType(typing.Generic[T]):
+    '''Wraps a value.'''
     x: typing.Optional[T]
 
-    def access_x(self) -> T:
-        if self.x is None:
-            raise ValueError("x is missing")
-        else:
-            return self.x # type: ignore
+
+Number = typing.Union[float, int]
+
+@dataclasses.dataclass
+class MyFirstType:
+    '''Wraps a value.'''
+    x: typing.Optional[Number]
     
-    def set_z(self, x: T) -> None:
-        self.x = x
+@dataclasses.dataclass
+class MySecondType:
+    '''Wraps value that is not None.'''
+    x: Number
+    def add(self, y: Number) -> Number:
+        return self.x + y
 
-MyValue = typing.Union[MyType[T], T]
+@dataclasses.dataclass
+class MyThirdType:
+    '''Wraps value that is not None or zero.'''
+    x: Number
 
-def convert_to_string(val: MyValue[T]) -> str:
-    try:
-        return str(val.access_x())
-    except AttributeError:
-        return str(val)
+    def add(self, y: Number) -> Number:
+        return self.x + y
+
+    def invert(self) -> float:
+        return 1.0 / self.x
+    
+SomeType = typing.Union[MyFirstType, MySecondType, MyThirdType]
+
+
+def make_third_type(x: typing.Optional[Number]) -> MyThirdType:
+    return MyThirdType(x)
+
+def make_new_type(x: typing.Optional[Number]) -> SomeType:
+    if x is None:
+        return MyType(x)
+    elif x == 0:
+        return MySecondType(x)
+    else:
+        return MyThirdType(x)
 
 if __name__ == '__main__':
-    
-    #a: typing.List[int] = [None, 1, 2, 3]
-    
     a: typing.List[typing.Optional[int]] = [None, 1, 2, 3]
-    
-    a_filtered = [v for v in a if v is not None]
-    
-    sum(a_filtered)
-
-    b: typing.List[int] = [v for v in a if v is not None]
+    #sum(a)
+    b = [v for v in a if v is not None]
     sum(b)
-
-    print(MyType(1.0).access_x())
-    print(MyType(None).access_x())
-
+    c: typing.List[int] = [v for v in a if v is not None]
+    sum(c)
+    
+    mbt = MyBasicType(1)
+    #mbt.x + 'hello world'
+    
+    mt = MyType[float](1)
+    print(mt)
+    # mt.x + 'hello world'
+    
+    nt = make_new_type(0.0)
+    print(nt.add(1.0))
+    print(nt.add(1.0)) # typing: ignore
+    print(typing.cast(nt, MySecondType).add(1.0))
+    if isinstance(nt, MySecondType):
+        print(nt.add(1.0))
 
 
