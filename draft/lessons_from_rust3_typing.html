@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>Devin J. Cornell: Lessons from Rust 3: Stronger Typing</title>
+        <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
+        <!-- Font Awesome icons (free version)-->
+        <!--<script src="https://use.fontawesome.com/releases/v5.15.3/js/all.js" crossorigin="anonymous"></script>-->
+        <!-- Google fonts-->
+        <link href="https://fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css" />
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link href="/css/blog.css" rel="stylesheet" />
+        <style>
+            pre {
+                background-color: #ececec;
+                border-radius: 4px;
+                padding: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Navigation-->
+        <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
+            <div class="container px-4 px-lg-5">
+                <a class="navbar-brand" href="/">devinjcornell.com</a>//<a class="navbar-brand" href="/blog">Data Science Blog</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                    Menu
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarResponsive">
+                    <ul class="navbar-nav ms-auto py-4 py-lg-0">
+                        <!--<li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="index.html">Home</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="about.html">About</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="post.html">Sample Post</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="contact.html">Contact</a></li>-->
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <!-- Page Header-->
+        <header class="masthead" style="background-image: url('assets/img/post-bg.jpg')">
+            <div class="container position-relative px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-8">
+                        <div class="post-heading">
+                            <h1>Lessons from Rust 3: Stronger Typing</h1>
+                            <h2 class="subheading">Use the ownership pattern from Rust to increase_safety.</h2>
+                            <span class="meta">
+                                Posted by
+                                <a href="/">Devin J. Cornell</a>
+                                on Sep 27, 2023
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <!-- Post Content-->
+        <article class="mb-4">
+            <div class="container px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <p>Let's face it - no matter effective we are at writing data pipelines in dynamically typed languages such as R and Python, the lack of a strong typing system puts us at risk of introducing runtime errors that may not be obvious until late in development, if at all. The idea is that developer time is more valuable than runtime performance, and dynamic typing frees the programmer from thinking hard about designs as they go. In contrast, Rust's compiler is famously verbose and strict by default, leading many to conclude that "if you can get it to compile, it usually works the first time." There are big advantages to this approach, and there is much we can learn from the typing system design in Rust.</p>
+<p>Fortunately, in Python, a lot of work has been going into developing typing systems that are largely ignored at runtime but which can be used to verify code using static type checkers such as <a href="https://microsoft.github.io/https://realpython.com/python312-typing/">Pyright</a>. These tools perform the same type of checks that the Rust compiler does, but your code may still run even if it fails the checks. You also have the freedom to switch between strong and weak typing depending on when you use the type hints (usually for critical points of your code). Here I will discuss some features of the Python typing system that emulate particularly useful aspects of typing system in Rust.</p>
+<h2>The <code>typing</code> Module</h2>
+<p>While some of the new type hint systems have been integrated into the Python language specification itself, much of it has gone into developing features of the <code>typing</code> module.</p>
+<h4><code>typing.Optional</code> for Potentially Missing Data</h4>
+<p>Where Rust relies on the popular <a href="https://doc.rust-lang.org/book/ch06-01-defining-an-enum.html?highlight=Option%3C#the-option-enum-and-its-advantages-over-null-values"><code>Option</code> enum</a> to specify when a returned value may be a valid value or <code>None</code>, in Python we can use the <code>typing.Optional[T]</code> hint to specify that we may expect a <code>None</code> value. Adding this type hint will notify type checkers that any downstream functions should be able to filter or otherwise deal with <code>None</code> values (ideally also with type hints).</p>
+<p>As an example, imagine we have a list of integers where some elements may take the value of <code>None</code> because they are missing.</p>
+<pre><code>import typing
+a: typing.List[typing.Optional[int]] = [None, 1, 2, 3]
+</code></pre>
+<p>This type hint is basically giving your downstream program a heads up that some values may be None and therefore it should be able to handle them. Mostly we will be accessing lists based on user input rather than static definitions, but the type checker will pick up on that too. Using <code>mypy</code>, we can see an error when we try to use the sum function on the list of this type.</p>
+<pre><code>    sum(a)
+</code></pre>
+<p>The error will indicate that the <code>sum</code> function cannot accept None values.</p>
+<pre><code>&gt; typing_examples.py:38: error: Argument 1 to "sum" has incompatible type "list[Optional[int]]"; expected "Iterable[bool]"  [arg-type]
+</code></pre>
+<p>The solution is to remove the <code>Optional</code> component of the hint after you have filtered <code>None</code> values at some point in your code.</p>
+<pre><code>b: typing.List[int] = [v for v in a if v is not None]
+sum(b)
+</code></pre>
+<p>Adding the type hint upstream in your data pipeline can remind you to filter those values out downstream.</p>
+<h4><code>typing.TypeVar</code> and <code>typing.Generic</code> for Generic Types</h4>
+<p>Generic types are typically containers of other defined types that can be specified by the downstream client. In statically typed languages, the placeholder for that type must be included explicitly, although in dynamically typed languages we can get away without specifying at all - the interpreter does not need to know this information. To demonstrate this, start by making a simple class that wraps a single variable of any type.</p>
+<pre><code>import dataclasses
+@dataclasses.dataclass
+class MyBasicType:
+    x: typing.Any
+</code></pre>
+<p>Then as a use case you can pass an integer to the container and add it to a string. It will throw a runtime error, but the type checker will say nothing because no type hints were used other than <code>typing.Any</code>, the hint that accepts any type.</p>
+<pre><code>mbt = MyBasicType(1)
+mbt.x + 'hello world'
+</code></pre>
+<p>The modern <code>typing</code> module implements some features that allow us to specify this type explicitly as we would in statically defined languages. We do this using a combination of the <code>TypeVar</code> and <code>Generic</code> objects, which allows you to define a new template type prior to function or class definitions. The type checker will then track this type from the time it is instantiated to the time it is used.</p>
+<pre><code>@dataclasses.dataclass
+class MyType(typing.Generic[T]):
+    x: typing.Optional[T]
+</code></pre>
+<p>We would use this in our main script the same way as before, but this time the type checker will keep track of it.</p>
+<pre><code>mt = MyType(1)
+
+&gt; typing_examples.py:49: note: Left operand is of type "Optional[int]"
+</code></pre>
+<p>And when we attempt to do something that would raise an exception, the type checker raises an error.</p>
+<pre><code>mt.x + 'hello world'
+
+&gt; typing_examples.py:49: error: Unsupported operand types for + ("int" and "str")  [operator]
+</code></pre>
+<p>Note that you may also specify the type of the variable when you instantiate it, which will override the type hint downstream.</p>
+<pre><code>mt = MyType[float](1)
+mt.x + 'hello world'
+
+&gt; typing_examples.py:49: note: Left operand is of type "Optional[float]"
+&gt; typing_examples.py:49: error: Unsupported operand types for + ("float" and "str")  [operator]
+</code></pre>
+<p>Even though the type is not specified at the definition, the type checker will be able to track this generic downstream as the client uses it for other purposes. This is a significantly better alternative to the <code>typing.Any</code> hint.</p>
+<h4><code>typing.Union</code> Instead of Enums</h4>
+<p>In Python we can use <code>typing.Union</code> to indicate that a function may accept one of several parallel types in the same way that Rust enum types do. To do this, you may simply assign a type hint to a variable that can then be used as a type hint later. For instance, we may want to refer to a number that can be used as either an integer or a float, since they can be used interchangably in many cases.</p>
+<pre><code>Number = typing.Union[float, int]
+</code></pre>
+<p>We can use this new type as a regular type hint later. To demonstrate how multiple types can be grouped together to exhibit enum-like behavior, I create three new types: the first one contains a number that is None or a number, second one contains a number that is not None, and the third one contains a number that is not None or zero. They each contain methods that would be appropriate for the valid values the contained value, and we use this to avoid receiving a <code>TypeError</code> when adding a number with a <code>None</code> value or a <code>ZeroDivisionError</code> when inverting a zero value - instead, both operations will throw an <code>AttributeError</code> because the operation simply would not be valid for that type.</p>
+<pre><code>@dataclasses.dataclass
+class MyFirstType:
+    '''Wraps a value.'''
+    x: typing.Optional[Number]
+
+@dataclasses.dataclass
+class MySecondType:
+    '''Wraps value that is not None.'''
+    x: Number
+    def add(self, y: Number) -&gt; Number:
+        return self.x + y
+
+@dataclasses.dataclass
+class MyThirdType:
+    '''Wraps value that is not None or zero.'''
+    x: Number
+
+    def add(self, y: Number) -&gt; Number:
+        return self.x + y
+
+    def invert(self) -&gt; float:
+        return 1.0 / self.x
+</code></pre>
+<p>Of course, any of these can be used as type hints in other functions - the following definition raises an error in mypy because the function accepts a number that can be none, which is a mismatch with the <code>MySecondType</code> hint.</p>
+<pre><code>def make_third_type(x: typing.Optional[Number]) -&gt; MyThirdType:
+    return MyThirdType(x)
+
+&gt; typing_examples.py:47: error: Argument 1 to "MyThirdType" has incompatible type "Union[float, int, None]"; expected "Union[float, int]"  [arg-type]
+</code></pre>
+<p>Say instead that we create a function that returns one of these three types depending on the input. We can do this by using the <code>typing.Union</code> hint to specify that the function accepts any of these three types. The function then returns one of these three values depending on the value. Note that the function parameter accepts a <code>typing.Optional</code> number, whereas the <code>MySecondType</code> and <code>MyThirdType</code> constructors both accept a number that is not <code>None</code>. The type checker is smart enough to realize that we actually did check if the object was <code>None</code> before passing it to the constructor, so it will not raise an error.</p>
+<pre><code>SomeType = typing.Union[MyFirstType, MySecondType, MyThirdType]
+
+def make_new_type(x: typing.Optional[Number]) -&gt; SomeType:
+    if x is None:
+        return MyType(x)
+    elif x == 0:
+        return MySecondType(x)
+    else:
+        return MyThirdType(x)
+</code></pre>
+<p>When we go to actually use a method which only appears in a subset of these types, we will get an error because the use should fit any of these types, as described in the hint.</p>
+<pre><code>print(nt.add(1.0))
+
+&gt; typing_examples.py:73: error: Item "MyFirstType" of "Union[MyFirstType, MySecondType, MyThirdType]" has no attribute "add"  [union-attr]
+</code></pre>
+<p>If, in the logic of a particular use, you actually know that the object will be a subset of these types, you may use a couple workarounds that effectively silence your type checker. This is not typically advised though - it is better to design your type hints so you never need to silence the type checker.</p>
+<pre><code>print(nt.add(1.0)) # typing: ignore
+
+print(typing.cast(nt, MySecondType).add(1.0))
+
+if isinstance(nt, MySecondType):
+    print(nt.add(1.0))
+</code></pre>
+<p>This behavior is similar to the Rust compiler: it will not allow you to use a method that is not valid for all of the enumerated types. It is better to create an appropriate return type that ensures the method is available than to silence the type checker. </p>
+<h3>Conclusions</h3>
+<p>The features of the type hint system I described here are helpful because they allow us to combine the safety of using strongly-typed languages in some scenarios with the freedom to use weakly-typed approaches in others. As such, I highly recommend integrating type checking programs into your build systems.</p>
+                    </div>
+                </div>
+            </div>
+        </article>
+        <!-- Footer-->
+        <footer class="border-top">
+            <div class="container px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <ul class="list-inline text-center">
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-twitter fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-facebook-f fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                            <li class="list-inline-item">
+                                <a href="#!">
+                                    <span class="fa-stack fa-lg">
+                                        <i class="fas fa-circle fa-stack-2x"></i>
+                                        <i class="fab fa-github fa-stack-1x fa-inverse"></i>
+                                    </span>
+                                </a>
+                            </li>
+                        </ul>
+                        <div class="small text-center text-muted fst-italic">Copyright &copy; Devin J. Cornell 2021<br/><hr/></div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+        <!-- Bootstrap core JS-->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Core theme JS-->
+        <script src="/js/blog.js"></script>
+    </body>
+</html>
