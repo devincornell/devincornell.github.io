@@ -1,7 +1,7 @@
 ---
 title: "Lessons from Rust 3: Stronger Typing"
 subtitle: "Use the ownership pattern from Rust to increase_safety."
-date: "Sept 27, 2023"
+date: "Sept 30, 2023"
 id: "lessons_from_rust3_typing"
 ---
 
@@ -9,9 +9,7 @@ Let's face it - no matter effective we are at writing data pipelines in dynamica
 
 In Python, a lot of work has been going into developing typing systems that are largely ignored at runtime but which can be used to verify code using static type checkers such as [Pyright](https://microsoft.github.io/https://realpython.com/python312-typing/). These tools perform the same type of checks that the Rust compiler does, but your code may still run even if it fails the checks. You also have the freedom to switch between strong and weak typing depending on when you use the type hints (usually for critical points of your code). Here I will discuss some features of the Python typing system that emulate particularly useful aspects of typing system in Rust.
 
-## The `typing` Module
-
-While some of the new type hint systems have been integrated into the Python language specification itself, much of it has gone into developing features of the `typing` module. I will discuss a few of the features of this module that follow important aspects of Rust's type system.
+While some of the new type hint systems have been integrated into the Python language specification itself, much of it has gone into developing features of the `typing` module. I will focus on several features that emulate common behaviors in Rust.
 
 #### `typing.Optional` for Potentially Missing Data
 
