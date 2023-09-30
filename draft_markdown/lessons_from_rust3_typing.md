@@ -5,13 +5,13 @@ date: "Sept 27, 2023"
 id: "lessons_from_rust3_typing"
 ---
 
-Let's face it - no matter effective we are at writing data pipelines in dynamically typed languages such as R and Python, the lack of a strong typing system puts us at risk of introducing runtime errors that may not be obvious until late in development, if at all. The idea is that developer time is more valuable than runtime performance, and dynamic typing frees the programmer from thinking hard about designs as they go. In contrast, Rust's compiler is famously verbose and strict by default, leading many to conclude that "if you can get it to compile, it usually works the first time." There are big advantages to this approach, and there is much we can learn from the typing system design in Rust.
+Let's face it - no matter effective we are at writing data pipelines in dynamically typed languages such as R and Python, the lack of a strong typing system puts us at risk of introducing runtime errors that may not be obvious until late in development, if at all. The motivation for dynamic typing is that programmer tiem is more valuable than runtime performance, and this frees the programmer to think about big-picture designs rather than focusing on every detail. In contrast, Rust's compiler is famously verbose and strict by default, leading many to conclude that "if you can get it to compile, it usually works the first time." There are big advantages to strong typing systems, and we can take advantage of some of those benefits in dynamically typed languages using type hints and static type checkers.
 
-Fortunately, in Python, a lot of work has been going into developing typing systems that are largely ignored at runtime but which can be used to verify code using static type checkers such as [Pyright](https://microsoft.github.io/https://realpython.com/python312-typing/). These tools perform the same type of checks that the Rust compiler does, but your code may still run even if it fails the checks. You also have the freedom to switch between strong and weak typing depending on when you use the type hints (usually for critical points of your code). Here I will discuss some features of the Python typing system that emulate particularly useful aspects of typing system in Rust.
+In Python, a lot of work has been going into developing typing systems that are largely ignored at runtime but which can be used to verify code using static type checkers such as [Pyright](https://microsoft.github.io/https://realpython.com/python312-typing/). These tools perform the same type of checks that the Rust compiler does, but your code may still run even if it fails the checks. You also have the freedom to switch between strong and weak typing depending on when you use the type hints (usually for critical points of your code). Here I will discuss some features of the Python typing system that emulate particularly useful aspects of typing system in Rust.
 
 ## The `typing` Module
 
-While some of the new type hint systems have been integrated into the Python language specification itself, much of it has gone into developing features of the `typing` module.
+While some of the new type hint systems have been integrated into the Python language specification itself, much of it has gone into developing features of the `typing` module. I will discuss a few of the features of this module that follow important aspects of Rust's type system.
 
 #### `typing.Optional` for Potentially Missing Data
 
@@ -35,7 +35,7 @@ The solution is to remove the `Optional` component of the hint after you have fi
     b: typing.List[int] = [v for v in a if v is not None]
     sum(b)
 
-Adding the type hint upstream in your data pipeline can remind you to filter those values out downstream.
+For calculating the sum we can simply remove `None` values, but you may want to handle those in different ways that the type checker cannot pick up on. To indicate that you have stripped None values using more complicated designs, you can simply add the type hint donstream after the filtering has been done.
 
 #### `typing.TypeVar` and `typing.Generic` for Generic Types
 
@@ -51,7 +51,7 @@ Then as a use case you can pass an integer to the container and add it to a stri
     mbt = MyBasicType(1)
     mbt.x + 'hello world'
 
-The modern `typing` module implements some features that allow us to specify this type explicitly as we would in statically defined languages. We do this using a combination of the `TypeVar` and `Generic` objects, which allows you to define a new template type prior to function or class definitions. The type checker will then track this type from the time it is instantiated to the time it is used.
+The modern `typing` module implements some features that allow us to specify this type explicitly as we would in statically defined languages. We do this using a combination of the `TypeVar` and `Generic` objects, which are used to define a new template type prior to function or class definitions. The type checker will then track this type from the time it is instantiated to the time it is used.
 
     @dataclasses.dataclass
     class MyType(typing.Generic[T]):

@@ -53,7 +53,7 @@ def make_new_type(x: typing.Optional[Number]) -> SomeType:
         return MySecondType(x)
     else:
         return MyThirdType(x)
-
+    
 if __name__ == '__main__':
     a: typing.List[typing.Optional[int]] = [None, 1, 2, 3]
     #sum(a)
