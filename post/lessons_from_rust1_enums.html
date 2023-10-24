@@ -67,8 +67,8 @@
                         <p>The Rust programming language has taken the award for "most loved programming language" in the <a href="https://survey.stackoverflow.co/2022#overview">Stack Overflow Developer Survey</a> since 2016. The power of Rust comes in that it is nearly as fast as C++ without the potential issues that come with pointers and manual memory management. Whether or not you can convince your stakeholders to write Rust code, there are some lessons we can apply to our data pipelines in any language. In the next several blog articles I will provide some patterns that use ideas from the Rust language to improve your data science code in any language.</p>
 <p><img alt="Rust augmenting Python." src="https://storage.googleapis.com/public_data_09324832787/enum_article_image3.svg" /></p>
 <ul>
-<li>(current article) Lessons from Rust 1: Enums for Errors and Missing Data</li>
-<li>(future article) Lessons from Rust 2: Composition over Inheritance</li>
+<li>(current) Lessons from Rust 1: Enums for Errors and Missing Data</li>
+<li><a href="/post/lessons_from_rust2_typing.html">Lessons from Rust 2: Composition over Inheritance</a></li>
 </ul>
 <p>The first pattern I will discuss is the use of enums to indicate missing data and errors. Rust has a robust infrastructure for handling enum types compared to languages like Python or C++, but there are two particular built-in enums that may be useful for data pipelines: <a href="https://doc.rust-lang.org/book/ch06-01-defining-an-enum.html?highlight=Option%3C#the-option-enum-and-its-advantages-over-null-values"><code>Option[T]</code></a> and <a href="https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html?highlight=Result%3C#recoverable-errors-with-result"><code>Result[T, E]</code></a>. The <code>Option[T]</code> enum is used to represent a value that may or may not be present (equivalent of None in Python), and the <code>Result</code> enum is used to represent a return value that is either a value or an error. </p>
 <h3>When <code>None</code> is a Valid Return Value</h3>
