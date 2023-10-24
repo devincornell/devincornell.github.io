@@ -1,15 +1,94 @@
 ---
-title: "Lessons from Rust 3: Stronger Typing"
+title: "Lessons from Rust 2: Stronger Typing"
 subtitle: "Use the ownership pattern from Rust to increase_safety."
 date: "Sept 30, 2023"
-id: "lessons_from_rust3_typing"
+id: "lessons_from_rust2_typing"
 ---
 
-Let's face it - no matter effective we are at writing data pipelines in dynamically typed languages such as R and Python, the lack of a strong typing system puts us at risk of introducing runtime errors that may not be obvious until late in development, if at all. The motivation for dynamic typing is that programmer tiem is more valuable than runtime performance, and this frees the programmer to think about big-picture designs rather than focusing on every detail. In contrast, Rust's compiler is famously verbose and strict by default, leading many to conclude that "if you can get it to compile, it usually works the first time." There are big advantages to strong typing systems, and we can take advantage of some of those benefits in dynamically typed languages using type hints and static type checkers.
+Let's face it - no matter effective we are at writing data pipelines in dynamically typed languages such as R and Python, the lack of a strong typing system puts us at risk of introducing runtime errors that may not be obvious until late in development, if at all. I recently read [an article](https://www.svix.com/blog/strong-typing-hill-to-die-on/) by Tom Hacohen that discusses advantages of strong typing systems, and I tend to agree with many of those points from my own experiences with strongly and weakly typed langauges. Weakly typed languages free the programmer to think about big-picture designs rather than focusing on every detail, but, in Tom's words, "Writing software without types lets you go at full speed. Full speed towards the cliff." Rust's compiler is famously verbose and strict by default, and proponents often conclude that "if you can get it to compile, it usually works the first time." There are big advantages to strong typing systems, and we can take advantage of some of those benefits in dynamically typed languages using type hints and static type checkers that have become very popular over the last several years.
 
-In Python, a lot of work has been going into developing typing systems that are largely ignored at runtime but which can be used to verify code using static type checkers such as [Pyright](https://microsoft.github.io/https://realpython.com/python312-typing/). These tools perform the same type of checks that the Rust compiler does, but your code may still run even if it fails the checks. You also have the freedom to switch between strong and weak typing depending on when you use the type hints (usually for critical points of your code). Here I will discuss some features of the Python typing system that emulate particularly useful aspects of typing system in Rust.
+In Python, a lot of work has been going into developing the standardization of "type hints," or annotations you can place into your code to make it easier to understand. While type hints are largely ignored by the Python interpreter, they can be used by static type checkers such as [Pyright](https://microsoft.github.io/https://realpython.com/python312-typing/) or [mypy](https://mypy-lang.org/) that can be integrated into your build system, essentially checking if your code is consistent with the type hints you offer. This allows you to take advantage of the benefits of using weakly typed languages while also making it possible to apply some of the benefits of strong typing.
+
+Much of the safety that comes from using Rust comes from the strict and rigorous type checking that support the robust enum system and facilitate the unique memory management system. In this article, I will discuss some of the features of the Python typing system that emulate some of the benefits of the Rust type system.
+
+The strict and rigorous Rust compiler is considered
+
+"benevolent dictator" that will not allow you to compile code that is not consistent with the language specification. The Python interpreter is not nearly as strict, but we can use static type checkers to emulate some of the benefits of the Rust compiler.
+
+Here I will discuss some features of the Python typing system that emulate particularly useful aspects of typing system in Rust.
+
+These tools perform the same type of checks that the Rust compiler does, but your code may still run even if it fails the checks. You also have the freedom to switch between strong and weak typing depending on when you use the type hints (usually for critical points of your code). 
+
+
+These tools perform the same type of checks that the Rust compiler does, but your code may still run even if it fails the checks. You also have the freedom to switch between strong and weak typing depending on when you use the type hints (usually for critical points of your code). Here I will discuss some features of the Python typing system that emulate particularly useful aspects of typing system in Rust.
 
 While some of the new type hint systems have been integrated into the Python language specification itself, much of it has gone into developing features of the `typing` module. I will focus on several features that emulate common behaviors in Rust.
+
+#### Use Sentinels for Default Parameter Values
+
+While it is common practice to use `None` as a default parameter value to represent missing data or other exceptional cases, there are times when you may want to handle `None` as a separate valid case. For example start with the simplest case we have a function with two parameters, where exactly one should be provided by the user. In this case, we simply return whichever value should be propogated and raise an exception if neither or both are provided.
+
+    def get_correct_option(
+        default_a: typing.Optional[int] = None,
+        default_b: typing.Optional[int] = None,
+    ) -> int:
+        '''Multiplies x and y if do_square is True.'''
+        if default_a is not None and default_b is not None:
+            raise ValueError('default_a and default_b cannot both be set')
+        elif default_a is not None:
+            return default_a
+        elif default_b is not None:
+            return default_b
+        else:
+            raise ValueError('default_a or default_b must be set')
+
+The problem with this approach is that `None` cannot be a valid input value because, in that example, it is used to represent a non-value. In Python, we often solve this by creating sentinel values as defaults that we can check against, and treat `None` the same as any other type. Following the pattern used in `dataclasses`, we create an enum and assign an enum value to an accessible variable.
+
+    import enum
+    class MissingValueType(enum.Enum):
+        MISSING = enum.auto()
+        def __repr__(self):
+            return "MISSING"
+
+    MISSING = MissingValueType.MISSING
+    '''Represents a missing Value.'''
+
+We simply use this value as a default parameter value and check against it in the function body.
+
+    def get_correct_option(
+        default_a: typing.Optional[int] = MISSING,
+        default_b: typing.Optional[int] = MISSING,
+    ) -> typing.Optional[int]:
+
+Because this sentinel value is not of type `Optional[int]`, however, our type checker will issue an error.
+
+    > Incompatible default for argument "default_a" (default has type "MissingValueType", argument has type "Optional[int]")
+
+To make our code more readable and our type hints internally consistent, we simply create a new hint using `Union`. 
+
+    ValueOrMissing = typing.Union[T, MissingValueType]
+
+The new type hints would use this new variable and we would check against the sentinel instead of a `None` value.
+
+    def get_correct_option(
+        default_a: ValueOrMissing[typing.Optional[int]] = MISSING,
+        default_b: ValueOrMissing[typing.Optional[int]] = MISSING,
+    ) -> typing.Optional[int]:
+        '''Multiplies x and y if do_square is True.'''
+        if default_a is not MISSING and default_b is not MISSING:
+            raise ValueError('default_a and default_b cannot both be set')
+        elif default_a is not MISSING:
+            return default_a
+        elif default_b is not MISSING:
+            return default_b
+        else:
+            raise ValueError('default_a or default_b must be set')
+
+The type checker does not rasie any issues with this and it is clear to the reader that `None` would be a default value for either of these parameters.
+
+Note that in the [previous article](https://devinjcornell.com/post/lessons_from_rust1_enums.html) I discussed some patterns to emulate several useful Rust enum types using wrapper classes that may include additional data to indicate why the data is missing, but this sentinel solution works well when no additional data is needed. Many Python packages solve this case in this way.
+
+
 
 #### `typing.Optional` for Potentially Missing Data
 
