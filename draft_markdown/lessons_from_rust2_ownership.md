@@ -5,7 +5,22 @@ date: "Sept 27, 2023"
 id: "lessons_from_rust3_ownership"
 ---
 
-The key to memory safety in Rust comes from a concept called _ownership_. As an example, it is common practice to allocate a piece of heap memory (e.g. list or vector) at the top level of your program and then pass a reference or pointer into a function that will use or modify it. In languages such as Python or C++, you can continue to use that allocated memory after the function has returned, and either you must remember to free the memory manually or let the garbage collector take care of it after it is no longer needed.
+The key to memory safety in Rust comes from a concept called _ownership_. This means that the Rust compiler keeps track of the scope of every variable by assigning an owner to it so that it can free the memory when it is no longer needed. There are particular rules for transferring ownership between scopes, and these rules, while often quite restrictive, enforce solid programming practices which can be emulated in languages even if they do not enforce them. In this article I will discuss some patterns that mimic the ownership concept in Rust.
+
+The [Rust book](https://doc.rust-lang.org/book/ch04-01-what-is-ownership.html) lays out the rules for ownership as follows: (a) each value in Rust has a variable that is called its _owner_, (b) there can only be one owner at a time, and (c) when the owner goes out of scope, the value will be dropped. As such, there are rules about ownership transfer 
+
+Passing a variable into a function transferrs ownership to the function, and returning a variable from a function transfers ownership back to the outer scope. Alternatively, a function can _borrow_ a variable by accepting a reference, rather than the value, which allows the function to use the variable without taking ownership of it.
+
++ in cases where you have multiple references to a single object, avoid modifying it in-place
++ 
+
+ensure you are not modifying data that contains multiple references in other palces
+
+
+
+
+
+As an example, it is common practice to allocate a piece of heap memory (e.g. list or vector) at the top level of your program and then pass a reference or pointer into a function that will use or modify it. In languages such as Python or C++, you can continue to use that allocated memory after the function has returned, and either you must remember to free the memory manually or let the garbage collector take care of it after it is no longer needed.
 
 Rust adds the restriction that only one scope can _own_ a variable, so by passing a mutable variable into the function you are actually transferring ownership to it - you cannot continue to access that memory from outside the function. You can, however, return ownership to the outer scope by returning the reference. This makes it clear to the reader that you are, in fact modifying some of the data being passed into the function.
 
