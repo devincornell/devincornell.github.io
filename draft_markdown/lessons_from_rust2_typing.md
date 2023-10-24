@@ -1,19 +1,19 @@
 ---
 title: "Lessons from Rust 2: Stronger Typing"
 subtitle: "Tips for integrating Rust's strong typing system into your Python code."
-date: "Sept 30, 2023"
+date: "Oct 24, 2023"
 id: "lessons_from_rust2_typing"
 blogroll_img_url: "https://storage.googleapis.com/public_data_09324832787/typing_article_image.svg"
 ---
 
-Let's face it - no matter effective we are at writing data pipelines in dynamically typed languages such as R and Python, the lack of a strong typing system puts us at risk of introducing runtime errors that may not be obvious until late in development, if at all. Rust, on the other hand, includes a robust type system that facilitates the use of the unique enum system, creating safety gaurantees that reduce the risk of errors in your code. In this article, I will discuss some features of Python's type hint system and type checkers that emulate some of the behaviors of the Rust compiler.
+Let's face it - no matter effective we are at writing data pipelines in dynamically typed languages such as R and Python, the lack of a strong typing system puts us at risk of introducing runtime errors that may not be obvious until late in development, if at all. Rust, on the other hand, includes a robust type system that facilitates the use of the unique enum system, creating safety guarantees that reduce the risk of errors in your code. In this article, I will discuss features of Python's type hint system and type checkers that emulate some of the behaviors of the Rust compiler.
 
 ![Python VS Mypy held up by Rust.](https://storage.googleapis.com/public_data_09324832787/typing_article_image2.svg)
 
 + [Lessons from Rust 1: Enums for Errors and Missing Data](/post/lessons_from_rust1_enums.html)
 + (current) Lessons from Rust 2: Composition over Inheritance
 
-I recently read [an article](https://www.svix.com/blog/strong-typing-hill-to-die-on/) by Tom Hacohen that gives a great description of the advantages of strong typing systems, and I tend to agree with many of those points from my own experiences with strongly and weakly typed langauges. Weakly typed languages free the programmer to think about big-picture designs rather than focusing on every detail, but, in Tom's words, "Writing software without types lets you go at full speed. Full speed towards the cliff." 
+I recently read [an article](https://www.svix.com/blog/strong-typing-hill-to-die-on/) by Tom Hacohen that gives a great description of the advantages of strong typing systems, and I tend to agree with many of those points from my own experiences with strongly and weakly typed languages. Weakly typed languages free the programmer to think about big-picture designs rather than focusing on every detail, but, in Tom's words, "Writing software without types lets you go at full speed. Full speed towards the cliff." 
 
 In Python, a lot of work has been going into developing the standardization of "type hints," or annotations you can place into your code to make it easier to read and identify errors. While type hints are largely ignored by the Python interpreter, they can be used by static type checkers such as [Pyright](https://microsoft.github.io/https://realpython.com/python312-typing/) or [mypy](https://mypy-lang.org/) that can be integrated into your build system, essentially checking if your code is consistent with the type hints you offer. This allows you to take advantage of the benefits of using weakly typed languages while also making it possible to apply some of the benefits of strong typing.
 
@@ -43,7 +43,7 @@ The solution is to remove the `Optional` component of the hint after you have fi
     b: typing.List[int] = [v for v in a if v is not None]
     sum(b)
 
-For calculating the sum we can simply remove `None` values, but you may want to handle those in different ways that the type checker cannot pick up on. To indicate that you have stripped None values using more complicated designs, you can simply add the type hint donstream after the filtering has been done.
+For calculating the sum we can simply remove `None` values, but you may want to handle those in different ways that the type checker cannot pick up on. To indicate that you have stripped None values using more complicated designs, you can simply add the type hint downstream after the filtering has been done.
 
 #### `typing.TypeVar` and `typing.Generic` for Generic Types
 
@@ -59,7 +59,7 @@ Then as a use case you can pass an integer to the container and add it to a stri
     mbt = MyBasicType(1)
     mbt.x + 'hello world'
 
-The modern `typing` module implements some features that allow us to specify this type explicitly as we would in statically defined languages. We do this using a combination of the `TypeVar` and `Generic` objects, which are used to define a new template type prior to function or class definitions. The type checker will then track this type from the time it is instantiated to the time it is used.
+The modern `typing` module implements features that allow us to specify this type explicitly as we would in statically defined languages. We do this using a combination of the `TypeVar` and `Generic` objects, which are used to define a new template type prior to function or class definitions. The type checker will then track this type from the time it is instantiated to the time it is used.
 
     @dataclasses.dataclass
     class MyType(typing.Generic[T]):
@@ -90,7 +90,7 @@ Even though the type is not specified at the definition, the type checker will b
 
 #### `typing.Union` Instead of Enums
 
-In Python we can use `typing.Union` to indicate that a function may accept one of several parallel types in the same way that Rust enum types do. To do this, you may simply assign a type hint to a variable that can then be used as a type hint later. For instance, we may want to refer to a number that can be used as either an integer or a float, since they can be used interchangably in many cases.
+In Python we can use `typing.Union` to indicate that a function may accept one of several parallel types in the same way that Rust enum types do. To do this, you may simply assign a type hint to a variable that can then be used as a type hint later. For instance, we may want to refer to a number that can be used as either an integer or a float, since they can be used interchangeably in many cases.
 
     Number = typing.Union[float, int]
 
@@ -157,7 +157,7 @@ This behavior is similar to the Rust compiler: it will not allow you to use a me
 
 #### Use Sentinels for Default Parameter Values
 
-While it is common practice to use `None` as a default parameter value to represent missing data or other exceptional cases, there are times when you may want to handle `None` as a separate valid case. For example start with the simplest case we have a function with two parameters, where exactly one should be provided by the user. In this case, we simply return whichever value should be propogated and raise an exception if neither or both are provided.
+While it is common practice to use `None` as a default parameter value to represent missing data or other exceptional cases, there are times when you may want to handle `None` as a separate valid case. For example, start with the simplest case, we have a function with two parameters and exactly one should be provided by the user. In this case, we simply return whichever value should be propagated and raise an exception if neither or both are provided.
 
     def get_correct_option(
         default_a: typing.Optional[int] = None,
@@ -173,7 +173,7 @@ While it is common practice to use `None` as a default parameter value to repres
         else:
             raise ValueError('default_a or default_b must be set')
 
-The problem with this approach is that `None` cannot be a valid input value because, in that example, it is used to represent a non-value. In Python, we often solve this by creating sentinel values as defaults that we can check against, and treat `None` the same as any other type. Following the pattern used in `dataclasses`, we create an enum and assign an enum value to an accessible variable.
+The problem with this approach is that `None` cannot be a valid input value because, in that example, it is used to represent a non-value. In Python, we often solve this by creating sentinel values as defaults that we can check against and treat `None` the same as any other type. Following the pattern used in `dataclasses`, we create an enum and assign an enum value to an accessible variable.
 
     import enum
     class MissingValueType(enum.Enum):
