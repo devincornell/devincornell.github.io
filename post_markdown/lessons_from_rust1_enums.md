@@ -10,8 +10,8 @@ The Rust programming language has taken the award for "most loved programming la
 
 ![Rust augmenting Python.](https://storage.googleapis.com/public_data_09324832787/enum_article_image3.svg)
 
-+ (current article) Lessons from Rust 1: Enums for Errors and Missing Data
-+ (future article) Lessons from Rust 2: Composition over Inheritance
++ (current) Lessons from Rust 1: Enums for Errors and Missing Data
++ [Lessons from Rust 2: Composition over Inheritance](/post/lessons_from_rust2_typing.html)
 
 The first pattern I will discuss is the use of enums to indicate missing data and errors. Rust has a robust infrastructure for handling enum types compared to languages like Python or C++, but there are two particular built-in enums that may be useful for data pipelines: [`Option[T]`](https://doc.rust-lang.org/book/ch06-01-defining-an-enum.html?highlight=Option%3C#the-option-enum-and-its-advantages-over-null-values) and [`Result[T, E]`](https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html?highlight=Result%3C#recoverable-errors-with-result). The `Option[T]` enum is used to represent a value that may or may not be present (equivalent of None in Python), and the `Result` enum is used to represent a return value that is either a value or an error. 
 
