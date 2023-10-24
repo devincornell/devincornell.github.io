@@ -3,12 +3,12 @@ title: "Lessons from Rust 2: Stronger Typing"
 subtitle: "Tips for integrating Rust's strong typing system into your Python code."
 date: "Oct 24, 2023"
 id: "lessons_from_rust2_typing"
-blogroll_img_url: "https://storage.googleapis.com/public_data_09324832787/typing_article_image.svg"
+blogroll_img_url: "https://storage.googleapis.com/public_data_09324832787/typing_article_image3.svg"
 ---
 
 Let's face it - no matter effective we are at writing data pipelines in dynamically typed languages such as R and Python, the lack of a strong typing system puts us at risk of introducing runtime errors that may not be obvious until late in development, if at all. Rust, on the other hand, includes a robust type system that facilitates the use of the unique enum system, creating safety guarantees that reduce the risk of errors in your code. In this article, I will discuss features of Python's type hint system and type checkers that emulate some of the behaviors of the Rust compiler.
 
-![Python VS Mypy held up by Rust.](https://storage.googleapis.com/public_data_09324832787/typing_article_image2.svg)
+![Python VS Mypy held up by Rust.](https://storage.googleapis.com/public_data_09324832787/typing_article_image3.svg)
 
 + [Lessons from Rust 1: Enums for Errors and Missing Data](/post/lessons_from_rust1_enums.html)
 + (current) Lessons from Rust 2: Composition over Inheritance
