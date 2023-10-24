@@ -24,72 +24,6 @@ These tools perform the same type of checks that the Rust compiler does, but you
 
 While some of the new type hint systems have been integrated into the Python language specification itself, much of it has gone into developing features of the `typing` module. I will focus on several features that emulate common behaviors in Rust.
 
-#### Use Sentinels for Default Parameter Values
-
-While it is common practice to use `None` as a default parameter value to represent missing data or other exceptional cases, there are times when you may want to handle `None` as a separate valid case. For example start with the simplest case we have a function with two parameters, where exactly one should be provided by the user. In this case, we simply return whichever value should be propogated and raise an exception if neither or both are provided.
-
-    def get_correct_option(
-        default_a: typing.Optional[int] = None,
-        default_b: typing.Optional[int] = None,
-    ) -> int:
-        '''Multiplies x and y if do_square is True.'''
-        if default_a is not None and default_b is not None:
-            raise ValueError('default_a and default_b cannot both be set')
-        elif default_a is not None:
-            return default_a
-        elif default_b is not None:
-            return default_b
-        else:
-            raise ValueError('default_a or default_b must be set')
-
-The problem with this approach is that `None` cannot be a valid input value because, in that example, it is used to represent a non-value. In Python, we often solve this by creating sentinel values as defaults that we can check against, and treat `None` the same as any other type. Following the pattern used in `dataclasses`, we create an enum and assign an enum value to an accessible variable.
-
-    import enum
-    class MissingValueType(enum.Enum):
-        MISSING = enum.auto()
-        def __repr__(self):
-            return "MISSING"
-
-    MISSING = MissingValueType.MISSING
-    '''Represents a missing Value.'''
-
-We simply use this value as a default parameter value and check against it in the function body.
-
-    def get_correct_option(
-        default_a: typing.Optional[int] = MISSING,
-        default_b: typing.Optional[int] = MISSING,
-    ) -> typing.Optional[int]:
-
-Because this sentinel value is not of type `Optional[int]`, however, our type checker will issue an error.
-
-    > Incompatible default for argument "default_a" (default has type "MissingValueType", argument has type "Optional[int]")
-
-To make our code more readable and our type hints internally consistent, we simply create a new hint using `Union`. 
-
-    ValueOrMissing = typing.Union[T, MissingValueType]
-
-The new type hints would use this new variable and we would check against the sentinel instead of a `None` value.
-
-    def get_correct_option(
-        default_a: ValueOrMissing[typing.Optional[int]] = MISSING,
-        default_b: ValueOrMissing[typing.Optional[int]] = MISSING,
-    ) -> typing.Optional[int]:
-        '''Multiplies x and y if do_square is True.'''
-        if default_a is not MISSING and default_b is not MISSING:
-            raise ValueError('default_a and default_b cannot both be set')
-        elif default_a is not MISSING:
-            return default_a
-        elif default_b is not MISSING:
-            return default_b
-        else:
-            raise ValueError('default_a or default_b must be set')
-
-The type checker does not rasie any issues with this and it is clear to the reader that `None` would be a default value for either of these parameters.
-
-Note that in the [previous article](https://devinjcornell.com/post/lessons_from_rust1_enums.html) I discussed some patterns to emulate several useful Rust enum types using wrapper classes that may include additional data to indicate why the data is missing, but this sentinel solution works well when no additional data is needed. Many Python packages solve this case in this way.
-
-
-
 #### `typing.Optional` for Potentially Missing Data
 
 Where Rust relies on the popular [`Option` enum](https://doc.rust-lang.org/book/ch06-01-defining-an-enum.html?highlight=Option%3C#the-option-enum-and-its-advantages-over-null-values) to specify when a returned value may be a valid value or `None`, in Python we can use the `typing.Optional[T]` hint to specify that we may expect a `None` value. Adding this type hint will notify type checkers that any downstream functions should be able to filter or otherwise deal with `None` values (ideally also with type hints).
@@ -223,6 +157,74 @@ If, in the logic of a particular use, you actually know that the object will be 
         print(nt.add(1.0))
 
 This behavior is similar to the Rust compiler: it will not allow you to use a method that is not valid for all of the enumerated types. It is better to create an appropriate return type that ensures the method is available than to silence the type checker. 
+
+#### Use Sentinels for Default Parameter Values
+
+While it is common practice to use `None` as a default parameter value to represent missing data or other exceptional cases, there are times when you may want to handle `None` as a separate valid case. For example start with the simplest case we have a function with two parameters, where exactly one should be provided by the user. In this case, we simply return whichever value should be propogated and raise an exception if neither or both are provided.
+
+    def get_correct_option(
+        default_a: typing.Optional[int] = None,
+        default_b: typing.Optional[int] = None,
+    ) -> int:
+        '''Multiplies x and y if do_square is True.'''
+        if default_a is not None and default_b is not None:
+            raise ValueError('default_a and default_b cannot both be set')
+        elif default_a is not None:
+            return default_a
+        elif default_b is not None:
+            return default_b
+        else:
+            raise ValueError('default_a or default_b must be set')
+
+The problem with this approach is that `None` cannot be a valid input value because, in that example, it is used to represent a non-value. In Python, we often solve this by creating sentinel values as defaults that we can check against, and treat `None` the same as any other type. Following the pattern used in `dataclasses`, we create an enum and assign an enum value to an accessible variable.
+
+    import enum
+    class MissingValueType(enum.Enum):
+        MISSING = enum.auto()
+        def __repr__(self):
+            return "MISSING"
+
+    MISSING = MissingValueType.MISSING
+    '''Represents a missing Value.'''
+
+We simply use this value as a default parameter value and check against it in the function body.
+
+    def get_correct_option(
+        default_a: typing.Optional[int] = MISSING,
+        default_b: typing.Optional[int] = MISSING,
+    ) -> typing.Optional[int]:
+
+Because this sentinel value is not of type `Optional[int]`, however, our type checker will issue an error.
+
+    > Incompatible default for argument "default_a" (default has type "MissingValueType", argument has type "Optional[int]")
+
+To make our code more readable and our type hints internally consistent, we simply create a new hint using `Union`. 
+
+    T = typing.TypeVar("T")
+    ValueOrMissing = typing.Union[T, MissingValueType]
+
+The new type hints would use this new variable and we would check against the sentinel instead of a `None` value.
+
+    def get_correct_option(
+        default_a: ValueOrMissing[typing.Optional[int]] = MISSING,
+        default_b: ValueOrMissing[typing.Optional[int]] = MISSING,
+    ) -> typing.Optional[int]:
+        '''Multiplies x and y if do_square is True.'''
+        if default_a is not MISSING and default_b is not MISSING:
+            raise ValueError('default_a and default_b cannot both be set')
+        elif default_a is not MISSING:
+            return default_a
+        elif default_b is not MISSING:
+            return default_b
+        else:
+            raise ValueError('default_a or default_b must be set')
+
+The type checker does not rasie any issues with this and it is clear to the reader that `None` would be a default value for either of these parameters.
+
+Note that in the [previous article](https://devinjcornell.com/post/lessons_from_rust1_enums.html) I discussed some patterns to emulate several useful Rust enum types using wrapper classes that may include additional data to indicate why the data is missing, but this sentinel solution works well when no additional data is needed. Many Python packages solve this case in this way.
+
+
+
 
 ### Conclusions
 
