@@ -5,24 +5,15 @@ date: "Sept 30, 2023"
 id: "lessons_from_rust2_typing"
 ---
 
-Let's face it - no matter effective we are at writing data pipelines in dynamically typed languages such as R and Python, the lack of a strong typing system puts us at risk of introducing runtime errors that may not be obvious until late in development, if at all. I recently read [an article](https://www.svix.com/blog/strong-typing-hill-to-die-on/) by Tom Hacohen that discusses advantages of strong typing systems, and I tend to agree with many of those points from my own experiences with strongly and weakly typed langauges. Weakly typed languages free the programmer to think about big-picture designs rather than focusing on every detail, but, in Tom's words, "Writing software without types lets you go at full speed. Full speed towards the cliff." Rust's compiler is famously verbose and strict by default, and proponents often conclude that "if you can get it to compile, it usually works the first time." There are big advantages to strong typing systems, and we can take advantage of some of those benefits in dynamically typed languages using type hints and static type checkers that have become very popular over the last several years.
-
-In Python, a lot of work has been going into developing the standardization of "type hints," or annotations you can place into your code to make it easier to understand. While type hints are largely ignored by the Python interpreter, they can be used by static type checkers such as [Pyright](https://microsoft.github.io/https://realpython.com/python312-typing/) or [mypy](https://mypy-lang.org/) that can be integrated into your build system, essentially checking if your code is consistent with the type hints you offer. This allows you to take advantage of the benefits of using weakly typed languages while also making it possible to apply some of the benefits of strong typing.
-
-Much of the safety that comes from using Rust comes from the strict and rigorous type checking that support the robust enum system and facilitate the unique memory management system. In this article, I will discuss some of the features of the Python typing system that emulate some of the benefits of the Rust type system.
-
-The strict and rigorous Rust compiler is considered
-
-"benevolent dictator" that will not allow you to compile code that is not consistent with the language specification. The Python interpreter is not nearly as strict, but we can use static type checkers to emulate some of the benefits of the Rust compiler.
-
-Here I will discuss some features of the Python typing system that emulate particularly useful aspects of typing system in Rust.
-
-These tools perform the same type of checks that the Rust compiler does, but your code may still run even if it fails the checks. You also have the freedom to switch between strong and weak typing depending on when you use the type hints (usually for critical points of your code). 
+Let's face it - no matter effective we are at writing data pipelines in dynamically typed languages such as R and Python, the lack of a strong typing system puts us at risk of introducing runtime errors that may not be obvious until late in development, if at all. Rust, on the other hand, includes a robust type system that facilitates the use of the unique enum system, creating safety gaurantees that reduce the risk of errors in your code. In this article, I will discuss some features of Python's type hint system and type checkers that emulate some of the behaviors of the Rust compiler.
 
 
-These tools perform the same type of checks that the Rust compiler does, but your code may still run even if it fails the checks. You also have the freedom to switch between strong and weak typing depending on when you use the type hints (usually for critical points of your code). Here I will discuss some features of the Python typing system that emulate particularly useful aspects of typing system in Rust.
 
-While some of the new type hint systems have been integrated into the Python language specification itself, much of it has gone into developing features of the `typing` module. I will focus on several features that emulate common behaviors in Rust.
+I recently read [an article](https://www.svix.com/blog/strong-typing-hill-to-die-on/) by Tom Hacohen that gives a great description of the advantages of strong typing systems, and I tend to agree with many of those points from my own experiences with strongly and weakly typed langauges. Weakly typed languages free the programmer to think about big-picture designs rather than focusing on every detail, but, in Tom's words, "Writing software without types lets you go at full speed. Full speed towards the cliff." 
+
+In Python, a lot of work has been going into developing the standardization of "type hints," or annotations you can place into your code to make it easier to read and identify errors. While type hints are largely ignored by the Python interpreter, they can be used by static type checkers such as [Pyright](https://microsoft.github.io/https://realpython.com/python312-typing/) or [mypy](https://mypy-lang.org/) that can be integrated into your build system, essentially checking if your code is consistent with the type hints you offer. This allows you to take advantage of the benefits of using weakly typed languages while also making it possible to apply some of the benefits of strong typing.
+
+
 
 #### `typing.Optional` for Potentially Missing Data
 
