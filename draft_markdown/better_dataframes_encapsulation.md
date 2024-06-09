@@ -1,12 +1,12 @@
 ---
-title: "Better Dataframes: Basic Encapsulation"
+title: "Better Dataframes: Encapsulation"
 subtitle: "Using basic principles of encapsulation to improve the ways you work with tabular data."
-date: "April 21, 2024"
+date: "June 8, 2024"
 id: "bdf1_encapsulation"
 blogroll_img_url: ""
 ---
 
-Last year I wrote an article about [why I try to avoid using dataframes](../zods0_problem_with_dataframes.html). Dataframes are powerful because they are so versatile and flexible, but my argument was that rigorous data analysis code should introduce as much rigidity as possible to reduce the likelihood of mistakes. As an alternative, I suggested we implement data pipelines as transformations between custom object types - types you define yourself with (intentionally) limited functionality and readable structure. That said, as a professional social scientist who often has to analyze survey data, I recognize that sometimes dataframes are still the best tools for the job. In this article, I will explain how my suggested approaches can be used for dataframe-oriented pipelines. 
+Last year I wrote an article about [why I try to avoid using dataframes](zods0_problem_with_dataframes.html). Dataframes are powerful because they are so versatile and flexible, but my argument was that rigorous data analysis code should introduce as much rigidity as possible to reduce the likelihood of mistakes. As an alternative, I suggested we implement data pipelines as transformations between custom object types - types you define yourself with (intentionally) limited functionality and readable structure. That said, as a professional social scientist who often has to analyze survey data, I recognize that sometimes dataframes are still the best tools for the job. In this article, I will explain how my suggested approaches can be used for dataframe-oriented pipelines. 
 
 [Encapsulation](https://www.datacamp.com/tutorial/encapsulation-in-python-object-oriented-programming) is one of the most basic principles of object-oriented programming; it means bundling data elements with methods that operate on the data (fundamental to Python classes) and creating interfaces for working with those data elements rather than requiring users to access or modify that data directly. By encapsulating dataframes within custom types, we can create interfaces that (1) implicitly or explicitly enforce structure and (2) have clear interfaces for transformations that may be applied to our particular dataset. Now I'll use some Python examples to show how we can use this principle in our design patterns.
 
@@ -30,7 +30,7 @@ The first several rows of that dataframe look like this:
 
 ## Create Custom Types to Encapsulate the Dataframes
 
-Now we create a custom type to encapsulate this dataframe. We can do this by creating a new [dataclass](https://realpython.com/python-data-classes/) with a single attribute: the dataframe we are encapsulating (see also [my tips for writing effective dataclasses](../dsp0_patterns_for_dataclasses.html)). I will also add a `__repr__` method to make any output more readable. Note that here I'm using a variable name with a double underscore prefix "__" so that Python will strictly enforce encapsulation: the inner dataframe cannot be accessed from outside methods of this class. For most cases I believe this is overkill - you need not place that restriction unless you believe something could go very wrong.
+Now we create a custom type to encapsulate this dataframe. We can do this by creating a new [dataclass](https://realpython.com/python-data-classes/) with a single attribute: the dataframe we are encapsulating (see also [my tips for writing effective dataclasses](dsp0_patterns_for_dataclasses.html)). I will also add a `__repr__` method to make any output more readable. Note that here I'm using a variable name with a double underscore prefix "__" so that Python will strictly enforce encapsulation: the inner dataframe cannot be accessed from outside methods of this class. For most cases I believe this is overkill - you need not place that restriction unless you believe something could go very wrong.
 
     @dataclasses.dataclass
     class IrisData0:
@@ -94,9 +94,9 @@ This function returns a regular dataframe that can be manipulated however the us
 
 While this most basic example is trivial to implement, the improvement over using raw dataframes cannot be understated. Here are some of the benefits:
 
-1. _We gave it a name. This is so important._ This name can be used as a type hint for static analyzers or as an input library so that you know what kind of dataframe is expected. If you inspect the dataframe inside objects of this type, you will have certain expectations for what the underlying data will look like regaurdless of where it fits within your data pipeline.
+1. _We gave it a name. This is so important._ This name can be used as a type hint for static analyzers or as an input library so that you know what kind of dataframe is expected. If you inspect the dataframe inside objects of this type, you will have certain expectations for what the underlying data will look like regardless of where it fits within your data pipeline.
 
-2. _We restricted the ways that users can access the underlying data._ The user can only access the properties we defined on the object. From simply inspecting our object definition, we know that the user will never be able to change the column or index names, for instance, without changing the underlying dataframe being encapsulated. Because of this, we can gaurantee that the property `sepal_length` will always return the pandas series for that column, 
+2. _We restricted the ways that users can access the underlying data._ The user can only access the properties we defined on the object. From simply inspecting our object definition, we know that the user will never be able to change the column or index names, for instance, without changing the underlying dataframe being encapsulated. Because of this, we can guarantee that the property `sepal_length` will always return the pandas series for that column, 
 
 3. _We defined the transformations that may be applied to this data._ We know that `species_mean_dataframe` is the only transformation that will ever be applied to this dataframe directly. If you ever go back to change this class, you will know all use cases to support simply by looking at the object methods. A static analyzer can look _only_ at this object and know whether any of the methods will fail.
 
@@ -153,9 +153,9 @@ In this way, you could imagine a series of dataframe transformations being repre
 
 ## A Little Bookkeeping
 
-The example above shows the power of encapsulation, but we can create stronger gaurantees about the structure of the data from the input all the way through the pipeline by doing a little more bookkeeping. Recall that the optimal behavior for a buggy data pipeline is to fail fast and early. To do this, we can more explicitly keep track of structural features of the dataframe such as column names, and access attributes only through other objects or data tables. 
+The example above shows the power of encapsulation, but we can create stronger guarantees about the structure of the data from the input all the way through the pipeline by doing a little more bookkeeping. Recall that the optimal behavior for a buggy data pipeline is to fail fast and early. To do this, we can more explicitly keep track of structural features of the dataframe such as column names, and access attributes only through other objects or data tables. 
 
-For example, let us design a type which contains all of the column names that should appear in the input data. If we can gaurantee that the input data has all of these columns when it is ingested, we can make sure our program fails right away rather than waiting until we try to access the property. Here I create the classmethod `all` so we can grab the full list later.
+For example, let us design a type which contains all of the column names that should appear in the input data. If we can guarantee that the input data has all of these columns when it is ingested, we can make sure our program fails right away rather than waiting until we try to access the property. Here I create the classmethod `all` so we can grab the full list later.
 
     class IrisColNames:
         sepal_length = 'sepal_length'
@@ -195,7 +195,7 @@ The encapsulating object itself looks very similar to the previous example, exce
             return self.__class__(self.__df.query(f'{IrisColNames.species} == "{species}"'))
 
 
-Without enforcing these column names at ingestion, there is a potential for simple errors to propogate downstream and cause errors in the future. For instance, consider our first example of `IrisData0`. If the input data file had named the sepal length property `"sepal_len"` instead of `"sepal_length"`, we wouldn't know there was an error until we either accessed the `sepal_length` attribute or a related parameter downstream. Even worse, imagine the dataset is one that might be averaged downstream without first checking if all columns are present. We would have a significant error that goes silently through our data pipeline.
+Without enforcing these column names at ingestion, there is a potential for simple errors to propagate downstream and cause errors in the future. For instance, consider our first example of `IrisData0`. If the input data file had named the sepal length property `"sepal_len"` instead of `"sepal_length"`, we wouldn't know there was an error until we either accessed the `sepal_length` attribute or a related parameter downstream. Even worse, imagine the dataset is one that might be averaged downstream without first checking if all columns are present. We would have a significant error that goes silently through our data pipeline.
 
 Explicitly enumerating the columns associated with the input data takes more work but can also make your code more modular. Imagine that another way of Iris data is collected, but the format of the input data is slightly different: some of the column names are different. In this case, we may want to separate our column name sets into `IrisColNames2013` and `IrisColNames2024` types which both inherit from `BaseIrisColNames`. The `IrisData.from_dataframe` factory method constructor could then accept a subtype of `BaseIrisColNames` or you could create multiple constructor such as `from_2024_dataframe` which load the appropriate column name type but otherwise behaves the exact same. In either case, the user will be required to call the correct input parsing code for the given input data. 
 
