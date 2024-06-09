@@ -3,10 +3,13 @@ title: "Better Dataframes: Encapsulation"
 subtitle: "Using basic principles of encapsulation to improve the ways you work with tabular data."
 date: "June 8, 2024"
 id: "bdf1_encapsulation"
-blogroll_img_url: ""
+blogroll_img_url: "https://storage.googleapis.com/public_data_09324832787/better_dataframes_encapsulation.svg"
 ---
 
 Last year I wrote an article about [why I try to avoid using dataframes](zods0_problem_with_dataframes.html). Dataframes are powerful because they are so versatile and flexible, but my argument was that rigorous data analysis code should introduce as much rigidity as possible to reduce the likelihood of mistakes. As an alternative, I suggested we implement data pipelines as transformations between custom object types - types you define yourself with (intentionally) limited functionality and readable structure. That said, as a professional social scientist who often has to analyze survey data, I recognize that sometimes dataframes are still the best tools for the job. In this article, I will explain how my suggested approaches can be used for dataframe-oriented pipelines. 
+
+![Dataframe transformation visualization.](https://storage.googleapis.com/public_data_09324832787/better_dataframes_encapsulation.svg)
+
 
 [Encapsulation](https://www.datacamp.com/tutorial/encapsulation-in-python-object-oriented-programming) is one of the most basic principles of object-oriented programming; it means bundling data elements with methods that operate on the data (fundamental to Python classes) and creating interfaces for working with those data elements rather than requiring users to access or modify that data directly. By encapsulating dataframes within custom types, we can create interfaces that (1) implicitly or explicitly enforce structure and (2) have clear interfaces for transformations that may be applied to our particular dataset. Now I'll use some Python examples to show how we can use this principle in our design patterns.
 
