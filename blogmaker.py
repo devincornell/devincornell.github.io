@@ -64,7 +64,7 @@ class BlogPost:
     body: str
         
     @classmethod
-    def from_markdown_file(cls, fname: str, html_folder: str) -> BlogPost:
+    def from_markdown_file(cls, fname: str, html_folder: pathlib.Path) -> BlogPost:
         '''Read and parse a markdown file to create a post.'''
         
         fpath = pathlib.Path(fname)

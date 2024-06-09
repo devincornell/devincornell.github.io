@@ -15,37 +15,38 @@ if __name__ == '__main__':
         blogpost_template_fname = pathlib.Path('templates/blogpost_template.html'),
     )
 
-
-    posts = list()
-    html_folder = 'post/'
-    for fp in pathlib.Path('post_markdown/').glob('*.md'):
-        print('found post:',  fp)
-        
-        post = blogmaker.BlogPost.from_markdown_file(fp, html_folder)
-        print(f'{post.info()}\n')
-
-        html = bmaker.render_blogpost_page(post)
-        
-        with post.html_path.open('w') as f:
-            f.write(html)
+    # create posts
+    if False:
+        posts = list()
+        html_folder = 'post/'
+        for fp in pathlib.Path('post_markdown/').glob('*.md'):
+            print('found post:',  fp)
             
-        posts.append(post)
+            post = blogmaker.BlogPost.from_markdown_file(fp, html_folder)
+            print(f'{post.info()}\n')
+
+            html = bmaker.render_blogpost_page(post)
+            
+            with post.html_path.open('w') as f:
+                f.write(html)
+                
+            posts.append(post)
+            
+        br_html = bmaker.render_blogroll_page(posts)
+        with pathlib.Path(f'blog.html').open('w') as f:
+            f.write(br_html)
         
-    br_html = bmaker.render_blogroll_page(posts)
-    with pathlib.Path(f'blog.html').open('w') as f:
-        f.write(br_html)
-    
-    
-    
-    draft_folder = 'draft/'
-    for fp in pathlib.Path('draft_markdown/').glob('*.md'):
-        print('found draft:',  fp)
-        
-        post = blogmaker.BlogPost.from_markdown_file(fp, draft_folder)
-        html = bmaker.render_blogpost_page(post)
-        
-        with post.html_path.open('w') as f:
-            f.write(html)
+    # create draft articles
+    if True:
+        draft_folder = 'draft/'
+        for fp in pathlib.Path('draft_markdown/').glob('*.md'):
+            print('found draft:',  fp)
+            
+            post = blogmaker.BlogPost.from_markdown_file(fp, draft_folder)
+            html = bmaker.render_blogpost_page(post)
+            
+            with post.html_path.open('w') as f:
+                f.write(html)
 
         
 
