@@ -6,7 +6,7 @@ id: "intro_to_static_factory_methods"
 blogroll_img_url: "https://storage.googleapis.com/public_data_09324832787/dataclasses.svg"
 ---
 
-Over the last several decades, we have seen a shift towards programming patterns that place data first. The strong interest in data analysis means that young programmers are being trained to think of objects as containers for data rather than maintainers of system state. At its core, this is a shift away from complicated inheritance heirarchies towards using classes more like structs, or basic data containers with minimal inheritance and constructors that primarily serve to pass data into the containers. Instead, analysts can use factory constructor method patterns to instantiate data objects from different types and with different argument types. In this article I will discuss the advantages of using these patterns and show some real-world applications where these are likley the most elegant solution.
+Over the last several decades, we have seen a shift towards programming patterns that place data first. The strong interest in data analysis means that young programmers are being trained to think of objects as containers for data rather than maintainers of system state. At its core, this is a shift away from complicated inheritance hierarchies towards using classes more like structs, or basic data containers with minimal inheritance and constructors that primarily serve to pass data into the containers. Instead, analysts can use factory constructor method patterns to instantiate data objects from different types and with different argument types. In this article I will discuss the advantages of using these patterns and show some real-world applications where these are likely the most elegant solution.
 
 A ***static factory method*** is simply a class method which returns an instance of the object. A single class can have multiple static factory methods, and they may all accept different combinations of parameters. These are some of the benefits of using static factory methods over overriding `__init__`.
 
@@ -42,7 +42,7 @@ We can instantiate the object using `__init__` by passing both `x` and `y` in th
 
     Coord(0.0, 0.0)
 
-The simplest possible static factory method could create an instance using no parameters at all. The coordinate where `x` and `y` equal zero is especially important in many scenarios, so lets say we want to create a static factory method so that every calling function need not use the literal 0.0 as parameters.
+The simplest possible static factory method could create an instance using no parameters at all. The coordinate where `x` and `y` equal zero is especially important in many scenarios, so let us say we want to create a static factory method so that every calling function need not use the literal 0.0 as parameters.
         
         @classmethod
         def zero(cls) -> typing.Self:
@@ -68,7 +68,7 @@ Now let us say we want a static factory method that includes data not meant to b
 
 ### Situational Validation
 
-As another example, imagine we want to add validation code when instantiating in some scenarios, but not in others. One approach could be to add a `validate: bool` flag to the constructor, but we face the same readability point mentioned above. Instead we can use a static factory method: when the user does not need to validate the input (or perhaps the first case where they might expect invalid data), they can use `__init__`, otherwise, they can use a static factory method.
+As another example, imagine we want to add validation code when instantiating in some scenarios, but not in others. One approach could be to add a `validate: bool` flag to the constructor, but we face the same readability point mentioned above. , we can use a static factory method: when the user does not need to validate the input (or perhaps the first case where they might expect invalid data), they can use `__init__`, otherwise, they can use a static factory method.
 
 Here I demonstrate by creating a function which first makes sure that both `x` and `y` are finite values. This method should be used when coordinates with infinite values may be expected but not desired.
 
@@ -90,7 +90,7 @@ At times, the value of some parameters might be inferred or dependent on other p
         def from_quadratic(cls, x: float) -> typing.Self:
             return cls(x=x, y=x**2)
 
-Static factory methods can allow for more complicated relationships between the inputs and stored variables. In this example, we can instantiate the coord from [polar coordinates](https://www.mathsisfun.com/polar-cartesian-coordinates.html), and neither inputs are stored directly.
+Static factory methods can allow for more complicated relationships between the inputs and stored variables. In this example, we can instantiate the coord from [polar coordinates](https://www.mathsisfun.com/polar-cartesian-coordinates.html), and neither input is stored directly.
 
         @classmethod
         def from_polar(cls, r: float, theta: float) -> typing.Self:
@@ -130,7 +130,7 @@ The function that wants to raise this exception should include the error code th
     except MyError1 as e:
         print(e.error_code)
 
-Note that we could create an exception heirarchy tree that allows us to get more specific, but too many custom exceptions can add a lot of clutter to your codebase.
+Note that we could create an exception hierarchy tree that allows us to get more specific, but too many custom exceptions can add a lot of clutter to your codebase.
 
 ### The static factory method approach
 

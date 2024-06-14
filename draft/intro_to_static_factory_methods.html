@@ -64,7 +64,7 @@
             <div class="container px-4 px-lg-5">
                 <div class="row gx-4 gx-lg-5 justify-content-center">
                     <div class="col-md-10 col-lg-8 col-xl-7">
-                        <p>Over the last several decades, we have seen a shift towards programming patterns that place data first. The strong interest in data analysis means that young programmers are being trained to think of objects as containers for data rather than maintainers of system state. At its core, this is a shift away from complicated inheritance heirarchies towards using classes more like structs, or basic data containers with minimal inheritance and constructors that primarily serve to pass data into the containers. Instead, analysts can use factory constructor method patterns to instantiate data objects from different types and with different argument types. In this article I will discuss the advantages of using these patterns and show some real-world applications where these are likley the most elegant solution.</p>
+                        <p>Over the last several decades, we have seen a shift towards programming patterns that place data first. The strong interest in data analysis means that young programmers are being trained to think of objects as containers for data rather than maintainers of system state. At its core, this is a shift away from complicated inheritance hierarchies towards using classes more like structs, or basic data containers with minimal inheritance and constructors that primarily serve to pass data into the containers. Instead, analysts can use factory constructor method patterns to instantiate data objects from different types and with different argument types. In this article I will discuss the advantages of using these patterns and show some real-world applications where these are likely the most elegant solution.</p>
 <p>A <strong><em>static factory method</em></strong> is simply a class method which returns an instance of the object. A single class can have multiple static factory methods, and they may all accept different combinations of parameters. These are some of the benefits of using static factory methods over overriding <code>__init__</code>.</p>
 <ul>
 <li>The object knows how to create itself - it can contain any logic used to prepare the data to be stored.</li>
@@ -93,7 +93,7 @@ class Coord:
 <p>We can instantiate the object using <code>__init__</code> by passing both <code>x</code> and <code>y</code> in the calling function.</p>
 <pre><code>Coord(0.0, 0.0)
 </code></pre>
-<p>The simplest possible static factory method could create an instance using no parameters at all. The coordinate where <code>x</code> and <code>y</code> equal zero is especially important in many scenarios, so lets say we want to create a static factory method so that every calling function need not use the literal 0.0 as parameters.</p>
+<p>The simplest possible static factory method could create an instance using no parameters at all. The coordinate where <code>x</code> and <code>y</code> equal zero is especially important in many scenarios, so let us say we want to create a static factory method so that every calling function need not use the literal 0.0 as parameters.</p>
 <pre><code>    @classmethod
     def zero(cls) -&gt; typing.Self:
         return cls(x=0.0,y=0.0)
@@ -112,7 +112,7 @@ class Coord:
         return o
 </code></pre>
 <h3>Situational Validation</h3>
-<p>As another example, imagine we want to add validation code when instantiating in some scenarios, but not in others. One approach could be to add a <code>validate: bool</code> flag to the constructor, but we face the same readability point mentioned above. Instead we can use a static factory method: when the user does not need to validate the input (or perhaps the first case where they might expect invalid data), they can use <code>__init__</code>, otherwise, they can use a static factory method.</p>
+<p>As another example, imagine we want to add validation code when instantiating in some scenarios, but not in others. One approach could be to add a <code>validate: bool</code> flag to the constructor, but we face the same readability point mentioned above. , we can use a static factory method: when the user does not need to validate the input (or perhaps the first case where they might expect invalid data), they can use <code>__init__</code>, otherwise, they can use a static factory method.</p>
 <p>Here I demonstrate by creating a function which first makes sure that both <code>x</code> and <code>y</code> are finite values. This method should be used when coordinates with infinite values may be expected but not desired.</p>
 <pre><code>    @classmethod
     def new_finite(cls, x: float, y: float) -&gt; typing.Self:
@@ -130,7 +130,7 @@ class Coord:
     def from_quadratic(cls, x: float) -&gt; typing.Self:
         return cls(x=x, y=x**2)
 </code></pre>
-<p>Static factory methods can allow for more complicated relationships between the inputs and stored variables. In this example, we can instantiate the coord from <a href="https://www.mathsisfun.com/polar-cartesian-coordinates.html">polar coordinates</a>, and neither inputs are stored directly.</p>
+<p>Static factory methods can allow for more complicated relationships between the inputs and stored variables. In this example, we can instantiate the coord from <a href="https://www.mathsisfun.com/polar-cartesian-coordinates.html">polar coordinates</a>, and neither input is stored directly.</p>
 <pre><code>    @classmethod
     def from_polar(cls, r: float, theta: float) -&gt; typing.Self:
         return cls(
@@ -160,7 +160,7 @@ Coord.from_polar(1.0, math.pi / 3)
 except MyError1 as e:
     print(e.error_code)
 </code></pre>
-<p>Note that we could create an exception heirarchy tree that allows us to get more specific, but too many custom exceptions can add a lot of clutter to your codebase.</p>
+<p>Note that we could create an exception hierarchy tree that allows us to get more specific, but too many custom exceptions can add a lot of clutter to your codebase.</p>
 <h3>The static factory method approach</h3>
 <p>Alternatively, we can create a static factory method that will instantiate the object using the default constructor and then bind the additional data. This way we do not need to provide <code>__super__</code>, and all subclasses can either use this method or define another, more specific method. Here I create a low-level method to bind the additional data, then two higher-level methods to generate the error code more specifically.</p>
 <pre><code>class MyError2(Exception):
