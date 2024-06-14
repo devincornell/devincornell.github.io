@@ -1,12 +1,15 @@
 ---
 title: "Introduction to Static Factory Methods"
-subtitle: "A brief overview of methods used to initialize custom types."
+subtitle: "Change the way you initialize custom types."
 date: "June 14, 2024"
 id: "intro_to_static_factory_methods"
-blogroll_img_url: "https://storage.googleapis.com/public_data_09324832787/dataclasses.svg"
+blogroll_img_url: "https://storage.googleapis.com/public_data_09324832787/static_factory_methods.svg"
 ---
 
 Over the last several decades, we have seen a shift towards programming patterns that place data first. The strong interest in data analysis means that young programmers are being trained to think of objects as containers for data rather than maintainers of system state. At its core, this is a shift away from complicated inheritance hierarchies towards using classes more like structs, or basic data containers with minimal inheritance and constructors that primarily serve to pass data into the containers. Instead, analysts can use factory constructor method patterns to instantiate data objects from different types and with different argument types. In this article I will discuss the advantages of using these patterns and show some real-world applications where these are likely the most elegant solution.
+
+![Static factory method diagram.](https://storage.googleapis.com/public_data_09324832787/static_factory_methods.svg)
+
 
 A ***static factory method*** is simply a class method which returns an instance of the object. A single class can have multiple static factory methods, and they may all accept different combinations of parameters. These are some of the benefits of using static factory methods over overriding `__init__`.
 
