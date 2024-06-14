@@ -1,6 +1,6 @@
 ---
 title: "Higher Order Objects and Project Managment"
-subtitle: "Strategies for managing large projects with many objects and complicated relationships."
+subtitle: "How you can use static factory methods to create more robust exception types."
 date: "Sept 5, 2023"
 id: "dsp2_more_complicated_projects"
 ---

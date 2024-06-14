@@ -16,7 +16,7 @@ if __name__ == '__main__':
     )
 
     # create posts
-    if True:
+    if False:
         posts = list()
         html_folder = 'post/'
         for fp in pathlib.Path('post_markdown/').glob('*.md'):
