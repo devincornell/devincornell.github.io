@@ -1,32 +1,30 @@
 ---
 title: "Introduction to Static Factory Constructor Methods"
-subtitle: "Change the way you initialize custom types."
+subtitle: "Change the way you initialize custom types in Python."
 date: "June 14, 2024"
 id: "intro_to_static_factory_constructor_methods"
 blogroll_img_url: "https://storage.googleapis.com/public_data_09324832787/static_factory_methods.svg"
 ---
 
-Over the last several decades, we have seen a shift towards programming patterns that place data first. The strong interest in data analysis means that young programmers are being trained to think of objects as containers for data rather than maintainers of system state. At its core, this is a shift away from complicated inheritance hierarchies towards using classes more like structs, or basic data containers with minimal inheritance and constructors that primarily serve to pass data into the containers. Instead, analysts can use static factory constructor method patterns to instantiate data objects from different types and with different argument types. In this article I will discuss the advantages of using these patterns and show some real-world applications where these are likely the most elegant solution.
+In this article, I show how we can use static factory constructor methods to initialize types instead of including complicated logic in `__init__` methods. A ***static factory constructor method*** (SFCM hereafter) is simply a static method which returns an instance of the object that implements it. A single class can have multiple SFCMs that accept different parameters, and the methods should contain any logic needed to initialize the object. While these methods are common in many software engineering applications, I believe they are especially important in data analysis code because they fit well with the way data flows through your program.
 
 ![Static factory constructor method diagram.](https://storage.googleapis.com/public_data_09324832787/static_factory_methods.svg)
 
+Here are a few benefits of implementing SFCMs for any type.
 
-A ***static factory constructor method*** is simply a class method which returns an instance of the object. A single class can have multiple static factory constructor methods, and they may all accept different combinations of parameters. These are some of the benefits of using static factory methods over overriding `__init__`.
++ A class can have multiple SFCMs, and therefore can be initialized in different ways from different source types. This means that the reader can easily see in the source code the various way the object may be initialized and the data from which it can be derived.
++ SFCM paramters can include data that is not intended to be stored in the object but is otherwise needed for initalization. This reduces the cases where partial/multi-stage initialization is the best option.
++ SFCMs are a superior alternative to overriding constructor methods when using inheritance. Subclasses can call SFCMs of parent classes explicitly instead of using `super()` or otherwise referring to the parent class (which may be especially useful in multiple-inheritance scenarios). This solves a number of challenges involved when inheriting from built-in types.
 
-+ The object knows how to create itself - it can contain any logic used to prepare the data to be stored.
-+ Classes can include multiple methods for instantiation; that is, they can be created form multiple different sources.
-+ The reader can tell from which kinds of data the objects are derived
-+ It is explicit: `__init__` functions need not contain large parameter sets to determine the method for construction.
-+ Paramters can include data that is not intended to be stored in the object.
+If we look at the flow of data through our programs, you can see that SFCMs can handle all logic involved with transforming data from one type to another. As all data pipelines essentially follow the structure shown in the diagram below, we can see how SFCMs could be ubiquitous in your code.
 
+![Data flow control diagram.](https://storage.googleapis.com/public_data_09324832787/sfcm_data_flow.svg)
 
 ## Some Examples
 
 Now I'll show some examples of static factory constructor methods in Python. We typically create these methods using the `@classmethod` parameter, and they always return an instance of the containing class.
 
-### Initializing Common Values
-
-For example purposes, let us start by creating the most basic container object: a coordinate with `x` and `y` attributes. Users may more easily replicate this behavior using the [`dataclasses`](https://docs.python.org/3/library/dataclasses.html) module, but in this case the definition is very simple anyways. The `__init__` method simply takes `x` and `y` parameters and stores them as attributes. I include `x` and `y` as part of the definition to support type checkers.
+For example purposes, let us start by creating the most basic container object: a coordinate with `x` and `y` attributes. Users may more easily replicate this behavior using the [`dataclasses`](https://docs.python.org/3/library/dataclasses.html) module, but in this case the definition is very simple anyways. The `__init__` method simply takes `x` and `y` parameters and stores them as attributes. I include `x` and `y` as part of the definition to support type checkers. I also create basic `__repr__` and `__add__` methods.
 
     import typing
     import math
@@ -41,6 +39,14 @@ For example purposes, let us start by creating the most basic container object: 
         def __repr__(self) -> str:
             return f'{self.__class__.__name__}(x={self.x}, y={self.y})'
 
+        def __add__(self, other: typing.Self) -> typing.Self:
+            return self.__class__(
+                x = self.x + other.x,
+                y = self.y + other.y,
+            )
+
+### Initializing with Common Values
+
 We can instantiate the object using `__init__` by passing both `x` and `y` in the calling function.
 
     Coord(0.0, 0.0)
@@ -53,7 +59,7 @@ The simplest possible static factory method could create an instance using no pa
 
 Calling `Coord.zero()` is cleaner than assigning `x = 0.0` and `y = 0.0` every time you need this coordinate.
 
-### Non-data Parameters
+### Use Non-data Parameters
 
 Now let us say we want a static factory method that includes data not meant to be stored in the object. Adding a `verbose` flag to the `__init__` method makes it a little unclear how it may be used. If the parameter is included in `__init__` for an otherwise data-only class, the user may assume that value will be stored and thus used later. If the flag is only included in the static factory method but not in the `__init__` method, we can guess that it may only be used on instantiation.
 
@@ -110,6 +116,46 @@ In the output we can see the computed result.
 
 From these simple examples you can imagine a wide range of use cases where this might be the best solution. I will now show some of the most common.
 
+### Instantiating Child Classes
+
+While inheritance should be used sparingly (consider composition-oriented approaches instead), they can be great in situations where you want to extend a class by adding new methods - including SFCMs. In this example, say we want to create a new coordinate type representing a coordinate which is derived from other coordinates. I create a new subclass with a new SFCM that relies on the previously created `.zero()` method. Only the new type has access to the new SFCM, but it can rely on SFCMs from the base class.
+
+    class ResultCoord(Coord):
+        '''Coordinate that results from an operation between other coordinates.'''
+        @classmethod
+        def from_sum_of_coords(cls, coords: typing.List[Coord]) -> typing.Self:
+            return sum(coords, start=cls.zero())
+
+    ResultCoord.from_sum_of_coords([Coord(0,1), Coord(10,4), Coord(11, 100)])
+
+### Returning Multiple Instances
+
+In cases where it may be too tedious to create [custom collection types](dsp1_data_collection_types.html), SFCMs can be used to return collections of the implementing type. As an example, say we want to return a set of coordinates created by the reflection of the original point across the x and y axes. In that case, we can return a set of instances representing the desired coordinates.
+
+        @classmethod
+        def from_reflected(cls, x: float, y: float) -> typing.List[typing.Self]:
+            return [
+                cls(x = x, y = y),
+                cls(x = -x, y = y),
+                cls(x = x, y = -y),
+                cls(x = -x, y = -y),
+            ]
+
+### Inheriting from Build-in Types
+
+SFCMs can be especially useful when creating types that inherit from built-in types. The following class inherits from the built-in `typing.List` type and is intended to store coordinates. The new type acts like a regular list except for the addition of the SFCM, which is especially useful because it can call the constructor (or another SFCM) of the contained type. Whenever the new collection appears, the reader knows it should contain only coordinates and should be created using a SFCM.
+
+    class Coords(typing.List[Coord]):
+        @classmethod
+        def from_reflected_points(cls, x: float, y: float) -> typing.List[typing.Self]:
+            return cls([
+                Coord(x = x, y = y),
+                Coord(x = -x, y = y),
+                Coord(x = x, y = -y),
+                Coord(x = -x, y = -y),
+            ])
+    Coords.from_reflected_points(1, 1)
+
 
 
 
@@ -117,7 +163,11 @@ From these simple examples you can imagine a wide range of use cases where this 
 
 Now I will discuss one higher-level application of static factory methods: creating custom exceptions.
 
-Start with an example where we want to create a custom exception that includes additional data to be used when it is caught up the call stack. We see this, for instance, in the `requests` module when raising generic HTTP errors: the request and response (along with HTTP error code) are attached to the exception type. One way to implement this is to override `__init__` to call `super().__init__` and then add the attribute dynamically. Every class can only have one `__init__` method, and so all users of this exception must provide the same data; in this case, only the error code, but in more complicated scenarios the downstream user may need to do more work.
+Start with an example where we want to create a custom exception that includes additional data to be used when it is caught up the call stack. We see this, for instance, in the `requests` module when raising generic HTTP errors: the request and response (along with HTTP error code) are attached to the exception type.
+
+### Overriding `__init__`
+
+One way to implement this is to override `__init__` to call `super().__init__` and then add the attribute dynamically. Every class can only have one `__init__` method, and so all users of this exception must provide the same data; in this case, only the error code, but in more complicated scenarios the downstream user may need to do more work.
 
     class MyError1(Exception):
         error_code: int
@@ -170,7 +220,14 @@ The benefit of this approach is that error codes can all be internally managed b
 
 ## In Conclusion
 
-Static factory methods can be the best option in a wide range of scenarios, and I recommend considering them in cases where you feel limited by having a single `__init__` function or you are doing a lot of work to transform data prior to instantiation.
+SFCMs are widely applicable in a number of data-oriented software design patterns, and I highly recommend integrating them into your workflow.
+
+I have also mentioned using SFCMs in a number of other articles you can check out.
+
++ [Are Data Frames too flexible?](zods0_problem_with_dataframes.html)
++ [Patterns and Antipatterns for Dataclasses](dsp1_data_collection_types.html)
++ [Patterns for data collection types](dsp1_data_collection_types.html)
+
 
 
 
