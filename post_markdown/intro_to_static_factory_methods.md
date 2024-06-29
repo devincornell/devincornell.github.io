@@ -141,7 +141,7 @@ In cases where it may be too tedious to create [custom collection types](dsp1_da
                 cls(x = -x, y = -y),
             ]
 
-### Inheriting from Build-in Types
+### Inheriting from Built-in Types
 
 SFCMs can be especially useful when creating types that inherit from built-in types. The following class inherits from the built-in `typing.List` type and is intended to store coordinates. The new type acts like a regular list except for the addition of the SFCM, which is especially useful because it can call the constructor (or another SFCM) of the contained type. Whenever the new collection appears, the reader knows it should contain only coordinates and should be created using a SFCM.
 

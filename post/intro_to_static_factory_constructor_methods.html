@@ -172,7 +172,7 @@ ResultCoord.from_sum_of_coords([Coord(0,1), Coord(10,4), Coord(11, 100)])
             cls(x = -x, y = -y),
         ]
 </code></pre>
-<h3>Inheriting from Build-in Types</h3>
+<h3>Inheriting from Built-in Types</h3>
 <p>SFCMs can be especially useful when creating types that inherit from built-in types. The following class inherits from the built-in <code>typing.List</code> type and is intended to store coordinates. The new type acts like a regular list except for the addition of the SFCM, which is especially useful because it can call the constructor (or another SFCM) of the contained type. Whenever the new collection appears, the reader knows it should contain only coordinates and should be created using a SFCM.</p>
 <pre><code>class Coords(typing.List[Coord]):
     @classmethod
