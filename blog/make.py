@@ -33,7 +33,7 @@ if __name__ == '__main__':
             posts.append(post)
             
         br_html = bmaker.render_blogroll_page(posts)
-        with pathlib.Path(f'blog.html').open('w') as f:
+        with pathlib.Path(f'index.html').open('w') as f:
             f.write(br_html)
         
     # create draft articles
