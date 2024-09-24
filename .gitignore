@@ -5,6 +5,8 @@ __pycache__/
 *.lprof
 *.py[cod]
 *$py.class
+*.tar.gz
+*/maildir/*
 
 # C extensions
 *.so
