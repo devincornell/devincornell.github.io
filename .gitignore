@@ -5,8 +5,6 @@ __pycache__/
 *.lprof
 *.py[cod]
 *$py.class
-*.tar.gz
-
 
 # C extensions
 *.so
