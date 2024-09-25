@@ -1,6 +1,6 @@
 ---
 title: "The Future of AI for Organizations: Integrating Systems through Large Language Models"
-subtitle: ""
+subtitle: "Investment in AI is about more than investing in AI technology itself - it is about investing in the ecosystem of technologies and human processes that make organizations unique."
 date: "Sept 24, 2024"
 id: "llm_integrating_systems"
 blogroll_img_url: "https://storage.googleapis.com/public_data_09324832787/llm_integrating_systems/llm_as_hci.png"
