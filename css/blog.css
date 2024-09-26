@@ -3904,10 +3904,6 @@ textarea.form-control-lg {
   font-size: 1.5rem;
   white-space: nowrap;
 }
-.navbar-brand .navbar-brand-dark {
-  color:#2d2d2d;
-  font-weight: 400;
-}
 .navbar-nav {
   display: flex;
   flex-direction: column;
@@ -10623,8 +10619,8 @@ blockquote {
   #mainNav .navbar-brand {
     color: #fff;
   }
-  #mainNav .navbar-brand a {
-    color: #fff;
+  #mainNav span.navbar-brand {
+    color: #2d2d2d;
   }
   #mainNav .navbar-brand:focus, #mainNav .navbar-brand:hover {
     color: rgba(255, 255, 255, 0.8);
