@@ -10618,6 +10618,9 @@ blockquote {
   #mainNav .navbar-brand {
     color: #fff;
   }
+  #mainNav .navbar-brand a {
+    color: #fff;
+  }
   #mainNav .navbar-brand:focus, #mainNav .navbar-brand:hover {
     color: rgba(255, 255, 255, 0.8);
   }
@@ -10720,7 +10723,7 @@ header.masthead .post-heading .subheading {
 }
 header.masthead .post-heading .subheading {
   font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: 400;
   margin: 0.75rem 0 2rem;
   font-family: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
@@ -10747,6 +10750,7 @@ header.masthead .site-heading .h1 {
   }
   header.masthead .post-heading h1, header.masthead .post-heading .h1 {
     font-size: 2.0rem;
+    margin-top: 2.0rem;
   }
   header.masthead .post-heading .subheading {
     font-size: 1.1rem;
