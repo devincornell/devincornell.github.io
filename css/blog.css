@@ -10599,6 +10599,13 @@ blockquote {
 #mainNav .navbar-brand {
   font-weight: 800;
 }
+#mainNav .navbar-brand p {
+  color: #2d2d2d;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  padding-top: 1 rem;
+  padding-bottom: 1 rem;
+}
 #mainNav .navbar-toggler {
   font-size: 0.75rem;
   font-weight: 800;
@@ -10611,16 +10618,17 @@ blockquote {
   letter-spacing: 0.0625em;
   text-transform: uppercase;
 }
-@media (min-width: 992px) {
+@media (min-width: 992px) { /* all this is applied in desktop browser */
   #mainNav {
     border-bottom: 1px solid transparent;
     background: transparent;
   }
-  #mainNav .navbar-brand {
-    color: #fff;
-  }
-  #mainNav div.navbar-brand {
+  #mainNav .navbar-brand p {
     color: #2d2d2d;
+  }
+  #mainNav .navbar-brand p a {
+    color: #fff;
+    text-decoration: none;
   }
   #mainNav .navbar-brand:focus, #mainNav .navbar-brand:hover {
     color: rgba(255, 255, 255, 0.8);
