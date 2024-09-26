@@ -34,15 +34,15 @@ These are the types of things I expect that LLMs should be able to do.
 
 + Send messages or create posts that include contents of work.
     
-    _Create a line plot from the most recent financial trend data, summarize the chart in three bullet points, and send it as an email to my team._
+        _Create a line plot from the most recent financial trend data, summarize the chart in three bullet points, and send it as an email to my team._
 
 + Create complex queries for information across all platforms.
     
-    _Has anyone asked me on Slack or Email to get back to them or complete some task by EOD today?_
+        _Has anyone asked me on Slack or Email to get back to them or complete some task by EOD today?_
 
 + Create summaries of activity levels or status of the company as well.
     
-    _Produce a status report on the overall level of activity in the organization broken down by weekday._
+        _Produce a status report on the overall level of activity in the organization broken down by weekday._
 
 It is not difficult to imagine the wide range of functionality this could provide - the LLMs are limited only by the information platforms they can access through the LLM. Giving an LLM access to these systems involves enabling their functionality as Application Programming Interfaces, or APIs, which allow other programs to do things like send/receive messages without opening the software interface itself. The LLM essentially just requires information about the various capabilities and information needed to execute each task, and it can make decisions about which actions to perform and what data to send based on queries from the user. ChatGPT, for instance, refers to these API interfaces as “Actions”.
 
