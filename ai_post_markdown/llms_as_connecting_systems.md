@@ -68,7 +68,7 @@ I expect the LLM would be able to perform these types of tasks.
 
 + Run analyses to test hypotheses.
    
-   _Create a regression model predicting time spent on our company website from the user’s age, controlling for user account type._
+    _Create a regression model predicting time spent on our company website from the user’s age, controlling for user account type._
 
 The technology that is most relevant to this work is generally referred to as “code interpretation”. The ability to convert human commands into arbitrary computer instructions, or code generation, has been well-established - in fact, many LLMs are specifically designed to write code. The next step is to be able to execute the generated code on the computer to produce analyses. The technology available to us today is at the level where it can write fairly sophisticated code for data analysis, and we can expect this to get much better over time.
 
