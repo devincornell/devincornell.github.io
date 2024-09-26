@@ -10597,14 +10597,18 @@ blockquote {
   font-family: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 #mainNav .navbar-brand {
-  text-decoration: none;
   font-weight: 800;
+  font-size: 1.1rem;
   color: #2d2d2d;
-  margin-top: 1rem;
-  margin-bottom: 1rem;
+  margin-top: 0.0rem;
+  margin-bottom: 0.0rem;
   padding-top: 1rem;
   padding-bottom: 1rem;
 }
+#mainNav .navbar-brand a {
+  text-decoration: none;
+}
+
 #mainNav .navbar-toggler {
   font-size: 0.75rem;
   font-weight: 800;
@@ -10680,7 +10684,7 @@ footer {
 header.masthead {
   position: relative;
   margin-bottom: 0rem; /*modified!*/
-  padding-top: calc(1rem + 57px); /*modified!*/
+  padding-top: 6rem; /*modified!*/
   padding-bottom: 1rem; /*modified!*/
   background: no-repeat center center;
   background-color: #6c757d;
