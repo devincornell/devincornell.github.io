@@ -10619,7 +10619,7 @@ blockquote {
   #mainNav .navbar-brand {
     color: #fff;
   }
-  #mainNav span.navbar-brand {
+  #mainNav div.navbar-brand {
     color: #2d2d2d;
   }
   #mainNav .navbar-brand:focus, #mainNav .navbar-brand:hover {
