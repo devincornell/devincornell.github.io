@@ -10597,14 +10597,13 @@ blockquote {
   font-family: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 #mainNav .navbar-brand {
+  text-decoration: none;
   font-weight: 800;
-}
-#mainNav .navbar-brand p {
   color: #2d2d2d;
   margin-top: 1rem;
   margin-bottom: 1rem;
-  padding-top: 1 rem;
-  padding-bottom: 1 rem;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
 }
 #mainNav .navbar-toggler {
   font-size: 0.75rem;
@@ -10623,12 +10622,11 @@ blockquote {
     border-bottom: 1px solid transparent;
     background: transparent;
   }
-  #mainNav .navbar-brand p {
+  #mainNav .navbar-brand {
     color: #2d2d2d;
   }
-  #mainNav .navbar-brand p a {
+  #mainNav .navbar-brand a {
     color: #fff;
-    text-decoration: none;
   }
   #mainNav .navbar-brand:focus, #mainNav .navbar-brand:hover {
     color: rgba(255, 255, 255, 0.8);
