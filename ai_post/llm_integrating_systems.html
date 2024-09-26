@@ -87,18 +87,15 @@
 <ul>
 <li>
 <p>Send messages or create posts that include contents of work.</p>
-<pre><code>_Create a line plot from the most recent financial trend data, summarize the chart in three bullet points, and send it as an email to my team._
-</code></pre>
+<p><em>Create a line plot from the most recent financial trend data, summarize the chart in three bullet points, and send it as an email to my team.</em></p>
 </li>
 <li>
 <p>Create complex queries for information across all platforms.</p>
-<pre><code>_Has anyone asked me on Slack or Email to get back to them or complete some task by EOD today?_
-</code></pre>
+<p><em>Has anyone asked me on Slack or Email to get back to them or complete some task by EOD today?</em></p>
 </li>
 <li>
 <p>Create summaries of activity levels or status of the company as well.</p>
-<pre><code>_Produce a status report on the overall level of activity in the organization broken down by weekday._
-</code></pre>
+<p><em>Produce a status report on the overall level of activity in the organization broken down by weekday.</em></p>
 </li>
 </ul>
 <p>It is not difficult to imagine the wide range of functionality this could provide - the LLMs are limited only by the information platforms they can access through the LLM. Giving an LLM access to these systems involves enabling their functionality as Application Programming Interfaces, or APIs, which allow other programs to do things like send/receive messages without opening the software interface itself. The LLM essentially just requires information about the various capabilities and information needed to execute each task, and it can make decisions about which actions to perform and what data to send based on queries from the user. ChatGPT, for instance, refers to these API interfaces as “Actions”.</p>
@@ -109,18 +106,18 @@
 <p>I expect the LLM would be able to perform these types of tasks.</p>
 <ul>
 <li>
-<p>Describe the types of data that are available in the current systems.
-    <em>I am looking for data about how long users spend browsing different pages on our corporate website. What is available to me?</em></p>
+<p>Describe the types of data that are available in the current systems.</p>
+<p><em>I am looking for data about how long users spend browsing different pages on our corporate website. What is available to me?</em></p>
 </li>
 <li>
-<p>Create visualizations.
-    <em>Create a bar chart comparing the time spent on our company website based on the type of user account they have.</em></p>
+<p>Create visualizations.</p>
+<p><em>Create a bar chart comparing the time spent on our company website based on the type of user account they have.</em></p>
 </li>
 <li>
-<p>Run analyses to test hypotheses.
-    <em>Create a regression model predicting time spent on our company website from the user’s age, controlling for user account type.</em></p>
+<p>Run analyses to test hypotheses.</p>
 </li>
 </ul>
+<p><em>Create a regression model predicting time spent on our company website from the user’s age, controlling for user account type.</em></p>
 <p>The technology that is most relevant to this work is generally referred to as “code interpretation”. The ability to convert human commands into arbitrary computer instructions, or code generation, has been well-established - in fact, many LLMs are specifically designed to write code. The next step is to be able to execute the generated code on the computer to produce analyses. The technology available to us today is at the level where it can write fairly sophisticated code for data analysis, and we can expect this to get much better over time.</p>
 <p>In theory, this technology has the potential to replace data analysts and data engineers because anyone can run the kinds of analysis they currently perform, but in practice it will probably lead to more of a shift in their work: these roles will be more about designing data interfaces and producing accurate metadata so that humans can perform analyses without knowing the internal structure of the data. When a manager wants to see certain information, they can create visualizations or models themselves as long as the source data is made available to them.</p>
 <h1>Organizational Policies</h1>
@@ -129,24 +126,24 @@
 <p>These are examples of tasks that the AI should be able to perform with administrative documents.</p>
 <ul>
 <li>
-<p>Query information from the documents.
-    <em>What is the company policy on paternity leave?</em></p>
+<p>Query information from the documents.</p>
+<p><em>What is the company policy on paternity leave?</em></p>
 </li>
 <li>
-<p>Summarize information for those that are unfamiliar with the documents.
-    <em>Summarize the contents of the company social media policy.</em></p>
+<p>Summarize information for those that are unfamiliar with the documents.</p>
+<p><em>Summarize the contents of the company social media policy.</em></p>
 </li>
 <li>
-<p>Infer meta-information such as the purpose of the documents and the situations in which users may require particular knowledge.
-    <em>Yesterday I posted a social media post that got a lot of critical engagement online. Could I be at risk with the company due to the things I said there?</em></p>
+<p>Infer meta-information such as the purpose of the documents and the situations in which users may require particular knowledge.</p>
+<p><em>Yesterday I posted a social media post that got a lot of critical engagement online. Could I be at risk with the company due to the things I said there?</em></p>
 </li>
 <li>
-<p>Identify important/unusual sections to generate new employee training content.
-    <em>Is there anything in the social media policy that might be unusual or unique to this organization?</em></p>
+<p>Identify important/unusual sections to generate new employee training content.</p>
+<p><em>Is there anything in the social media policy that might be unusual or unique to this organization?</em></p>
 </li>
 <li>
-<p>Synthesize information across documents that may each contain part of the information needed to answer a given query or resolve a situation.
-    <em>The social media policy suggests that I cannot be held liable for my political orientation, but some of my political opinions may relate to our DEI policy. Can you point out the intersections and differences of these two policies as they pertain to my situation?</em></p>
+<p>Synthesize information across documents that may each contain part of the information needed to answer a given query or resolve a situation.</p>
+<p><em>The social media policy suggests that I cannot be held liable for my political orientation, but some of my political opinions may relate to our DEI policy. Can you point out the intersections and differences of these two policies as they pertain to my situation?</em></p>
 </li>
 </ul>
 <p>While LLMs today are especially well-suited to do these kinds of operations on a small scale, the foundational technologies that support these operations require further development before we can see this kind of use. The fundamental limitation for many of these tasks is based on a feature of LLMs called “context window size”. This is essentially the size of the working memory that the model has access to at any given time. While the challenge is well-documented, the issue is that context window size is directly related to the computational resources required to run the models: that is, larger context windows require more powerful computers.</p>
@@ -158,19 +155,19 @@
 <p>Today’s LLMs have the fundamental components to integrate values and commitments into different kinds of work. The simplest approach would be to explicitly ask LLMs to assess or include elements from these organizational values. Of course, this approach assumes that the organizational values are widely understood and that the LLMs would have a basic understanding of what they mean. For instance, diversity and inclusion is a widely applicable concept that the LLM likely has some background information on.</p>
 <ul>
 <li>
-<p>Check and iterate on existing work.
-    <em>Identify new ways that our proposed solution could address the needs of more diverse populations.</em></p>
+<p>Check and iterate on existing work.</p>
+<p><em>Identify new ways that our proposed solution could address the needs of more diverse populations.</em></p>
 </li>
 <li>
-<p>Explicit integration into brainstorming.
-    <em>Develop a plan for evaluating the effectiveness of vaccine distribution programs in Venezuela with a specific mind towards diversity and inclusion.</em></p>
+<p>Explicit integration into brainstorming.</p>
+<p><em>Develop a plan for evaluating the effectiveness of vaccine distribution programs in Venezuela with a specific mind towards diversity and inclusion.</em></p>
 </li>
 </ul>
 <p>To integrate diversity and inclusion into work in every query, it might be better to use a “system prompt”, or a prompt that is submitted to the LLM before the user even asks a query or makes a request. On the OpenAI platform, for instance, this is defined when creating a Custom GPT and referred to as “instructions” for the AI, and most LLMs have this capability. The underlying LLM technology will start the conversation with the system prompt as chat history, and so we can integrate values into this work at the start of every chat.</p>
 <ul>
 <li>
-<p>Implicit integration into brainstorming.
-    <strong>System prompt</strong>: <em>Your goal is to assist users in designing evaluation programs for healthcare-related interventions in different regions. In proposing new evaluation approaches, always attempt to frame challenges in terms of “systems thinking.” Systems thinking is “...”.</em></p>
+<p>Implicit integration into brainstorming.</p>
+<p><strong>System prompt</strong>: <em>Your goal is to assist users in designing evaluation programs for healthcare-related interventions in different regions. In proposing new evaluation approaches, always attempt to frame challenges in terms of “systems thinking.” Systems thinking is “...”.</em></p>
 <p><strong>User prompt</strong>: <em>Develop a plan for evaluating the effectiveness of vaccine distribution programs in Venezuela.</em></p>
 </li>
 </ul>
