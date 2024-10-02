@@ -121,19 +121,19 @@ Today’s LLMs have the fundamental components to integrate values and commitmen
 
 + Check and iterate on existing work.
     
-    _Identify new ways that our proposed solution could address the needs of more diverse populations._
+> _Identify new ways that our proposed solution could address the needs of more diverse populations._
 
 + Explicit integration into brainstorming.
     
-    _Develop a plan for evaluating the effectiveness of vaccine distribution programs in Venezuela with a specific mind towards diversity and inclusion._
+> _Develop a plan for evaluating the effectiveness of vaccine distribution programs in Venezuela with a specific mind towards diversity and inclusion._
 
 To integrate diversity and inclusion into work in every query, it might be better to use a “system prompt”, or a prompt that is submitted to the LLM before the user even asks a query or makes a request. On the OpenAI platform, for instance, this is defined when creating a Custom GPT and referred to as “instructions” for the AI, and most LLMs have this capability. The underlying LLM technology will start the conversation with the system prompt as chat history, and so we can integrate values into this work at the start of every chat.
 
 + Implicit integration into brainstorming.
     
-    **System prompt**: _Your goal is to assist users in designing evaluation programs for healthcare-related interventions in different regions. In proposing new evaluation approaches, always attempt to frame challenges in terms of “systems thinking.” Systems thinking is “...”._
+> **System prompt**: _Your goal is to assist users in designing evaluation programs for healthcare-related interventions in different regions. In proposing new evaluation approaches, always attempt to frame challenges in terms of “systems thinking.” Systems thinking is “...”._
 
-    **User prompt**: _Develop a plan for evaluating the effectiveness of vaccine distribution programs in Venezuela._
+> **User prompt**: _Develop a plan for evaluating the effectiveness of vaccine distribution programs in Venezuela._
 
 More complicated organizational commitments could alternatively be provided as documents that the LLM has access to like the administrative systems previously discussed. With this approach, the LLM would need to ingest this information prior to completing any task. Alternatively, when accessing a large number of documents, we could use a multi-step process where we first use an LLM to distill key values from a wide range of other documents and then ingest that output into another LLM.
 
