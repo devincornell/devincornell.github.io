@@ -584,6 +584,12 @@ progress {
   display: inline-block;
 }
 
+.figure-center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .figure-img {
   margin-bottom: 0.5rem;
   line-height: 1;

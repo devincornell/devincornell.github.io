@@ -10,7 +10,7 @@ What does it mean to invest in data infrastructure to support Large Language Mod
 
 There are many ways to integrate data systems into everyday work with LLMs. One possibility is that users can explicitly execute no-code data queries and run models from the chat interfaces, replacing effort to create time-intensive data data dashboards or analysis reports. Another approach would be for data analysis to happen behind the scenes, to guide the execution of other tasks such as generating evaluation strategies or proposals for new initiatives. The data here could range from summary statistics to recommender algorithms, but either way the user can focus more on the substantive aspects of their work which is informed by data at every step.
 
-![data interfaces](https://storage.googleapis.com/public_data_09324832787/ai_data_infrastructure/llm_data_infrastructure.svg)
+<img style="width:20%;" class="figure-center" src="https://storage.googleapis.com/public_data_09324832787/ai_data_infrastructure/llm_data_infrastructure.svg" /> 
 
 We can start to identify opportunities for investment by thinking of data infrastructure in three parts. The first part, on the right in the figure below, is data and other computational resources. This part contains a combination of structured and unstructured data or external services. On the other end, we have the LLM, which will act as the user interface through which we can retrieve and manipulate data. Finally, we have the data interface, which connects the user interface and the data resources. This interface can take many forms - it can be “thin”, giving the LLM direct access to source technologies, or it can be “thick”, involving complicated ETL pipelines or entirely new ways of interacting with the underlying data. While the LLM may be swapped out and the data sources may vary widely, the primary focus of investment should be on data interfaces, and that will be the primary focus of this article.
 
@@ -20,7 +20,9 @@ Now I will give some background on how LLMs access data interfaces and show how 
 
 LLMs are able to access data interfaces using a feature called _[function calling]_(https://platform.openai.com/docs/guides/function-calling). Support for function calling varies by LLM, but most modern models have some variation of this feature. It allows users to define a set of parameterized functions which the LLMs have access to, where definitions include textual descriptions of both the function and parameters (see [technical details](https://python.langchain.com/v0.1/docs/modules/tools/) in a popular Python package). Depending on the user’s query, the LLM may then “decide” to request that a function be executed and supply parameter values based on the conversation history. The supporting technology surrounding the LLM can take this output and execute the associated operation, returning the result back to the chat history so the LLM can either show the result to the user or even execute more operations.
 
-![llm supporting technology](https://storage.googleapis.com/public_data_09324832787/ai_data_infrastructure/llm_supporting_technology.svg)
+
+<img style="width:20%;" class="figure-center" src="https://storage.googleapis.com/public_data_09324832787/ai_data_infrastructure/llm_supporting_technology.svg" /> 
+
 
 The LLM is made aware of available functions every time it is asked for a response, but most supporting technologies have ways of storing available functions so they are automatically sent to the LLM every time it is accessed - this happens on Chat GPT, for instance, when users create Custom GPTs. In general, the available functions can be added or removed at any point in a conversation - or, if the supporting technology allows, even added or removed as an effect of another tool call. 
 
@@ -28,18 +30,26 @@ The LLM is made aware of available functions every time it is asked for a respon
 
 At a higher level, we can think of a data interface as a group of functions that are associated with the same resource. For instance, imagine we had a database and we wanted to allow users to do exactly three things with it: insert an element, retrieve an element, and list all elements. The data interface for that resource would include a function call for each of these operations. Because there is no theoretical limit to the number of functions available to the LLM, it is possible to add other resources, each with their own set of available functions.
 
-![llm functions and tools](https://storage.googleapis.com/public_data_09324832787/ai_data_infrastructure/resources_and_functions.svg)
+![llm functions and tools](https://storage.googleapis.com/public_data_09324832787/ai_data_infrastructure/resources_and_functions.svg){ width=100% }
+
+<img style="width:20%;" class="figure-center" src="https://storage.googleapis.com/public_data_09324832787/ai_data_infrastructure/llm_data_infrastructure.svg" /> 
 
 The beauty of this is that the LLM and resources are independent - one LLM can be swapped out for another, and resources can be added or removed or upgraded as needed. Because of this independence, it makes sense to think of the LLM as a system with many sockets into which we can insert new services or data resources via the data interfaces. The size and shape of the plugs are the data interfaces, which will necessarily be different for every data resource.
 
-![plug and play data resources](https://storage.googleapis.com/public_data_09324832787/ai_data_infrastructure/plug_and_play_tools.svg)
+![plug and play data resources](https://storage.googleapis.com/public_data_09324832787/ai_data_infrastructure/plug_and_play_tools.svg){ width=80% }
+
+<img style="width:20%;" class="figure-center" src="https://storage.googleapis.com/public_data_09324832787/ai_data_infrastructure/llm_data_infrastructure.svg" /> 
+
 
 An orchestration layer should be able to manage a repository of these resources with different data interfaces. Imagine a system where each resource is a kind of “package” that can be versioned and added or removed from a given chat interface at any point. Investment in data infrastructure, then, is less about the actual AI technology and more about supporting the orchestration of data interfaces and resources they connect.
 
 ## Existing Data Interface Technologies
 The important thing to note is that the fundamental technologies behind this are not new - in fact, all of the most popular user-facing chatbot interfaces today use some combination of data interfaces and resources. Software packages like [LangChain](https://www.langchain.com/) have explicit support for building data interfaces where each available function is a [tool](https://python.langchain.com/v0.1/docs/modules/tools/) which can be defined and described in the language of choice. In fact, they even provide a set of [built-in tools](https://python.langchain.com/v0.1/docs/integrations/tools/) like web browsers and Google service integrations which can be plugged into any LLM with only a few lines of code. Using packages like LangChain make it easy to swap between LLMs even with all of the same tools. 
 
-![chatgpt data resources](https://storage.googleapis.com/public_data_09324832787/ai_data_infrastructure/chatgpt_data_interface.svg)
+![chatgpt data resources](https://storage.googleapis.com/public_data_09324832787/ai_data_infrastructure/chatgpt_data_interface.svg){ width=80% }
+
+<img style="width:20%;" class="figure-center" src="https://storage.googleapis.com/public_data_09324832787/ai_data_infrastructure/llm_data_infrastructure.svg" /> 
+
 
 As an example, OpenAI has recently invested in a lot of supporting technology for the ChatGPT set of models. Through the chat interface, users have access to an image generator, REST API calls, RAG document retrieval, a code interpreter which can read data files and generate images, and collect information from the web. All of these features can be considered as data interfaces that their LLMs give you access to through the chat interface. Each of these can be turned on or off as needed, creating what is essentially the plug-and-play functionality within the GPT interface.
 
@@ -52,7 +62,10 @@ An alternative approach to the same problem might be to enumerate several parame
 
 In the third example, we can lean even further back in the other direction. Now imagine that the LLM is equipped with a “code interpreter”, or the ability to write and execute Python code on a machine with access to the data. If we allowed the LLM to use a code interpreter, we could give it as little as a URL or path to the database where the data is. The LLM could write Python code that would figure out what type of database it is interacting with, extract the database schema, and then execute queries according to any request the user makes. This is putting much more effort on the part of the LLM, but offers high flexibility.
 
-![data interface tradeoffs](https://storage.googleapis.com/public_data_09324832787/ai_data_infrastructure/data_interface_tradeoffs.svg)
+![data interface tradeoffs](https://storage.googleapis.com/public_data_09324832787/ai_data_infrastructure/data_interface_tradeoffs.svg){ width=50% }
+
+<img style="width:20%;" class="figure-center" src="https://storage.googleapis.com/public_data_09324832787/ai_data_infrastructure/llm_data_infrastructure.svg" /> 
+
 
 These three approaches illustrate an apparent tradeoff between three aspects of data interfaces: developer effort, the time and thought that must go into designing the interface; flexibility, the number of different ways the data can be accessed/stored; and LLM effort, the compute resources and complexity of the model required to complete tasks consistently and accurately. The first example required medium developer effort because they need to extract and describe the database schemas, medium LLM effort because the LLM needs to write SQL queries, and medium flexibility because the LLM can access any feature available to the database engine. The second approach requires high developer effort and low flexibility, but results in low LLM effort - that is, the design is reliable and efficient. The final example offers minimum developer effort and maximum flexibility, but reliability may drop off if the LLM is not sophisticated enough.
 
