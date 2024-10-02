@@ -10,7 +10,8 @@ Generative AI and, more specifically, [large language models (LLMs)](https://www
 
 I believe that at the organizational level, investment in AI means thinking about the ways that LLMs can connect various systems that the organization uses every day. Once we start to think of LLMs as user interfaces for interacting with these systems, we can start to take a different approach to the development of data infrastructure, communication and information services, and even the ways we integrate organizational values and commitments into everyday work.
 
-![LLMs as HCI](https://storage.googleapis.com/public_data_09324832787/llm_integrating_systems/llm_as_hci.png)
+<img style="width:80%;" class="figure-center" src="https://storage.googleapis.com/public_data_09324832787/llm_integrating_systems/llm_as_hci.png" /> 
+
 
 I have identified four primary types of systems that LLMs have the potential to integrate. In each case, we have the technical building blocks to connect LLMs to these systems today, and improvements to the foundational technologies will expand the ways we are able to move information between and across these systems. Of course, this list is not exhaustive - I only use them as a starting point to build a picture of a high-level strategic vision.
 
