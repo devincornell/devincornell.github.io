@@ -36,7 +36,7 @@ At a higher level, we can think of a data interface as a group of functions that
 The beauty of this is that the LLM and resources are independent - one LLM can be swapped out for another, and resources can be added or removed or upgraded as needed. Because of this independence, it makes sense to think of the LLM as a system with many sockets into which we can insert new services or data resources via the data interfaces. The size and shape of the plugs are the data interfaces, which will necessarily be different for every data resource.
 
 
-<img style="width:70%;" class="figure-center" src="https://storage.googleapis.com/public_data_09324832787/ai_data_infrastructure/plug_and_play_tools.svg" /> 
+<img style="width:90%;" class="figure-center" src="https://storage.googleapis.com/public_data_09324832787/ai_data_infrastructure/plug_and_play_tools.svg" /> 
 
 
 An orchestration layer should be able to manage a repository of these resources with different data interfaces. Imagine a system where each resource is a kind of “package” that can be versioned and added or removed from a given chat interface at any point. Investment in data infrastructure, then, is less about the actual AI technology and more about supporting the orchestration of data interfaces and resources they connect.
@@ -59,7 +59,7 @@ An alternative approach to the same problem might be to enumerate several parame
 In the third example, we can lean even further back in the other direction. Now imagine that the LLM is equipped with a “code interpreter”, or the ability to write and execute Python code on a machine with access to the data. If we allowed the LLM to use a code interpreter, we could give it as little as a URL or path to the database where the data is. The LLM could write Python code that would figure out what type of database it is interacting with, extract the database schema, and then execute queries according to any request the user makes. This is putting much more effort on the part of the LLM, but offers high flexibility.
 
 
-<img style="width:70%;" class="figure-center" src="https://storage.googleapis.com/public_data_09324832787/ai_data_infrastructure/data_interface_tradeoffs.svg" /> 
+<img style="width:90%;" class="figure-center" src="https://storage.googleapis.com/public_data_09324832787/ai_data_infrastructure/data_interface_tradeoffs.svg" /> 
 
 
 These three approaches illustrate an apparent tradeoff between three aspects of data interfaces: developer effort, the time and thought that must go into designing the interface; flexibility, the number of different ways the data can be accessed/stored; and LLM effort, the compute resources and complexity of the model required to complete tasks consistently and accurately. The first example required medium developer effort because they need to extract and describe the database schemas, medium LLM effort because the LLM needs to write SQL queries, and medium flexibility because the LLM can access any feature available to the database engine. The second approach requires high developer effort and low flexibility, but results in low LLM effort - that is, the design is reliable and efficient. The final example offers minimum developer effort and maximum flexibility, but reliability may drop off if the LLM is not sophisticated enough.
