@@ -18,3 +18,5 @@ To help us think about the role these patterns play within a data science projec
 Design patterns have the power to make the flow of this data more explicit, extensible, and reliable, allowing you to adapt to project changes and reducing the risk of errors as you do it. 
 
 Design patterns have the power to make the flow of this data more explicit, extensible, and reliable, allowing you to adapt to project changes and reducing the risk of errors as you do it. 
+
+The SFCM always belongs to the new type being constructed, and therefore building data pipelines is a matter of defining a source type (the original data or an intermediary type), defining the downstream type, and then building the SFCM to facilitate the transformation from one to another.
