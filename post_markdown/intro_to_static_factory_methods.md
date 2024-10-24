@@ -10,7 +10,9 @@ In this article, I discuss and give examples for one of my favorite patterns for
 
 ![Static factory constructor method diagram.](https://storage.googleapis.com/public_data_09324832787/static_factory_methods.svg)
 
-To help us think about the role these patterns play within a data science project, start by thinking of code in terms of data flow. While it may be more or less explicit in the code itself, all data science projects can essentially be reduced to a set of data types and the transformations required to convert between them. While the source types can take nearly any format, the result data type is often a figure, table, or some other piece of format that can be interpreted by a human. 
+
+
+
 
 ![Data flow control diagram.](https://storage.googleapis.com/public_data_09324832787/sfcm_data_flow.svg)
 
