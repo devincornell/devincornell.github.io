@@ -110,21 +110,21 @@ We can instantiate this type using `__init__` by passing both `x` and `y` in the
 
 All of the following examples will start with this type.
 
-### Simple Examples
+## Useful Situations
 
-+ The type may be constructed in multiple ways, each using different logics or source data.
+SFCMs are particularly useful for addressing challenges in the following situations.
+
++ The type needs to be constructed in multiple ways, each using different logics or source data.
 + Substantial logic is required to instantiate the type but that logic is only used for that purpose.
 + You want to avoid situation-specific or inter-dependent defaulted parameters.
++ You need to return multiple instances of the type.
 + You are using an existing constructor of an inherited type.
-+ You are creating a transformation?
 
-
-First I will show several situations where SFCMs are obviously the best solutions, and then later I will extend this to more complicated cases.
+I will now give examples for each of these situations.
 
 #### Alternative Instantiation Methods
 
-The most obvious situation in which you may want to use a SFCM is when there are multiple alternative methods for creating an instance. The following two methods allow you to create the `Coord` object from either cartesian or polar coordinates. Note that the `from_xy` method here enforces type consistency by calling `float`, which would also raise an exception if the `x` or `y` arguments are not coercible. The `from_polar` method is also enforcing type consistency implicitly through the use of `math.cos` and `math.sin`, which both return floating point numbers.
-
+The most obvious situation in which you may want to use a SFCM is when there are multiple alternative methods for creating an instance. The following two methods allow you to create the `Coord` object from either cartesian or [polar coordinates](https://www.mathsisfun.com/polar-cartesian-coordinates.html). Note that the `from_xy` method here enforces type consistency by calling `float`, which would also raise an exception if the `x` or `y` arguments are not coercible. The `from_polar` method is also enforcing type consistency implicitly through the use of `math.cos` and `math.sin`, which both return floating point numbers.
 
         @classmethod
         def from_xy(cls, x: float, y: float) -> typing.Self:
@@ -180,7 +180,21 @@ If we wanted a simple way to create the origin coordinate, we can create a metho
 
 In this way, the function signatures themselves make it clear which parameters are needed for a given situation.
 
-#### Calling a Parent Constructor
+#### Returning Multiple Instances
+
+In cases where it may be too tedious to create [custom collection types](dsp1_data_collection_types.html), SFCMs can be used to return collections of the implementing type. As an example, say we want to return a set of coordinates created by the reflection of the original point across the x and y axes. In that case, we can return a set of instances representing the desired coordinates.
+
+        @classmethod
+        def from_reflected(cls, x: float, y: float) -> typing.List[typing.Self]:
+            return [
+                cls(x = x, y = y),
+                cls(x = -x, y = y),
+                cls(x = x, y = -y),
+                cls(x = -x, y = -y),
+            ]
+
+
+#### Calling a Parent Constructor Method
 
 SFCMs are good to use when you want to use the `__init__` method of the parent class without referencing `super().__init__`.
 
@@ -194,7 +208,7 @@ Say that we want to create a 2-dimensional vector type that contains the same da
         def dot(self, other: typing.Self) -> float:
             return (self.x * other.x) + (self.y * other.y)
 
-Another situation where this need might arise is when inheriting from built-in types when you do not want to risk altering the behavior of the original type. In this case, we can call the `Coord.from_gaussian` method and return a list of `Coord` types in the container `from_gaussian` method. This approach makes it easy and safe to inherit from built-in collection types.
+Another situation where this might arise is when inheriting from built-in types when you do not want to risk altering the behavior of the original type. In this case, we can call the `Coord.from_gaussian` method and return a list of `Coord` types in the container `from_gaussian` method. This approach makes it easy and safe to inherit from built-in collection types.
 
     class Coords(list[Coord]):
         @classmethod
@@ -207,32 +221,35 @@ Another situation where this need might arise is when inheriting from built-in t
         ) -> typing.Self:
             return cls([Coord.from_gaussian(x_mu, y_mu, x_sigma, y_sigma) for _ in range(n)])
 
-
-
-
-
-
-
-
-
-### Instantiate from Common Values
-I will start with the simplest possible SFCM: one that allows you to initialize from particular parameters. For example purposes, let us say that the coordinates `(0,0)` must be created especially often in our program. This is a situation where SFCMs may make your code more readable. Instead of calling `Coord(0.0, 0.0)` everywhere you need the zero point, create a SFCM so that you may call `Coord.from_zero()` instead. The method `from_zero` would follow the definition below.
-        
-        @classmethod
-        def from_zero(cls) -> typing.Self:
-            return cls(x=0.0,y=0.0)
-
-As a more complex example, say we want to initialize some coordinates along the line `x` = `y`. In that case, you will need only one parameter that will be assigned to both `x` and `y`.
+You could also use this as an alternative to returning multiple instances from the `Coord` type.
 
         @classmethod
-        def from_xy_line(cls, x: float) -> typing.Self:
-            return cls(x=x, y=x)
+        def from_reflected_points(cls, x: float, y: float) -> typing.Self:
+            return cls([
+                Coord(x = x, y = y),
+                Coord(x = -x, y = y),
+                Coord(x = x, y = -y),
+                Coord(x = -x, y = -y),
+            ])
 
-Now we have a situation where there is overlap in the logic between the two SFCMs. It might be better to implement `from_zero` using `from_xy_line`.
 
-        @classmethod
-        def from_zero_alt(cls) -> typing.Self:
-            return cls.from_xy_line(x=0.0)
+
+## SFCM Dependencies
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ### Optional Validation and Type Conversion
 SFCMs allow us to apply input data validation on an as-needed basis. For instance, we can call `float` to ensure that `x` and `y` are of float type, and the SFCM will raise an exception if either value is not coercible. Other SFCMs can buld on this method to make the same gaurantees - for instance, `from_xy_line` might benefit from building on this method to gaurantee `x` and `y` are of type `float` rather than `int`,  but methods like `from_zero` may not need it because they assign the value `0.0` directly and thus we wouldn't want to incur the validation overhead. It is all about making selective 
@@ -260,50 +277,12 @@ We then may want to set an example
 
 
 
-#### Initialize with Particular Parameters
-
-
-
-This has the following benefits.
-
-+ Include non-data parameters such as `verbose`.
-+ Include validation logic using `float`.
-+ Generate complicated default values.
-
-        @classmethod
-        def from_xy(cls, x: float, y: float, verbose: bool = False) -> typing.Self:
-            o = cls(
-                x = float(x),
-                y = float(y),
-            )
-            if verbose:
-                print(f'New {cls.__name__} was created: {o}')
-            return o
 
 
 
 
 
 
-
-
-
-
-
-
-### Use Non-data Parameters
-
-Now let us say we want a static factory method that includes data not meant to be stored in the object. Adding a `verbose` flag to the `__init__` method makes it a little unclear how it may be used. If the parameter is included in `__init__` for an otherwise data-only class, the user may assume that value will be stored and thus used later. If the flag is only included in the static factory method but not in the `__init__` method, we can guess that it may only be used on instantiation.
-
-        @classmethod
-        def new(cls, x: float, y: float, verbose: bool = False) -> typing.Self:
-            o = cls(
-                x = x,
-                y = y,
-            )
-            if verbose:
-                print(f'New {cls.__name__} was created: {o}')
-            return o
 
 
 
@@ -323,30 +302,6 @@ Here I demonstrate by creating a function which first makes sure that both `x` a
                 y = y,
             )
 
-### Co-dependent Parameters
-
-At times, the value of some parameters might be inferred or dependent on other parameters. This logic could always be done outside instantiation, but, if it is needed frequently enough, it might be worth adding to the same static factory method. Let us say we want to create a coordinate from a given value of `x` where `y` is a function of `x`. The static factory method needs only to include `x` in this case because we can calculate `y` from `x`. The following static factory method could be used to create a new instance of `Coord` from `x`.
-
-        @classmethod
-        def from_quadratic(cls, x: float) -> typing.Self:
-            return cls(x=x, y=x**2)
-
-Static factory methods can allow for more complicated relationships between the inputs and stored variables. In this example, we can instantiate the coord from [polar coordinates](https://www.mathsisfun.com/polar-cartesian-coordinates.html), and neither input is stored directly.
-
-        @classmethod
-        def from_polar(cls, r: float, theta: float) -> typing.Self:
-            return cls(
-                x = r * math.cos(theta),
-                y = r * math.sin(theta),
-            )
-
-    Coord.from_polar(1.0, math.pi / 3)
-
-In the output we can see the computed result.
-
-    Coord(x=0.5000000000000001, y=0.8660254037844386)
-
-From these simple examples you can imagine a wide range of use cases where this might be the best solution. I will now show some of the most common.
 
 ### Instantiating Child Classes
 
@@ -360,18 +315,6 @@ While inheritance should be used sparingly (consider composition-oriented approa
 
     ResultCoord.from_sum_of_coords([Coord(0,1), Coord(10,4), Coord(11, 100)])
 
-### Returning Multiple Instances
-
-In cases where it may be too tedious to create [custom collection types](dsp1_data_collection_types.html), SFCMs can be used to return collections of the implementing type. As an example, say we want to return a set of coordinates created by the reflection of the original point across the x and y axes. In that case, we can return a set of instances representing the desired coordinates.
-
-        @classmethod
-        def from_reflected(cls, x: float, y: float) -> typing.List[typing.Self]:
-            return [
-                cls(x = x, y = y),
-                cls(x = -x, y = y),
-                cls(x = x, y = -y),
-                cls(x = -x, y = -y),
-            ]
 
 ### Inheriting from Built-in Types
 
