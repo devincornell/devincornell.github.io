@@ -6,28 +6,70 @@ id: "intro_to_static_factory_constructor_methods"
 blogroll_img_url: "https://storage.googleapis.com/public_data_09324832787/static_factory_methods.svg"
 ---
 
-In this article, I show how we can use static factory constructor methods to initialize types instead of including complicated logic in `__init__` methods. A ***static factory constructor method*** (SFCM hereafter) is simply a static method which returns an instance of the object that implements it. A single class can have multiple SFCMs that accept different parameters, and the methods should contain any logic needed to initialize the object. While these methods are common in many software engineering applications, I believe they are especially important in data analysis code because they fit well with the way data flows through your program.
+In this article, I discuss and give examples for one of my favorite patterns for data analysis code: static factory constructor methods. A ***static factory constructor method*** (SFCM hereafter) is simply a static method which returns an instance of the object that implements it. A single class can have multiple SFCMs that accept different parameters, and the methods should contain any logic needed to initialize the object. While these methods are common in many software engineering applications, I believe they are especially useful in data analysis code because they align with the way data flows through your program.
 
 ![Static factory constructor method diagram.](https://storage.googleapis.com/public_data_09324832787/static_factory_methods.svg)
 
-Here are a few benefits of implementing SFCMs for any type.
-
-+ A class can have multiple SFCMs, and therefore can be initialized in different ways from different source types. This means that the reader can easily see in the source code the various way the object may be initialized and the data from which it can be derived.
-+ SFCM paramters can include data that is not intended to be stored in the object but is otherwise needed for initalization. This reduces the cases where partial/multi-stage initialization is the best option.
-+ SFCMs are a superior alternative to overriding constructor methods when using inheritance. Subclasses can call SFCMs of parent classes explicitly instead of using `super()` or otherwise referring to the parent class (which may be especially useful in multiple-inheritance scenarios). This solves a number of challenges involved when inheriting from built-in types.
-
-If we look at the flow of data through our programs, you can see that SFCMs can handle all logic involved with transforming data from one type to another. As all data pipelines essentially follow the structure shown in the diagram below, we can see how SFCMs could be ubiquitous in your code.
+To help us think about the role these patterns play within a data science project, start by thinking of code in terms of data flow. While it may be more or less explicit in the code itself, all data science projects can essentially be reduced to a set of data types and the transformations required to convert between them. While the source types can take nearly any format, the result data type is often a figure, table, or some other piece of format that can be interpreted by a human. 
 
 ![Data flow control diagram.](https://storage.googleapis.com/public_data_09324832787/sfcm_data_flow.svg)
+
+Design patterns have the power to make the flow of this data more explicit, extensible, and reliable, allowing you to adapt to project changes and reducing the risk of errors as you do it. It is clear that some patterns are better than others.
+
+
+## Instantiating Objects
+
+
+There are three possible places where instantiation logic can exist: (1) outside of the type, (2) inside the `__init__` method, or (3) inside a SFCM. Place logic outside the object itself when the same logic is required to create multiple different types. If this is the case, you may be better off creating an intermediary type anyways. Use `__init__` for any logic that MUST be done every time an object is instantiated and there are no ways to instantiate the object without that logic. In all other cases, SFCMs are the better alternatives.
+
+
+
+## Next Section
+
+As the project grows and the objectives change, pipelines and types may be added or removed.
+
+
+
+
+to adapt to the needs of the project.
+
+This creates a series of interlocking pipelines which intersect as types, which shows the various ETL data pipelines required to transform the data from the source type to an output type - a figure, table, or anything else. 
+
+
+
+I believe the best pracices for constructing data pipelines involve heavy use of immutable custom types to represent intermediary data formats, and SFCMs can play the role of converting the data from one type to another. The SFCM always belongs to the new type being constructed, and therefore building data pipelines is a matter of defining a source type (the original data or an intermediary type), defining the downstream type, and then building the SFCM to facilitate the transformation from one to another.
+
+
+
+
+
+
+
+
+Here are a few benefits of implementing SFCMs for any type.
+
++ A class can have multiple SFCMs, and therefore can be initialized in different ways from different source types. The reader can easily see the types from which it can be constructed.
++ When creating [dataclass](https://docs.python.org/3/library/dataclasses.html) (or [pydantic](https://docs.pydantic.dev/latest/)/[attrs](https://www.attrs.org/en/stable/)) types, they allow you to pass non-data parameters and avoid using `__post_init__` or requiring partial initialization states.
++ These methods offer a superior alternative to overriding constructor methods when using inheritance. Subclasses can call SFCMs of parent classes explicitly instead of using `super()` or otherwise referring to the parent class. This is especially useful when inheriting from built-in types such as collections or exceptions.
+
+
+
+## When to use SFCMs
+
++ The type may be constructed in multiple ways, each using different logics or source data.
++ Substantial logic is required to instantiate the type but that logic is only used for that purpose.
++ You want to avoid situation-specific or inter-dependent defaulted parameters.
++ You are using an existing constructor of an inherited type.
 
 ## Some Examples
 
 Now I'll show some examples of static factory constructor methods in Python. We typically create these methods using the `@classmethod` parameter, and they always return an instance of the containing class.
 
-For example purposes, let us start by creating the most basic container object: a coordinate with `x` and `y` attributes. Users may more easily replicate this behavior using the [`dataclasses`](https://docs.python.org/3/library/dataclasses.html) module, but in this case the definition is very simple anyways. The `__init__` method simply takes `x` and `y` parameters and stores them as attributes. I include `x` and `y` as part of the definition to support type checkers. I also create basic `__repr__` and `__add__` methods.
+For example purposes, let us start by creating the most basic container object: a coordinate with `x` and `y` attributes. The `__init__` method simply takes `x` and `y` parameters and stores them as attributes. I include `x` and `y` as part of the definition to support type checkers. I also create a basic `__repr__` method for readability.
 
     import typing
     import math
+    import random
 
     class Coord:
         x: float
@@ -39,25 +81,158 @@ For example purposes, let us start by creating the most basic container object: 
         def __repr__(self) -> str:
             return f'{self.__class__.__name__}(x={self.x}, y={self.y})'
 
-        def __add__(self, other: typing.Self) -> typing.Self:
-            return self.__class__(
-                x = self.x + other.x,
-                y = self.y + other.y,
-            )
+The implementation of the `__init__` default constructor method is important because it must be called any time you want to instantiate the object. Ideally, it should ONLY be responsible for inserting data attributes. Most of the time, all attributes should be required.
 
-### Initializing with Common Values
+Note that the `__init__` created by the [`dataclasses`](https://docs.python.org/3/library/dataclasses.html) module is perfect for this, so I highly recommend using it. This definition is exactly equivalent to the above.
 
-We can instantiate the object using `__init__` by passing both `x` and `y` in the calling function.
+    import dataclasses
+
+    @dataclasses.dataclass
+    class Coord:
+        x: float
+        y: float
+
+We can instantiate this type using `__init__` by passing both `x` and `y` in the calling function.
 
     Coord(0.0, 0.0)
 
-The simplest possible static factory method could create an instance using no parameters at all. The coordinate where `x` and `y` equal zero is especially important in many scenarios, so let us say we want to create a static factory method so that every calling function need not use the literal 0.0 as parameters.
+All of the following examples will start with this type.
+
+
+
+### Simple Examples
+
+#### Multiple Methods for Instantiation
+
+The simplest reason you may want to use a SFCM is when there are multiple alternative methods for creating an instance. The following two methods allow you to create the `Coord` object from either cartesian or polar coordinates. Note that the `from_xy` method here enforces type consistency by calling `float`, which would also raise an exception if the `x` or `y` arguments are not coercible. The `from_polar` method is also enforcing type consistency implicitly through the use of `math.cos` and `math.sin`, which both return floating point numbers.
+
+
+        @classmethod
+        def from_xy(cls, x: float, y: float) -> typing.Self:
+            return cls(
+                x = float(x),
+                y = float(y),
+            )
+
+        @classmethod
+        def from_polar(cls, r: float, theta: float) -> typing.Self:
+            return cls(
+                x = r * math.cos(theta),
+                y = r * math.sin(theta),
+            )
+
+An alternative approach would be to place the `float` calls inside of the `__init__` constructor. With that approach, `from_polar` would be forced to execute that logic even though it is not necessary because `math.sin` and `math.cos` already create type safety. Of course, in this example the call to `float` is computationally inexpensive, but some types may require more complicated validation or conversion that will not be nessecary for every possible way that the object can be instantiated.
+
+#### Type-specific Instantiation Logic
+
+
+
+SFCMs are a good option when instantiation requires substantial logic but the logic is only used for that purpose. The instantiation logic should live as part of the type, and the SFCM is a good place to put it.
+
+For example, say we need to sample points from a gaussian distribution by creating a new random coordinate according to some parameters. The instantiation logic involves calling `random.gauss`, and so we put that inside a new `from_gaussian` method. In contrast to the default constructor, none of the parameters here are actually stored as data - only the data generated from the random functions. You would instantiate the new object with the expression `Coord.from_gaussian(..)`.
+
+        @classmethod
+        def from_gaussian(cls,
+            x_mu: float, 
+            y_mu: float, 
+            x_sigma: float, 
+            y_sigma: float
+        ) -> typing.Self:
+            return cls(
+                x = random.gauss(mu=x_mu, sigma=x_sigma),
+                y = random.gauss(mu=y_mu, sigma=y_sigma),
+            )
+
+Most other solutions to this situation are complicated: you either require the calling function to implement this logic or add it to the init with some complicated defaulted parameters.
+
+
+SFCMs are also a good option when you want to avoid situation-specific defaulted parameters or add parameter constraints. For instance, the zero point and unity vectors may both be occasionally useful. 
+
+    @classmethod
+    def from_zero(cls) -> typing.Self:
+        return cls(x=0.0,y=0.0)
+    
+    @classmethod
+    def from_unity(cls) -> typing.Self:
+        return cls(x=1.0, y=1.0)
+
+
+
+### Instantiate from Common Values
+I will start with the simplest possible SFCM: one that allows you to initialize from particular parameters. For example purposes, let us say that the coordinates `(0,0)` must be created especially often in our program. This is a situation where SFCMs may make your code more readable. Instead of calling `Coord(0.0, 0.0)` everywhere you need the zero point, create a SFCM so that you may call `Coord.from_zero()` instead. The method `from_zero` would follow the definition below.
         
         @classmethod
-        def zero(cls) -> typing.Self:
+        def from_zero(cls) -> typing.Self:
             return cls(x=0.0,y=0.0)
 
-Calling `Coord.zero()` is cleaner than assigning `x = 0.0` and `y = 0.0` every time you need this coordinate.
+As a more complex example, say we want to initialize some coordinates along the line `x` = `y`. In that case, you will need only one parameter that will be assigned to both `x` and `y`.
+
+        @classmethod
+        def from_xy_line(cls, x: float) -> typing.Self:
+            return cls(x=x, y=x)
+
+Now we have a situation where there is overlap in the logic between the two SFCMs. It might be better to implement `from_zero` using `from_xy_line`.
+
+        @classmethod
+        def from_zero_alt(cls) -> typing.Self:
+            return cls.from_xy_line(x=0.0)
+
+### Optional Validation and Type Conversion
+SFCMs allow us to apply input data validation on an as-needed basis. For instance, we can call `float` to ensure that `x` and `y` are of float type, and the SFCM will raise an exception if either value is not coercible. Other SFCMs can buld on this method to make the same gaurantees - for instance, `from_xy_line` might benefit from building on this method to gaurantee `x` and `y` are of type `float` rather than `int`,  but methods like `from_zero` may not need it because they assign the value `0.0` directly and thus we wouldn't want to incur the validation overhead. It is all about making selective 
+
+        @classmethod
+        def from_xy(cls, x: float, y: float) -> typing.Self:
+            return cls(
+                x = float(x),
+                y = float(y),
+            )
+
+We then may want to set an example 
+
+
+
+
+    @classmethod
+    def from_reflected(cls, x: float, y: float) -> typing.List[typing.Self]:
+        return [
+            cls(x = x, y = y),
+            cls(x = -x, y = y),
+            cls(x = x, y = -y),
+            cls(x = -x, y = -y),
+        ]
+
+
+
+#### Initialize with Particular Parameters
+
+
+
+This has the following benefits.
+
++ Include non-data parameters such as `verbose`.
++ Include validation logic using `float`.
++ Generate complicated default values.
+
+        @classmethod
+        def from_xy(cls, x: float, y: float, verbose: bool = False) -> typing.Self:
+            o = cls(
+                x = float(x),
+                y = float(y),
+            )
+            if verbose:
+                print(f'New {cls.__name__} was created: {o}')
+            return o
+
+
+
+
+
+
+
+
+
+
+
 
 ### Use Non-data Parameters
 
