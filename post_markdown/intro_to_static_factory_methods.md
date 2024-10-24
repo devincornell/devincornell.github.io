@@ -278,91 +278,9 @@ Taken together, we can think of these SFCM dependencies as a tree where all meth
 
 
 
-
-
-
-### Optional Validation and Type Conversion
-SFCMs allow us to apply input data validation on an as-needed basis. For instance, we can call `float` to ensure that `x` and `y` are of float type, and the SFCM will raise an exception if either value is not coercible. Other SFCMs can buld on this method to make the same gaurantees - for instance, `from_xy_line` might benefit from building on this method to gaurantee `x` and `y` are of type `float` rather than `int`,  but methods like `from_zero` may not need it because they assign the value `0.0` directly and thus we wouldn't want to incur the validation overhead. It is all about making selective 
-
-        @classmethod
-        def from_xy(cls, x: float, y: float) -> typing.Self:
-            return cls(
-                x = float(x),
-                y = float(y),
-            )
-
-
-
-
-
-
-
-### Situational Validation
-
-As another example, imagine we want to add validation code when instantiating in some scenarios, but not in others. One approach could be to add a `validate: bool` flag to the constructor, but we face the same readability point mentioned above. , we can use a static factory method: when the user does not need to validate the input (or perhaps the first case where they might expect invalid data), they can use `__init__`, otherwise, they can use a static factory method.
-
-Here I demonstrate by creating a function which first makes sure that both `x` and `y` are finite values. This method should be used when coordinates with infinite values may be expected but not desired.
-
-        @classmethod
-        def new_finite(cls, x: float, y: float) -> typing.Self:
-            invalids = (float('inf'), float('-inf'))
-            if x in invalids or y in invalids:
-                raise ValueError(f'x and y must be finite values.')
-            return cls(
-                x = x,
-                y = y,
-            )
-
-
-### Instantiating Child Classes
-
-While inheritance should be used sparingly (consider composition-oriented approaches instead), they can be great in situations where you want to extend a class by adding new methods - including SFCMs. In this example, say we want to create a new coordinate type representing a coordinate which is derived from other coordinates. I create a new subclass with a new SFCM that relies on the previously created `.zero()` method. Only the new type has access to the new SFCM, but it can rely on SFCMs from the base class.
-
-    class ResultCoord(Coord):
-        '''Coordinate that results from an operation between other coordinates.'''
-        @classmethod
-        def from_sum_of_coords(cls, coords: typing.List[Coord]) -> typing.Self:
-            return sum(coords, start=cls.zero())
-
-    ResultCoord.from_sum_of_coords([Coord(0,1), Coord(10,4), Coord(11, 100)])
-
-
-### Inheriting from Built-in Types
-
-SFCMs can be especially useful when creating types that inherit from built-in types. The following class inherits from the built-in `typing.List` type and is intended to store coordinates. The new type acts like a regular list except for the addition of the SFCM, which is especially useful because it can call the constructor (or another SFCM) of the contained type. Whenever the new collection appears, the reader knows it should contain only coordinates and should be created using a SFCM.
-
-    class Coords(typing.List[Coord]):
-        @classmethod
-        def from_reflected_points(cls, x: float, y: float) -> typing.List[typing.Self]:
-            return cls([
-                Coord(x = x, y = y),
-                Coord(x = -x, y = y),
-                Coord(x = x, y = -y),
-                Coord(x = -x, y = -y),
-            ])
-    Coords.from_reflected_points(1, 1)
-
-
-### Inheriting from Built-in Types
-
-SFCMs can be especially useful when creating types that inherit from built-in types. The following class inherits from the built-in `typing.List` type and is intended to store coordinates. The new type acts like a regular list except for the addition of the SFCM, which is especially useful because it can call the constructor (or another SFCM) of the contained type. Whenever the new collection appears, the reader knows it should contain only coordinates and should be created using a SFCM.
-
-    class Coords(typing.List[Coord]):
-        @classmethod
-        def from_reflected_points(cls, x: float, y: float) -> typing.List[typing.Self]:
-            return cls([
-                Coord(x = x, y = y),
-                Coord(x = -x, y = y),
-                Coord(x = x, y = -y),
-                Coord(x = -x, y = -y),
-            ])
-    Coords.from_reflected_points(1, 1)
-
-
-
 ## High-level Application: Custom Exceptions
 
-Now I will discuss one higher-level application of static factory methods: creating custom exceptions.
+My final set of examples will cover an important application of this pattern: creating custom exceptions.
 
 Start with an example where we want to create a custom exception that includes additional data to be used when it is caught up the call stack. We see this, for instance, in the `requests` module when raising generic HTTP errors: the request and response (along with HTTP error code) are attached to the exception type.
 
