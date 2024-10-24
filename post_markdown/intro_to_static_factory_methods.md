@@ -172,13 +172,47 @@ For example, say we want to create instances of points that lie along the line `
         def from_xy_line(cls, x: float) -> typing.Self:
             return cls(x=x, y=x)
 
-If we wanted a simple way to create the origin coordinate, we can create a method for that too.
+If we wanted a simple way to create the origin coordinate, we can create a method that accepts no parameters.
 
         @classmethod
         def from_zero(cls) -> typing.Self:
             return cls(x=0.0,y=0.0)
 
 In this way, the function signatures themselves make it clear which parameters are needed for a given situation.
+
+#### Calling a Parent Constructor
+
+SFCMs are good to use when you want to use the `__init__` method of the parent class without referencing `super().__init__`.
+
+Say that we want to create a 2-dimensional vector type that contains the same data as `Coord` but has some additional methods for vector operations that are not typically defined for coordinates. The data is not different, and therefore we should not define a new `__init__` method. If any other logic is required, we can add that to the SFCM.
+
+    class Vector2D(Coord):
+        @classmethod
+        def unity(cls) -> typing.Self:
+            return cls(x=1.0, y=1.0)
+        
+        def dot(self, other: typing.Self) -> float:
+            return (self.x * other.x) + (self.y * other.y)
+
+Another situation where this need might arise is when inheriting from built-in types when you do not want to risk altering the behavior of the original type. In this case, we can call the `Coord.from_gaussian` method and return a list of `Coord` types in the container `from_gaussian` method. This approach makes it easy and safe to inherit from built-in collection types.
+
+    class Coords(list[Coord]):
+        @classmethod
+        def from_gaussian(cls,
+            n: int,
+            x_mu: float, 
+            y_mu: float, 
+            x_sigma: float, 
+            y_sigma: float
+        ) -> typing.Self:
+            return cls([Coord.from_gaussian(x_mu, y_mu, x_sigma, y_sigma) for _ in range(n)])
+
+
+
+
+
+
+
 
 
 ### Instantiate from Common Values
@@ -354,6 +388,26 @@ SFCMs can be especially useful when creating types that inherit from built-in ty
             ])
     Coords.from_reflected_points(1, 1)
 
+## Collection Types
+
+In this section I will show how SFCMs can be used to solve challenges with custom collection types.
+
+
+
+### Inheriting from Built-in Types
+
+SFCMs can be especially useful when creating types that inherit from built-in types. The following class inherits from the built-in `typing.List` type and is intended to store coordinates. The new type acts like a regular list except for the addition of the SFCM, which is especially useful because it can call the constructor (or another SFCM) of the contained type. Whenever the new collection appears, the reader knows it should contain only coordinates and should be created using a SFCM.
+
+    class Coords(typing.List[Coord]):
+        @classmethod
+        def from_reflected_points(cls, x: float, y: float) -> typing.List[typing.Self]:
+            return cls([
+                Coord(x = x, y = y),
+                Coord(x = -x, y = y),
+                Coord(x = x, y = -y),
+                Coord(x = -x, y = -y),
+            ])
+    Coords.from_reflected_points(1, 1)
 
 
 
