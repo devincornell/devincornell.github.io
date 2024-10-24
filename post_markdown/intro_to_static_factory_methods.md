@@ -232,11 +232,77 @@ You could also use this as an alternative to returning multiple instances from t
                 Coord(x = -x, y = -y),
             ])
 
+#### Adding Data to Custom Exceptions
+
+At times, you may want to add structured data to a custom exception type. This data can be accessed downstream when the exception is caught or used for debugging if it is not. Many popular packages do this: for instance, the `requests` package adds request and response objects to the exception to handle different types of http and parsing errors.
+
+An often-recommended approach to this is to override `__init__`, which calls `super().__init__(..)` to initialize the object and then either accept a message argument or define the message in the function before binding the relevant structured data. While this works fine for most built-in exceptions, subclassing an exception from a package or situation 
+
+If you create an SFCM, however, you can avoid referencing `super()` and instead just call the `__init__` constructor from within the function. This allows you to bind data selectively when the error is expected to be caught.
+
+    class MissingDataError:
+        column_name: str
+        
+        @classmethod
+        def from_column_name(cls, column_name: str) -> typing.Self:
+            o = cls(
+                f'Missing data in column "{column_name}".'
+            )
+            o.column_name = column_name
+            return o
+
+Depending on the complexity of your analysis code, you may build exceptions with inheritance heirarchy. In these cases, you can implement a base type method that simply binds any attributes passed to it. Each custom exception declares an attribute in the class definition, and it is bound in that method. 
+
+    class DataError(Exception):
+        @classmethod
+        def from_bound_data(cls, *args, **kwargs) -> typing.Self:
+            '''Instantiate and bind kwargs to the object.'''
+            o = cls(*args)
+            for k,v in kwargs.items():
+                setattr(o, k, v)
+            return o
+
+    class InconsistentColumnError(DataError):
+        column_name: str
+
+        @classmethod
+        def from_inconsistency(self, column_name) -> typing.Self:
+            return self.from_bound_data(
+                f'Data inconsistency error: {column_name}',
+                column_name = column_name,
+            )
 
 
-## SFCM Dependency Trees
 
-All of the SFCM examples above have called the `__init__` constructor to actually instantiate the object. The fact that SFCMs are class methods, however, suggests that they can call each other. 
+
+
+Another situation where SFCMs might be the best 
+
+Now I will discuss custom exceptions, perhaps one of the best and most common situations where SFCMs can be useful. An exception is any subtype of `BaseException`, including `Exception` or any of the built-in exceptions such as `ValueError` and `TypeError`. These types implement an `__init__` method that typically accept a single parameter: the error message to be passed. Exceptions are excellent solutions to some data pipeline designs.
+
+As a dynamically typed language, you may also add additional structured data to a exception that can be accessed when caught (or when testing/debugging if not caught) - 
+
+ I highly recommend doing this in most cases where exceptions are used.
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Inter-dependent SFCM Calls
+
+It is often helpful to be able to instantiate an object with varying levels of specificity, depending on the situation. In this case, you can create multiple SFCMs that call each other successively, effectively chaining the instantiation logic down the call stack. If you know that the instantiation methods will build on each other, this approach is clearer than creating a pool of helper methods that are selectively invoked in every SFCM. 
+
+This approach offers some theoretical perspective. Beyond the ability to instantiate an object in different ways, you can start to think in terms of a tree of successive SFCMs which all lead back to the `__init__` method. Every time you need a new constructor method, it is worth thinking about where it could exist in this tree.
+
+<img style="width:80%;" class="figure-center" src="https://storage.googleapis.com/public_data_09324832787/blog/sfcm_heirarchy.svg" /> 
 
 Let us return to the example `from_xy`. Recall that this simple method actually applies a level of validation: by calling `float`, we ensure the the input values are coercable to floats.
 
@@ -272,15 +338,47 @@ If we revisit the SFCM `from_zero`, we can see that it still should be calling t
 
 Taken together, we can think of these SFCM dependencies as a tree where all methods call `__init__` at the lowest level. Creating a new SFCM is a matter of determining which operations are needed for instantiation.
 
-<img style="width:80%;" class="figure-center" src="https://storage.googleapis.com/public_data_09324832787/blog/sfcm_heirarchy.svg" /> 
+## SFCMs for Custom Exceptions
 
+Now I will discuss custom exceptions, perhaps one of the best and most common situations where SFCMs can be useful. An exception is any subtype of `BaseException`, including `Exception` or any of the built-in exceptions such as `ValueError` and `TypeError`. These types implement an `__init__` method that typically accept a single parameter: the error message to be passed. Exceptions are excellent solutions to some data pipeline designs.
 
+As a dynamically typed language, you may also add additional structured data to a exception that can be accessed when caught (or when testing/debugging if not caught) - some popular packages such as `requests` do this: they add request and response objects. I highly recommend doing this in most cases where exceptions are used.
 
+An often-recommended solution to this is to override `__init__`, which calls `super().__init__(..)` to initialize the object and then either accept a message argument or write the message in the function before binding the relevant structured data.
 
+    class MissingDataError:
+        column_name: str
+        
+        @classmethod
+        def from_column_name(cls, column_name: str) -> typing.Self:
+            o = cls(
+                f'Missing data in column "{column_name}".'
+            )
+            o.column_name = column_name
+            return o
 
-## High-level Application: Custom Exceptions
+Depending on the complexity of your analysis code, you may build exceptions with inheritance heirarchy. In these cases, you can implement a base type method that simply binds any attributes passed to it. Each custom exception declares an attribute in the class definition, and it is bound in that method. 
 
-My final set of examples will cover an important application of this pattern: creating custom exceptions.
+    class DataError(Exception):
+        @classmethod
+        def from_data(cls, *args, **kwargs) -> typing.Self:
+            '''Instantiate and bind kwargs to the object.'''
+            o = cls(*args)
+            for k,v in kwargs.items():
+                setattr(o, k, v)
+            return o
+
+    class InconsistentColumnError(DataError):
+        column_name: str
+
+        @classmethod
+        def from_inconsistency(self, column_name) -> typing.Self:
+            return self.from_data(
+                f'Data inconsistency error: {column_name}',
+                column_name = column_name,
+            )
+
+An exception is defined as any class that inherits from `BaseException`, and in practice we usually inherit from `Exception` or
 
 Start with an example where we want to create a custom exception that includes additional data to be used when it is caught up the call stack. We see this, for instance, in the `requests` module when raising generic HTTP errors: the request and response (along with HTTP error code) are attached to the exception type.
 
