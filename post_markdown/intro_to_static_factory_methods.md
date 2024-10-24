@@ -14,8 +14,7 @@ To help us think about the role these patterns play within a data science projec
 
 ![Data flow control diagram.](https://storage.googleapis.com/public_data_09324832787/sfcm_data_flow.svg)
 
-Design patterns have the power to make the flow of this data more explicit, extensible, and reliable, allowing you to adapt to project changes and reducing the risk of errors as you do it. It is clear that some patterns are better than others.
-
+Design patterns have the power to make the flow of this data more explicit, extensible, and reliable, allowing you to adapt to project changes and reducing the risk of errors as you do it. 
 
 ## Instantiating Objects
 
