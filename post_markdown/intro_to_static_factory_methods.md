@@ -8,7 +8,7 @@ blogroll_img_url: "https://storage.googleapis.com/public_data_09324832787/static
 
 In this article, I discuss and give examples for one of my favorite patterns for data analysis code: static factory constructor methods. A ***static factory constructor method*** (SFCM hereafter) is simply a static method which returns an instance of the object that implements it. A single class can have multiple SFCMs that accept different parameters, and the methods should contain any logic needed to initialize the object. While these methods are common in many software engineering applications, I believe they are especially useful in data analysis code because they align with the way data flows through your program.
 
-![Static factory constructor method diagram.](https://storage.googleapis.com/public_data_09324832787/static_factory_methods.svg)
+<img style="width:80%;" class="figure-center" src="https://storage.googleapis.com/public_data_09324832787/static_factory_methods.svg" /> 
 
 The SFCM pattern is a way of writing logic to instantiate your custom types. Broadly speaking, there are three possible places where instantiation logic can exist: (1) outside of the type, (2) inside the `__init__` method, or (3) inside a SFCM. Place logic outside the object itself when the same logic is required to create multiple different types. If this is the case, you may be better off creating an intermediary type anyways. Use `__init__` for any logic that MUST be done every time an object is instantiated and there are no ways to instantiate the object without that logic. In all other cases, SFCMs are the best option.
 
@@ -234,15 +234,45 @@ You could also use this as an alternative to returning multiple instances from t
 
 
 
-## SFCM Dependencies
+## SFCM Dependency Trees
 
+All of the SFCM examples above have called the `__init__` constructor to actually instantiate the object. The fact that SFCMs are class methods, however, suggests that they can call each other. 
 
+Let us return to the example `from_xy`. Recall that this simple method actually applies a level of validation: by calling `float`, we ensure the the input values are coercable to floats.
 
+        @classmethod
+        def from_xy(cls, x: float, y: float) -> typing.Self:
+            return cls(
+                x = float(x),
+                y = float(y),
+            )
 
+Now revisit the definition of `from_xy_line`. In the original definition, we simply assigned the input value to both `x` and `y` of the new object. Instead of calling `__init__`, we can call `from_xy` to add the same validation functionality to this method as well.
 
+        @classmethod
+        def from_xy_line(cls, x: float) -> typing.Self:
+            return cls.from_xy(x=x, y=x)
 
+Now say we may want to add an additional validation step where we ensure `x` and `y` are finite. We can create a new method `from_xy_finite` which checks for finiteness and also calls `from_xy` to perform the floating point validation. In this way, `from_xy_finite` is actually adding to the functionality of `from_xy` without overlap.
 
+        @classmethod
+        def from_xy_finite(cls, x: float, y: float) -> typing.Self:
+            # raise exception if values are invalid
+            invalids = (float('inf'), float('-inf'))
+            if x in invalids or y in invalids:
+                raise ValueError(f'x and y must be finite values.')
+            
+            return cls.from_xy(x=x, y=y)
 
+If we revisit the SFCM `from_zero`, we can see that it still should be calling the `__init__` constructor because we can gaurantee that the inputs are valid floating point numbers, and therefore do not benefit from calling any other SFCM.
+
+    @classmethod
+    def from_zero(cls) -> typing.Self:
+        return cls(x=0.0,y=0.0)
+
+Taken together, we can think of these SFCM dependencies as a tree where all methods call `__init__` at the lowest level. Creating a new SFCM is a matter of determining which operations are needed for instantiation.
+
+<img style="width:80%;" class="figure-center" src="https://storage.googleapis.com/public_data_09324832787/blog/sfcm_heirarchy.svg" /> 
 
 
 
@@ -260,25 +290,6 @@ SFCMs allow us to apply input data validation on an as-needed basis. For instanc
                 x = float(x),
                 y = float(y),
             )
-
-We then may want to set an example 
-
-
-
-
-    @classmethod
-    def from_reflected(cls, x: float, y: float) -> typing.List[typing.Self]:
-        return [
-            cls(x = x, y = y),
-            cls(x = -x, y = y),
-            cls(x = x, y = -y),
-            cls(x = -x, y = -y),
-        ]
-
-
-
-
-
 
 
 
@@ -330,11 +341,6 @@ SFCMs can be especially useful when creating types that inherit from built-in ty
                 Coord(x = -x, y = -y),
             ])
     Coords.from_reflected_points(1, 1)
-
-## Collection Types
-
-In this section I will show how SFCMs can be used to solve challenges with custom collection types.
-
 
 
 ### Inheriting from Built-in Types
