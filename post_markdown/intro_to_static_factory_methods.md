@@ -191,7 +191,7 @@ It is often helpful to be able to instantiate an object with varying levels of s
 
 This approach offers some theoretical perspective. Beyond the ability to instantiate an object in different ways, you can start to think in terms of a tree of successive SFCMs which all lead back to the `__init__` method. Every time you need a new constructor method, it is worth thinking about where it could exist in this tree.
 
-<img style="width:80%;" class="figure-center" src="https://storage.googleapis.com/public_data_09324832787/blog/sfcm_heirarchy.svg" /> 
+<img style="width:50%;" class="figure-center" src="https://storage.googleapis.com/public_data_09324832787/blog/sfcm_heirarchy.svg" /> 
 
 Let us return to the example `from_xy`. Recall that this simple method actually applies a level of validation: by calling `float`, we ensure the the input values are coercable to floats.
 

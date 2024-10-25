@@ -212,7 +212,7 @@ class Coord:
 <h2>Inter-dependent SFCM Calls</h2>
 <p>It is often helpful to be able to instantiate an object with varying levels of specificity, depending on the situation. In this case, you can create multiple SFCMs that call each other successively, effectively chaining the instantiation logic down the call stack. If you know that the instantiation methods will build on each other, this approach is clearer than creating a pool of helper methods that are selectively invoked in every SFCM. </p>
 <p>This approach offers some theoretical perspective. Beyond the ability to instantiate an object in different ways, you can start to think in terms of a tree of successive SFCMs which all lead back to the <code>__init__</code> method. Every time you need a new constructor method, it is worth thinking about where it could exist in this tree.</p>
-<p><img style="width:80%;" class="figure-center" src="https://storage.googleapis.com/public_data_09324832787/blog/sfcm_heirarchy.svg" /> </p>
+<p><img style="width:50%;" class="figure-center" src="https://storage.googleapis.com/public_data_09324832787/blog/sfcm_heirarchy.svg" /> </p>
 <p>Let us return to the example <code>from_xy</code>. Recall that this simple method actually applies a level of validation: by calling <code>float</code>, we ensure the the input values are coercable to floats.</p>
 <pre><code>    @classmethod
     def from_xy(cls, x: float, y: float) -&gt; typing.Self:
