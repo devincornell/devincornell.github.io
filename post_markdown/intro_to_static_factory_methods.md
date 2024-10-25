@@ -12,66 +12,19 @@ In this article, I discuss and give examples for one of my favorite patterns for
 
 The SFCM pattern is a way of writing logic to instantiate your custom types. Broadly speaking, there are three possible places where instantiation logic can exist: (1) outside of the type, (2) inside the `__init__` method, or (3) inside a SFCM. Place logic outside the object itself when the same logic is required to create multiple different types. If this is the case, you may be better off creating an intermediary type anyways. Use `__init__` for any logic that MUST be done every time an object is instantiated and there are no ways to instantiate the object without that logic. In all other cases, SFCMs are the best option.
 
-If we look at the flow of data through our programs, you can see that SFCMs can contain all logic involved with transforming data from one type to another. As all data pipelines essentially follow the structure shown in the diagram below, we can see how SFCMs could be ubiquitous throughout your data pipelines.
+If you construct your data pipelines as a series of immutable types and the transformations between them ([which I recommend](https://devinjcornell.com/post/dsp0_patterns_for_dataclasses.html)), SFCMs can contain all logic involved with transforming data from one type to another. As all data pipelines essentially follow the structure shown in the diagram below (more or less explicitly), we can see how SFCMs could be ubiquitous throughout your data pipelines.
 
-![Data flow control diagram.](https://storage.googleapis.com/public_data_09324832787/sfcm_data_flow.svg)
+<img style="width:80%;" class="figure-center" src="https://storage.googleapis.com/public_data_09324832787/sfcm_data_flow.svg" /> 
 
 
-
-I have written at length why it is best to use immutable custom types to represent intermediary data formats, and SFCMs can play the role of converting the data from one type to another. Here are a few benefits of implementing SFCMs for data pipelines using these patterns.
+I have [written at length](https://devinjcornell.com/post/dsp0_patterns_for_dataclasses.html) why it is best to use immutable custom types to represent intermediary data formats, and SFCMs can play the role of converting the data from one type to another. Here are a few benefits of implementing SFCMs for data pipelines using these patterns.
 
 + A class can have multiple SFCMs, and therefore can be initialized in different ways from different source types and parameters. The reader can easily see the types from which it can be constructed.
 + When creating [dataclass](https://docs.python.org/3/library/dataclasses.html) (or [pydantic](https://docs.pydantic.dev/latest/)/[attrs](https://www.attrs.org/en/stable/)) types, they allow you to pass non-data parameters and avoid using `__post_init__` or requiring partial initialization states.
 + These methods offer a superior alternative to overriding constructor methods when using inheritance. Subclasses can call SFCMs of parent classes explicitly instead of using `super()` or otherwise referring to the parent class. This is especially useful when inheriting from built-in types such as collections or exceptions.
 
+In the following sections, I will discuss some situations where SFCMs may be particularly useful, elaborate on strategies for building complex object structures, and then discuss how these patterns fit within larger data pipelines.
 
-
-
-
-
-
-
-
-
-The SFCM always belongs to the new type being constructed, and therefore building data pipelines is a matter of defining a source type (the original data or an intermediary type), defining the downstream type, and then building the SFCM to facilitate the transformation from one to another.
-
-
-
-
-
-
-## Next Section
-
-As the project grows and the objectives change, pipelines and types may be added or removed.
-
-
-
-
-to adapt to the needs of the project.
-
-This creates a series of interlocking pipelines which intersect as types, which shows the various ETL data pipelines required to transform the data from the source type to an output type - a figure, table, or anything else. 
-
-
-
-
-
-
-
-
-
-
-
-Here are a few benefits of implementing SFCMs for any type.
-
-
-
-
-## When to use SFCMs
-
-+ The type may be constructed in multiple ways, each using different logics or source data.
-+ Substantial logic is required to instantiate the type but that logic is only used for that purpose.
-+ You want to avoid situation-specific or inter-dependent defaulted parameters.
-+ You are using an existing constructor of an inherited type.
 
 # Python Examples
 
@@ -112,7 +65,7 @@ All of the following examples will start with this type.
 
 ## Useful Situations
 
-SFCMs are particularly useful for addressing challenges in the following situations.
+For practical purposes, I have identified several situations in which SFCMs may be useful to you, whether or not you apply other design patterns I have discussed. I will give Python examples for each of these situations and then discuss approaches.
 
 + The type needs to be constructed in multiple ways, each using different logics or source data.
 + Substantial logic is required to instantiate the type but that logic is only used for that purpose.
@@ -319,9 +272,9 @@ SFCMs allow you to write module and extensible data pipelines, and are especiall
 
 I have also mentioned using SFCMs in a number of other articles that might be helpful:
 
-+ [Are Data Frames too flexible?](zods0_problem_with_dataframes.html)
-+ [Patterns and Antipatterns for Dataclasses](dsp1_data_collection_types.html)
++ [Patterns and Antipatterns for Dataclasses](dsp0_patterns_for_dataclasses.html)
 + [Patterns for data collection types](dsp1_data_collection_types.html)
++ [Are Data Frames too flexible?](zods0_problem_with_dataframes.html)
 
 
 
