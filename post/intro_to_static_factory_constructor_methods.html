@@ -135,7 +135,7 @@ class Coord:
             y = r * math.sin(theta),
         )
 </code></pre>
-<p>An alternative approach would be to place the <code>float</code> calls inside of the <code>__init__</code> constructor. With that approach, <code>from_polar</code> would be forced to execute that logic even though it is not necessary because <code>math.sin</code> and <code>math.cos</code> already create type safety. Of course, in this example the call to <code>float</code> is computationally inexpensive, but some types may require more complicated validation or conversion that will not be nessecary for every possible way that the object can be instantiated.</p>
+<p>An alternative approach would be to place the <code>float</code> calls inside of the <code>__init__</code> constructor. With that approach, <code>from_polar</code> would be forced to execute that logic even though it is not necessary because <code>math.sin</code> and <code>math.cos</code> already create type safety. Of course, in this example the call to <code>float</code> is computationally inexpensive, but some types may require more complicated validation or conversion that will not be necessary for every possible way that the object can be instantiated.</p>
 <h4>Type-specific Instantiation Logic</h4>
 <p>SFCMs are a good option when instantiation requires substantial logic but the logic is only used for that purpose. The instantiation logic should live as part of the type, and the SFCM is a good place to put it.</p>
 <p>For example, say we need to sample points from a gaussian distribution by creating a new random coordinate instance according to some parameters. The instantiation logic involves calling <code>random.gauss</code>, and so we put that inside a new <code>from_gaussian</code> method. In contrast to the default constructor, none of the parameters here are actually stored as data - only the data generated from the random functions. You would instantiate the new object with the expression <code>Coord.from_gaussian(..)</code>.</p>
@@ -153,7 +153,7 @@ class Coord:
 </code></pre>
 <p>Most other solutions to this situation are complicated: you either require the calling function to implement this logic or add it to <code>__init__</code> with some complicated defaulted parameters.</p>
 <h4>Situation-specific Parameters</h4>
-<p>SFCMs are a good alternative to the situation where you have an <code>__init__</code> method where the behavior of some parameters vary according to the values of other parameters. Instead, create multiple situation-specific SFCMs for use in different situations.</p>
+<p>SFCMs are a good alternative to the situation where you have an <code>__init__</code> method where the behavior of some parameters varies according to the values of other parameters. Instead, create multiple situation-specific SFCMs for use in different situations.</p>
 <p>For example, say we want to create instances of points that lie along the line <code>x</code>=<code>y</code>. We can create a new instance from a single parameter in this case, because both values can be calculated given the value of x.</p>
 <pre><code>    @classmethod
     def from_xy_line(cls, x: float) -&gt; typing.Self:
@@ -213,7 +213,7 @@ class Coord:
 <p>It is often helpful to be able to instantiate an object with varying levels of specificity, depending on the situation. In this case, you can create multiple SFCMs that call each other successively, effectively chaining the instantiation logic down the call stack. If you know that the instantiation methods will build on each other, this approach is clearer than creating a pool of helper methods that are selectively invoked in every SFCM. </p>
 <p>This approach offers some theoretical perspective. Beyond the ability to instantiate an object in different ways, you can start to think in terms of a tree of successive SFCMs which all lead back to the <code>__init__</code> method. Every time you need a new constructor method, it is worth thinking about where it could exist in this tree.</p>
 <p><img style="width:50%;" class="figure-center" src="https://storage.googleapis.com/public_data_09324832787/blog/sfcm_heirarchy.svg" /> </p>
-<p>Let us return to the example <code>from_xy</code>. Recall that this simple method actually applies a level of validation: by calling <code>float</code>, we ensure the the input values are coercable to floats.</p>
+<p>Let us return to the example <code>from_xy</code>. Recall that this simple method actually applies a level of validation: by calling <code>float</code>, we ensure the input values are coercible to floats.</p>
 <pre><code>    @classmethod
     def from_xy(cls, x: float, y: float) -&gt; typing.Self:
         return cls(
@@ -243,7 +243,7 @@ def from_zero(cls) -&gt; typing.Self:
 </code></pre>
 <p>Taken together, we can think of these SFCM dependencies as a tree where all methods call <code>__init__</code> at the lowest level. Creating a new SFCM is a matter of determining which operations are needed for instantiation.</p>
 <h2>Data Pipelines Using FCMs</h2>
-<p>I have <a href="dsp1_data_collection_types.html">written more extensively</a> about this in the past, but I think it is worth noting how SFCMs fit within larger data data pipelines. If we structure our code as a set of immutable data types and the transformations between them, we can do most of the transformation work inside SFCMs.</p>
+<p>I have <a href="dsp1_data_collection_types.html">written more extensively</a> about this in the past, but I think it is worth noting how SFCMs fit within larger data pipelines. If we structure our code as a set of immutable data types and the transformations between them, we can do most of the transformation work inside SFCMs.</p>
 <p>A good design principle is that downstream types should know how to construct themselves, and that logic can be placed in SFCMs. For instance, we have our <code>Coord</code> object from the previous example. Now say we may want to transform these existing Cartesian coordinates to radial coordinates. We can create a new type <code>RadialCoord</code> to represent this new data, and write the transformation code in a SFCM <code>from_cartesian</code>. The radial coordinate can be constructed using either the <code>__init__</code> method with the <code>r</code> and <code>theta</code> parameters or the <code>from_cartesian</code> SFCM, which accepts a <code>Coord</code>.</p>
 <pre><code>@dataclasses.dataclass
 class RadialCoord:
@@ -273,9 +273,9 @@ class Coord:
 <p>The latter step increases the coupling between the two objects, but, in exchange, the resulting interface is quite clean. Placing all of the construction logic in the downstream type's SFCM means that the coupling is weak and can be removed from the upstream type very easily.</p>
 <pre><code>Coord(5, 5).to_radial()
 </code></pre>
-<p>You can imagine how this pattern could be ubiqutuous throughout your data pipelines.</p>
+<p>You can imagine how this pattern could be used throughout your data pipelines.</p>
 <h2>In Conclusion</h2>
-<p>SFCMs allow you to write module and extensible data pipelines, and are especially useful when building pipelines composed of immutible types and their transformations. Most of my own work relies heavily on this pattern, and I hope you can benefit too!</p>
+<p>SFCMs allow you to write module and extensible data pipelines, and are especially useful when building pipelines composed of immutable types and their transformations. Most of my own work relies heavily on this pattern, and I hope you can benefit too!</p>
 <p>I have also mentioned using SFCMs in a number of other articles that might be helpful:</p>
 <ul>
 <li><a href="dsp0_patterns_for_dataclasses.html">Patterns and Antipatterns for Dataclasses</a></li>

@@ -93,7 +93,7 @@ The most obvious situation in which you may want to use a SFCM is when there are
                 y = r * math.sin(theta),
             )
 
-An alternative approach would be to place the `float` calls inside of the `__init__` constructor. With that approach, `from_polar` would be forced to execute that logic even though it is not necessary because `math.sin` and `math.cos` already create type safety. Of course, in this example the call to `float` is computationally inexpensive, but some types may require more complicated validation or conversion that will not be nessecary for every possible way that the object can be instantiated.
+An alternative approach would be to place the `float` calls inside of the `__init__` constructor. With that approach, `from_polar` would be forced to execute that logic even though it is not necessary because `math.sin` and `math.cos` already create type safety. Of course, in this example the call to `float` is computationally inexpensive, but some types may require more complicated validation or conversion that will not be necessary for every possible way that the object can be instantiated.
 
 #### Type-specific Instantiation Logic
 
@@ -117,7 +117,7 @@ Most other solutions to this situation are complicated: you either require the c
 
 #### Situation-specific Parameters
 
-SFCMs are a good alternative to the situation where you have an `__init__` method where the behavior of some parameters vary according to the values of other parameters. Instead, create multiple situation-specific SFCMs for use in different situations.
+SFCMs are a good alternative to the situation where you have an `__init__` method where the behavior of some parameters varies according to the values of other parameters. Instead, create multiple situation-specific SFCMs for use in different situations.
 
 For example, say we want to create instances of points that lie along the line `x`=`y`. We can create a new instance from a single parameter in this case, because both values can be calculated given the value of x.
 
@@ -193,7 +193,7 @@ This approach offers some theoretical perspective. Beyond the ability to instant
 
 <img style="width:50%;" class="figure-center" src="https://storage.googleapis.com/public_data_09324832787/blog/sfcm_heirarchy.svg" /> 
 
-Let us return to the example `from_xy`. Recall that this simple method actually applies a level of validation: by calling `float`, we ensure the the input values are coercable to floats.
+Let us return to the example `from_xy`. Recall that this simple method actually applies a level of validation: by calling `float`, we ensure the input values are coercible to floats.
 
         @classmethod
         def from_xy(cls, x: float, y: float) -> typing.Self:
@@ -229,7 +229,7 @@ Taken together, we can think of these SFCM dependencies as a tree where all meth
 
 ## Data Pipelines Using FCMs
 
-I have [written more extensively](dsp1_data_collection_types.html) about this in the past, but I think it is worth noting how SFCMs fit within larger data data pipelines. If we structure our code as a set of immutable data types and the transformations between them, we can do most of the transformation work inside SFCMs.
+I have [written more extensively](dsp1_data_collection_types.html) about this in the past, but I think it is worth noting how SFCMs fit within larger data pipelines. If we structure our code as a set of immutable data types and the transformations between them, we can do most of the transformation work inside SFCMs.
 
 A good design principle is that downstream types should know how to construct themselves, and that logic can be placed in SFCMs. For instance, we have our `Coord` object from the previous example. Now say we may want to transform these existing Cartesian coordinates to radial coordinates. We can create a new type `RadialCoord` to represent this new data, and write the transformation code in a SFCM `from_cartesian`. The radial coordinate can be constructed using either the `__init__` method with the `r` and `theta` parameters or the `from_cartesian` SFCM, which accepts a `Coord`.
     
@@ -264,11 +264,11 @@ The latter step increases the coupling between the two objects, but, in exchange
 
     Coord(5, 5).to_radial()
 
-You can imagine how this pattern could be ubiqutuous throughout your data pipelines.
+You can imagine how this pattern could be used throughout your data pipelines.
 
 ## In Conclusion
 
-SFCMs allow you to write module and extensible data pipelines, and are especially useful when building pipelines composed of immutible types and their transformations. Most of my own work relies heavily on this pattern, and I hope you can benefit too!
+SFCMs allow you to write module and extensible data pipelines, and are especially useful when building pipelines composed of immutable types and their transformations. Most of my own work relies heavily on this pattern, and I hope you can benefit too!
 
 I have also mentioned using SFCMs in a number of other articles that might be helpful:
 
