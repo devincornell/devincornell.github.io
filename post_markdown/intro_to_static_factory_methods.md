@@ -196,7 +196,7 @@ In cases where it may be too tedious to create [custom collection types](dsp1_da
 
 #### Calling a Parent Constructor Method
 
-SFCMs are good to use when you want to use the `__init__` method of the parent class without referencing `super().__init__`.
+SFCMs are good to use when you want to use the `__init__` method of the parent class and overriding `__init__` could have unintended side effects. 
 
 Say that we want to create a 2-dimensional vector type that contains the same data as `Coord` but has some additional methods for vector operations that are not typically defined for coordinates. The data is not different, and therefore we should not define a new `__init__` method. If any other logic is required, we can add that to the SFCM.
 
@@ -231,70 +231,6 @@ You could also use this as an alternative to returning multiple instances from t
                 Coord(x = x, y = -y),
                 Coord(x = -x, y = -y),
             ])
-
-#### Adding Data to Custom Exceptions
-
-At times, you may want to add structured data to a custom exception type. This data can be accessed downstream when the exception is caught or used for debugging if it is not. Many popular packages do this: for instance, the `requests` package adds request and response objects to the exception to handle different types of http and parsing errors.
-
-An often-recommended approach to this is to override `__init__`, which calls `super().__init__(..)` to initialize the object and then either accept a message argument or define the message in the function before binding the relevant structured data. While this works fine for most built-in exceptions, subclassing an exception from a package or situation 
-
-If you create an SFCM, however, you can avoid referencing `super()` and instead just call the `__init__` constructor from within the function. This allows you to bind data selectively when the error is expected to be caught.
-
-    class MissingDataError:
-        column_name: str
-        
-        @classmethod
-        def from_column_name(cls, column_name: str) -> typing.Self:
-            o = cls(
-                f'Missing data in column "{column_name}".'
-            )
-            o.column_name = column_name
-            return o
-
-Depending on the complexity of your analysis code, you may build exceptions with inheritance heirarchy. In these cases, you can implement a base type method that simply binds any attributes passed to it. Each custom exception declares an attribute in the class definition, and it is bound in that method. 
-
-    class DataError(Exception):
-        @classmethod
-        def from_bound_data(cls, *args, **kwargs) -> typing.Self:
-            '''Instantiate and bind kwargs to the object.'''
-            o = cls(*args)
-            for k,v in kwargs.items():
-                setattr(o, k, v)
-            return o
-
-    class InconsistentColumnError(DataError):
-        column_name: str
-
-        @classmethod
-        def from_inconsistency(self, column_name) -> typing.Self:
-            return self.from_bound_data(
-                f'Data inconsistency error: {column_name}',
-                column_name = column_name,
-            )
-
-
-
-
-
-Another situation where SFCMs might be the best 
-
-Now I will discuss custom exceptions, perhaps one of the best and most common situations where SFCMs can be useful. An exception is any subtype of `BaseException`, including `Exception` or any of the built-in exceptions such as `ValueError` and `TypeError`. These types implement an `__init__` method that typically accept a single parameter: the error message to be passed. Exceptions are excellent solutions to some data pipeline designs.
-
-As a dynamically typed language, you may also add additional structured data to a exception that can be accessed when caught (or when testing/debugging if not caught) - 
-
- I highly recommend doing this in most cases where exceptions are used.
-
-
-
-
-
-
-
-
-
-
-
-
 
 ## Inter-dependent SFCM Calls
 
@@ -338,108 +274,50 @@ If we revisit the SFCM `from_zero`, we can see that it still should be calling t
 
 Taken together, we can think of these SFCM dependencies as a tree where all methods call `__init__` at the lowest level. Creating a new SFCM is a matter of determining which operations are needed for instantiation.
 
-## SFCMs for Custom Exceptions
+## Data Pipelines Using FCMs
 
-Now I will discuss custom exceptions, perhaps one of the best and most common situations where SFCMs can be useful. An exception is any subtype of `BaseException`, including `Exception` or any of the built-in exceptions such as `ValueError` and `TypeError`. These types implement an `__init__` method that typically accept a single parameter: the error message to be passed. Exceptions are excellent solutions to some data pipeline designs.
+I have [written more extensively](dsp1_data_collection_types.html) about this in the past, but I think it is worth noting how SFCMs fit within larger data data pipelines. If we structure our code as a set of immutable data types and the transformations between them, we can do most of the transformation work inside SFCMs.
 
-As a dynamically typed language, you may also add additional structured data to a exception that can be accessed when caught (or when testing/debugging if not caught) - some popular packages such as `requests` do this: they add request and response objects. I highly recommend doing this in most cases where exceptions are used.
-
-An often-recommended solution to this is to override `__init__`, which calls `super().__init__(..)` to initialize the object and then either accept a message argument or write the message in the function before binding the relevant structured data.
-
-    class MissingDataError:
-        column_name: str
-        
-        @classmethod
-        def from_column_name(cls, column_name: str) -> typing.Self:
-            o = cls(
-                f'Missing data in column "{column_name}".'
-            )
-            o.column_name = column_name
-            return o
-
-Depending on the complexity of your analysis code, you may build exceptions with inheritance heirarchy. In these cases, you can implement a base type method that simply binds any attributes passed to it. Each custom exception declares an attribute in the class definition, and it is bound in that method. 
-
-    class DataError(Exception):
-        @classmethod
-        def from_data(cls, *args, **kwargs) -> typing.Self:
-            '''Instantiate and bind kwargs to the object.'''
-            o = cls(*args)
-            for k,v in kwargs.items():
-                setattr(o, k, v)
-            return o
-
-    class InconsistentColumnError(DataError):
-        column_name: str
+A good design principle is that downstream types should know how to construct themselves, and that logic can be placed in SFCMs. For instance, we have our `Coord` object from the previous example. Now say we may want to transform these existing Cartesian coordinates to radial coordinates. We can create a new type `RadialCoord` to represent this new data, and write the transformation code in a SFCM `from_cartesian`. The radial coordinate can be constructed using either the `__init__` method with the `r` and `theta` parameters or the `from_cartesian` SFCM, which accepts a `Coord`.
+    
+    @dataclasses.dataclass
+    class RadialCoord:
+        r: float
+        theta: float
 
         @classmethod
-        def from_inconsistency(self, column_name) -> typing.Self:
-            return self.from_data(
-                f'Data inconsistency error: {column_name}',
-                column_name = column_name,
+        def from_cartesian(cls, coord: Coord) -> typing.Self:
+            return cls(
+                r = math.sqrt(coord.x**2 + coord.y**2),
+                theta = math.atan2(coord.y/coord.x),
             )
 
-An exception is defined as any class that inherits from `BaseException`, and in practice we usually inherit from `Exception` or
+We can create a radial coordinate using a `Coord` instance.
 
-Start with an example where we want to create a custom exception that includes additional data to be used when it is caught up the call stack. We see this, for instance, in the `requests` module when raising generic HTTP errors: the request and response (along with HTTP error code) are attached to the exception type.
+    c = Coord(5, 4)
+    rc = RadialCoord.from_cartesian(c)
 
-### Overriding `__init__`
+Alternatively, we could make this accessible as a call to `to_radial(..)`.
 
-One way to implement this is to override `__init__` to call `super().__init__` and then add the attribute dynamically. Every class can only have one `__init__` method, and so all users of this exception must provide the same data; in this case, only the error code, but in more complicated scenarios the downstream user may need to do more work.
+    @dataclasses.dataclass
+    class Coord:
+        x: float
+        y: float
 
-    class MyError1(Exception):
-        error_code: int
+        def to_radial(self) -> RadialCoord:
+            return RadialCoord.from_cartesian(self)
 
-        def __init__(self, error_code: int):
-            super().__init__(f'Received error with code {error_code}.')
-            self.error_code: int
+The latter step increases the coupling between the two objects, but, in exchange, the resulting interface is quite clean. Placing all of the construction logic in the downstream type's SFCM means that the coupling is weak and can be removed from the upstream type very easily.
 
-The function that wants to raise this exception should include the error code then.
+    Coord(5, 5).to_radial()
 
-    try:
-        raise MyError1(500)
-    except MyError1 as e:
-        print(e.error_code)
-
-Note that we could create an exception hierarchy tree that allows us to get more specific, but too many custom exceptions can add a lot of clutter to your codebase.
-
-### The static factory method approach
-
-Alternatively, we can create a static factory method that will instantiate the object using the default constructor and then bind the additional data. This way we do not need to provide `__super__`, and all subclasses can either use this method or define another, more specific method. Here I create a low-level method to bind the additional data, then two higher-level methods to generate the error code more specifically.
-
-    class MyError2(Exception):
-        error_code: int
-        
-        @classmethod
-        def with_msg_code(cls, message: str, code: int) -> typing.Self:
-            o = cls(message)
-            o.error_code = code
-            return o
-
-        @classmethod
-        def from_error_code(cls, code: int) -> typing.Self:
-            return cls.with_msg_code(f'Encountered error {code}.', code=code)
-
-The ability to create multiple static factory methods means we can further implement code-specific static factory methods that absolve the calling function from needing to provide the method directly. We simply use the method associated with the error we want to raise.
-        
-        @classmethod
-        def from_io_error(cls) -> typing.Self:
-            code = 500
-            return cls.with_msg_code(f'Encountered IO error (error code {code}).', code=code)
-
-We can also abstract away the error codes entirely, and check error code cases using additional properties.
-
-        @property
-        def is_io_error(self) -> bool:
-            return self.error_code is 500
-
-The benefit of this approach is that error codes can all be internally managed by the exception type and need not be provided by a calling or excepting function. We can continue to use a single exception type, and simply extend that type when we want to handle more cases. This supports a much higher level of logic complexity in the exception handling function.
-
+You can imagine how this pattern could be ubiqutuous throughout your data pipelines.
 
 ## In Conclusion
 
-SFCMs are widely applicable in a number of data-oriented software design patterns, and I highly recommend integrating them into your workflow.
+SFCMs allow you to write module and extensible data pipelines, and are especially useful when building pipelines composed of immutible types and their transformations. Most of my own work relies heavily on this pattern, and I hope you can benefit too!
 
-I have also mentioned using SFCMs in a number of other articles you can check out.
+I have also mentioned using SFCMs in a number of other articles that might be helpful:
 
 + [Are Data Frames too flexible?](zods0_problem_with_dataframes.html)
 + [Patterns and Antipatterns for Dataclasses](dsp1_data_collection_types.html)
