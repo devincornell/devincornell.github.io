@@ -26,19 +26,22 @@
         <!-- Navigation-->
         <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
             <div class="container px-4 px-lg-5">
-                <a class="navbar-brand" href="/">devinjcornell.com</a>//<a class="navbar-brand" href="/blog">Data Science Blog</a>
+                <p class="navbar-brand"><a href="/">devinjcornell.com</a><span>//</span><a href="/blog">Data Science Blog</a></p>
+                <!--
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
                     Menu
                     <i class="fas fa-bars"></i>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarResponsive">
                     <ul class="navbar-nav ms-auto py-4 py-lg-0">
-                        <!--<li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="index.html">Home</a></li>
+                        This is what the unordered list elements looked like.
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="index.html">Home</a></li>
                         <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="about.html">About</a></li>
                         <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="post.html">Sample Post</a></li>
-                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="contact.html">Contact</a></li>-->
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="contact.html">Contact</a></li>
                     </ul>
                 </div>
+                -->
             </div>
         </nav>
         <!-- Page Header-->
@@ -64,16 +67,41 @@
             <div class="container px-4 px-lg-5">
                 <div class="row gx-4 gx-lg-5 justify-content-center">
                     <div class="col-md-10 col-lg-8 col-xl-7">
-                        <p>The Rust programming language has taken the award for "most loved programming language" in the <a href="https://survey.stackoverflow.co/2022#overview">Stack Overflow Developer Survey</a> since 2016. The power of Rust comes in that it is nearly as fast as C++ without the potential issues that come with pointers and manual memory management. This advantage comes as much from what the languages allows you to do as what it restricts you from doing, and we can learn much from understanding the design of the language. Whether or not you can convince your stakeholders or company to allow you to write your data pipelines in Rust, there are some lessons we can learn from Rust that we can apply to our data pipelines in any language. </p>
-<p>In this article, I will describe some patterns for Python code that mimic the features and, perhaps more importantly, the restrictions built into the language that improve safety and readability.</p>
-<h2>1. Immutability</h2>
-<p>By default, variables in Rust are are immutable - that is, once you assign a value to a variable, you cannot change it. You must manually specify that a variable is mutable if you want to be able to change it later, and thus you should be thinking of variables as immutable unless otherwise specified. </p>
-<p>I wrote about the benefits of immutability in <a href="/post/dsp0_patterns_for_dataclasses.html">a previous article</a>, but in general I recommend transforming data from one type to another instead of modifying it in-place. This makes it easier to debug and generally reason about your code.</p>
-<h2>2. Stronger Typing</h2>
-<h2>3. Ownership</h2>
-<h2>4. Enums for Errors and Missing Data</h2>
-<h2>5. Use Composition over Inheritance and Generally Avoid OOP Practices</h2>
-<h2>Conclusions</h2>
+                        <p>The Rust programming language has taken the award for “most loved
+programming language” in the <a
+href="https://survey.stackoverflow.co/2022#overview">Stack Overflow
+Developer Survey</a> since 2016. The power of Rust comes in that it is
+nearly as fast as C++ without the potential issues that come with
+pointers and manual memory management. This advantage comes as much from
+what the languages allows you to do as what it restricts you from doing,
+and we can learn much from understanding the design of the language.
+Whether or not you can convince your stakeholders or company to allow
+you to write your data pipelines in Rust, there are some lessons we can
+learn from Rust that we can apply to our data pipelines in any
+language.</p>
+<p>In this article, I will describe some patterns for Python code that
+mimic the features and, perhaps more importantly, the restrictions built
+into the language that improve safety and readability.</p>
+<h2 id="immutability">1. Immutability</h2>
+<p>By default, variables in Rust are are immutable - that is, once you
+assign a value to a variable, you cannot change it. You must manually
+specify that a variable is mutable if you want to be able to change it
+later, and thus you should be thinking of variables as immutable unless
+otherwise specified.</p>
+<p>I wrote about the benefits of immutability in <a
+href="/post/dsp0_patterns_for_dataclasses.html">a previous article</a>,
+but in general I recommend transforming data from one type to another
+instead of modifying it in-place. This makes it easier to debug and
+generally reason about your code.</p>
+<h2 id="stronger-typing">2. Stronger Typing</h2>
+<h2 id="ownership">3. Ownership</h2>
+<h2 id="enums-for-errors-and-missing-data">4. Enums for Errors and
+Missing Data</h2>
+<h2
+id="use-composition-over-inheritance-and-generally-avoid-oop-practices">5.
+Use Composition over Inheritance and Generally Avoid OOP Practices</h2>
+<h2 id="conclusions">Conclusions</h2>
+
                     </div>
                 </div>
             </div>

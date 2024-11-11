@@ -26,19 +26,22 @@
         <!-- Navigation-->
         <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
             <div class="container px-4 px-lg-5">
-                <a class="navbar-brand" href="/">devinjcornell.com</a>//<a class="navbar-brand" href="/blog">Data Science Blog</a>
+                <p class="navbar-brand"><a href="/">devinjcornell.com</a><span>//</span><a href="/blog">Data Science Blog</a></p>
+                <!--
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
                     Menu
                     <i class="fas fa-bars"></i>
                 </button>
                 <div class="collapse navbar-collapse" id="navbarResponsive">
                     <ul class="navbar-nav ms-auto py-4 py-lg-0">
-                        <!--<li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="index.html">Home</a></li>
+                        This is what the unordered list elements looked like.
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="index.html">Home</a></li>
                         <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="about.html">About</a></li>
                         <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="post.html">Sample Post</a></li>
-                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="contact.html">Contact</a></li>-->
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="contact.html">Contact</a></li>
                     </ul>
                 </div>
+                -->
             </div>
         </nav>
         <!-- Page Header-->
@@ -64,42 +67,80 @@
             <div class="container px-4 px-lg-5">
                 <div class="row gx-4 gx-lg-5 justify-content-center">
                     <div class="col-md-10 col-lg-8 col-xl-7">
-                        <p>As you first sit down to design schemas for collecting and anallyzing social media data, it seems simple - the APIs are straightforward and it probably wouldn't take more than a day to program the data collection interface. Far more difficult is the challenge of storing and keeping track of that data in a way that can match your analysis needs. Here I will discuss some strategies and potential database schemas that have been useful for my own research on social media.</p>
-<h3>Analysis Limitations</h3>
-<p>Social media data often limits the researcher to a small set of questions that can be answered.</p>
+                        <p>As you first sit down to design schemas for collecting and anallyzing
+social media data, it seems simple - the APIs are straightforward and it
+probably wouldn’t take more than a day to program the data collection
+interface. Far more difficult is the challenge of storing and keeping
+track of that data in a way that can match your analysis needs. Here I
+will discuss some strategies and potential database schemas that have
+been useful for my own research on social media.</p>
+<h3 id="analysis-limitations">Analysis Limitations</h3>
+<p>Social media data often limits the researcher to a small set of
+questions that can be answered.</p>
 <ul>
-<li><strong>Snapshot in time</strong>: rarely can you collect a complete historical account of activities on these platforms - information about likes, favorites, bookmarks, and other interaction measures are instead taken at a particular point in time. Even with API access that allows you to collect data from the past, the interfaces almost never allow you to get information about which user favorited or liked a post at which time. </li>
+<li><strong>Snapshot in time</strong>: rarely can you collect a complete
+historical account of activities on these platforms - information about
+likes, favorites, bookmarks, and other interaction measures are instead
+taken at a particular point in time. Even with API access that allows
+you to collect data from the past, the interfaces almost never allow you
+to get information about which user favorited or liked a post at which
+time.</li>
 </ul>
-<h3>Typical API Interface</h3>
-<p>I have found that social media API requests typically fall into two categories: paginated and non-paginated. Non-paginated interfaces are the easiest because you will typically request and receive a fixed set of resources, whereas paginated interfaces require more effort because they require an undetermined number of requests and can be very large in number. In paginated requests, you will receive results in chunks with page ids that are returned after each subsequent request.</p>
-<h5>Request blocks</h5>
-<p>For the purposes of data collection, I further organize API interfaces into <em>request blocks</em>, or groups of API requests being initiated for a common purpose. I use the concept slightly differently in other jobs.</p>
-<p>The need for the request block concept arises in non-paginated requests when you may only request a fixed and relatively small set of resources in a single request and may need to create a large number of requests to capture the full set of resources you are interested in. The need for request blocks in paginated requests arises because the response of the first request will lead you to request the next page, and so on - the requests are chunked into pages.</p>
-<h5>Non-paginated</h5>
-<p>Non-paginated requests are simplest because you will request and receive a fixed number of resources using the API. This is common for situations when you want to get information about a specific set of users or posts.</p>
+<h3 id="typical-api-interface">Typical API Interface</h3>
+<p>I have found that social media API requests typically fall into two
+categories: paginated and non-paginated. Non-paginated interfaces are
+the easiest because you will typically request and receive a fixed set
+of resources, whereas paginated interfaces require more effort because
+they require an undetermined number of requests and can be very large in
+number. In paginated requests, you will receive results in chunks with
+page ids that are returned after each subsequent request.</p>
+<h5 id="request-blocks">Request blocks</h5>
+<p>For the purposes of data collection, I further organize API
+interfaces into <em>request blocks</em>, or groups of API requests being
+initiated for a common purpose. I use the concept slightly differently
+in other jobs.</p>
+<p>The need for the request block concept arises in non-paginated
+requests when you may only request a fixed and relatively small set of
+resources in a single request and may need to create a large number of
+requests to capture the full set of resources you are interested in. The
+need for request blocks in paginated requests arises because the
+response of the first request will lead you to request the next page,
+and so on - the requests are chunked into pages.</p>
+<h5 id="non-paginated">Non-paginated</h5>
+<p>Non-paginated requests are simplest because you will request and
+receive a fixed number of resources using the API. This is common for
+situations when you want to get information about a specific set of
+users or posts.</p>
 <pre><code>&gt; make request to server
 &gt; receive results
-&gt; store results in database
-</code></pre>
-<h5>Paginated</h5>
+&gt; store results in database</code></pre>
+<h5 id="paginated">Paginated</h5>
 <pre><code>&gt; make initial request
 &gt; receive and store results
 &gt; while there is more data to be requested (page id or last timestamp)
     &gt; make another request
-    &gt; receive and store results
-</code></pre>
-<h3>Request Schema</h3>
+    &gt; receive and store results</code></pre>
+<h3 id="request-schema">Request Schema</h3>
 <ul>
-<li><em>request block timestamp</em>: time of the first request made in this block</li>
-<li><em>pagination id</em>: page of request being made (0 for first request, NULL in non-paginated requests).</li>
-<li><em>request timestamp</em>: the timestamp in which the individual request was made.</li>
-<li><em>request endpoint</em>: the endpoint that the request is being sent to.</li>
-<li><em>target</em>: information about the specific resource being requested. Could be conversation id, post id, user id, or any other key information about the request</li>
-<li><em>number of results</em>: metadata about the number of results that the request returned</li>
+<li><em>request block timestamp</em>: time of the first request made in
+this block</li>
+<li><em>pagination id</em>: page of request being made (0 for first
+request, NULL in non-paginated requests).</li>
+<li><em>request timestamp</em>: the timestamp in which the individual
+request was made.</li>
+<li><em>request endpoint</em>: the endpoint that the request is being
+sent to.</li>
+<li><em>target</em>: information about the specific resource being
+requested. Could be conversation id, post id, user id, or any other key
+information about the request</li>
+<li><em>number of results</em>: metadata about the number of results
+that the request returned</li>
 <li><em>last id</em></li>
 </ul>
-<h3>Snapshots in Time</h3>
-<p>The first important aspect of collecting social media data is that</p>
+<h3 id="snapshots-in-time">Snapshots in Time</h3>
+<p>The first important aspect of collecting social media data is
+that</p>
+
                     </div>
                 </div>
             </div>

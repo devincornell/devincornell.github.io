@@ -12,7 +12,7 @@ import blogmaker
 
 if __name__ == '__main__':
 
-    if False:
+    if True:
         bmaker = blogmaker.BlogMaker.read_from_markdown_files(
             markdown_files = list(Path('draft_markdown/').glob('*.md')),
             blogroll_template_fname = Path('templates/blogroll_template.html'),
