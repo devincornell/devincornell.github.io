@@ -67,21 +67,74 @@
             <div class="container px-4 px-lg-5">
                 <div class="row gx-4 gx-lg-5 justify-content-center">
                     <div class="col-md-10 col-lg-8 col-xl-7">
-                        <p>In this article, I discuss and give examples for one of my favorite patterns for data analysis code: static factory constructor methods. A <strong><em>static factory constructor method</em></strong> (SFCM hereafter) is simply a static method which returns an instance of the object that implements it. A single class can have multiple SFCMs that accept different parameters, and the methods should contain any logic needed to initialize the object. While these methods are common in many software engineering applications, I believe they are especially useful in data analysis code because they align with the way data flows through your program.</p>
-<p><img style="width:80%;" class="figure-center" src="https://storage.googleapis.com/public_data_09324832787/static_factory_methods.svg" /> </p>
-<p>The SFCM pattern is a way of writing logic to instantiate your custom types. Broadly speaking, there are three possible places where instantiation logic can exist: (1) outside of the type, (2) inside the <code>__init__</code> method, or (3) inside a SFCM. Place logic outside the object itself when the same logic is required to create multiple different types. If this is the case, you may be better off creating an intermediary type anyways. Use <code>__init__</code> for any logic that MUST be done every time an object is instantiated and there are no ways to instantiate the object without that logic. In all other cases, SFCMs are the best option.</p>
-<p>If you construct your data pipelines as a series of immutable types and the transformations between them (<a href="https://devinjcornell.com/post/dsp0_patterns_for_dataclasses.html">which I recommend</a>), SFCMs can contain all logic involved with transforming data from one type to another. As all data pipelines essentially follow the structure shown in the diagram below (more or less explicitly), we can see how SFCMs could be ubiquitous throughout your data pipelines.</p>
-<p><img style="width:80%;" class="figure-center" src="https://storage.googleapis.com/public_data_09324832787/sfcm_data_flow.svg" /> </p>
-<p>I have <a href="https://devinjcornell.com/post/dsp0_patterns_for_dataclasses.html">written at length</a> why it is best to use immutable custom types to represent intermediary data formats, and SFCMs can play the role of converting the data from one type to another. Here are a few benefits of implementing SFCMs for data pipelines using these patterns.</p>
+                        <p>In this article, I discuss and give examples for one of my favorite
+patterns for data analysis code: static factory constructor methods. A
+<strong><em>static factory constructor method</em></strong> (SFCM
+hereafter) is simply a static method which returns an instance of the
+object that implements it. A single class can have multiple SFCMs that
+accept different parameters, and the methods should contain any logic
+needed to initialize the object. While these methods are common in many
+software engineering applications, I believe they are especially useful
+in data analysis code because they align with the way data flows through
+your program.</p>
+<p><img style="width:80%;" class="figure-center" src="https://storage.googleapis.com/public_data_09324832787/static_factory_methods.svg" /></p>
+<p>The SFCM pattern is a way of writing logic to instantiate your custom
+types. Broadly speaking, there are three possible places where
+instantiation logic can exist: (1) outside of the type, (2) inside the
+<code>__init__</code> method, or (3) inside a SFCM. Place logic outside
+the object itself when the same logic is required to create multiple
+different types. If this is the case, you may be better off creating an
+intermediary type anyways. Use <code>__init__</code> for any logic that
+MUST be done every time an object is instantiated and there are no ways
+to instantiate the object without that logic. In all other cases, SFCMs
+are the best option.</p>
+<p>If you construct your data pipelines as a series of immutable types
+and the transformations between them (<a
+href="https://devinjcornell.com/post/dsp0_patterns_for_dataclasses.html">which
+I recommend</a>), SFCMs can contain all logic involved with transforming
+data from one type to another. As all data pipelines essentially follow
+the structure shown in the diagram below (more or less explicitly), we
+can see how SFCMs could be ubiquitous throughout your data
+pipelines.</p>
+<p><img style="width:80%;" class="figure-center" src="https://storage.googleapis.com/public_data_09324832787/sfcm_data_flow.svg" /></p>
+<p>I have <a
+href="https://devinjcornell.com/post/dsp0_patterns_for_dataclasses.html">written
+at length</a> why it is best to use immutable custom types to represent
+intermediary data formats, and SFCMs can play the role of converting the
+data from one type to another. Here are a few benefits of implementing
+SFCMs for data pipelines using these patterns.</p>
 <ul>
-<li>A class can have multiple SFCMs, and therefore can be initialized in different ways from different source types and parameters. The reader can easily see the types from which it can be constructed.</li>
-<li>When creating <a href="https://docs.python.org/3/library/dataclasses.html">dataclass</a> (or <a href="https://docs.pydantic.dev/latest/">pydantic</a>/<a href="https://www.attrs.org/en/stable/">attrs</a>) types, they allow you to pass non-data parameters and avoid using <code>__post_init__</code> or requiring partial initialization states.</li>
-<li>These methods offer a superior alternative to overriding constructor methods when using inheritance. Subclasses can call SFCMs of parent classes explicitly instead of using <code>super()</code> or otherwise referring to the parent class. This is especially useful when inheriting from built-in types such as collections or exceptions.</li>
+<li>A class can have multiple SFCMs, and therefore can be initialized in
+different ways from different source types and parameters. The reader
+can easily see the types from which it can be constructed.</li>
+<li>When creating <a
+href="https://docs.python.org/3/library/dataclasses.html">dataclass</a>
+(or <a href="https://docs.pydantic.dev/latest/">pydantic</a>/<a
+href="https://www.attrs.org/en/stable/">attrs</a>) types, they allow you
+to pass non-data parameters and avoid using <code>__post_init__</code>
+or requiring partial initialization states.</li>
+<li>These methods offer a superior alternative to overriding constructor
+methods when using inheritance. Subclasses can call SFCMs of parent
+classes explicitly instead of using <code>super()</code> or otherwise
+referring to the parent class. This is especially useful when inheriting
+from built-in types such as collections or exceptions.</li>
 </ul>
-<p>In the following sections, I will discuss some situations where SFCMs may be particularly useful, elaborate on strategies for building complex object structures, and then discuss how these patterns fit within larger data pipelines.</p>
-<h1>Python Examples</h1>
-<p>Now I will show some examples of static factory constructor methods in Python. We typically create these methods using the <code>@classmethod</code> parameter, and they always return an instance of the containing class.</p>
-<p>For example purposes, let us start by creating the most basic container object: a coordinate with <code>x</code> and <code>y</code> attributes. The <code>__init__</code> method simply takes <code>x</code> and <code>y</code> parameters and stores them as attributes. I include <code>x</code> and <code>y</code> as part of the definition to support type checkers. I also create a basic <code>__repr__</code> method for readability.</p>
+<p>In the following sections, I will discuss some situations where SFCMs
+may be particularly useful, elaborate on strategies for building complex
+object structures, and then discuss how these patterns fit within larger
+data pipelines.</p>
+<h1 id="python-examples">Python Examples</h1>
+<p>Now I will show some examples of static factory constructor methods
+in Python. We typically create these methods using the
+<code>@classmethod</code> parameter, and they always return an instance
+of the containing class.</p>
+<p>For example purposes, let us start by creating the most basic
+container object: a coordinate with <code>x</code> and <code>y</code>
+attributes. The <code>__init__</code> method simply takes <code>x</code>
+and <code>y</code> parameters and stores them as attributes. I include
+<code>x</code> and <code>y</code> as part of the definition to support
+type checkers. I also create a basic <code>__repr__</code> method for
+readability.</p>
 <pre><code>import typing
 import math
 import random
@@ -94,33 +147,55 @@ class Coord:
         self.y = y
 
     def __repr__(self) -&gt; str:
-        return f'{self.__class__.__name__}(x={self.x}, y={self.y})'
-</code></pre>
-<p>The implementation of the <code>__init__</code> default constructor method is important because it must be called any time you want to instantiate the object. Ideally, it should ONLY be responsible for inserting data attributes. Most of the time, all attributes should be required.</p>
-<p>Note that the <code>__init__</code> created by the <a href="https://docs.python.org/3/library/dataclasses.html"><code>dataclasses</code></a> module is perfect for this, so I highly recommend using it. This definition is exactly equivalent to the above.</p>
+        return f&#39;{self.__class__.__name__}(x={self.x}, y={self.y})&#39;</code></pre>
+<p>The implementation of the <code>__init__</code> default constructor
+method is important because it must be called any time you want to
+instantiate the object. Ideally, it should ONLY be responsible for
+inserting data attributes. Most of the time, all attributes should be
+required.</p>
+<p>Note that the <code>__init__</code> created by the <a
+href="https://docs.python.org/3/library/dataclasses.html"><code>dataclasses</code></a>
+module is perfect for this, so I highly recommend using it. This
+definition is exactly equivalent to the above.</p>
 <pre><code>import dataclasses
 
 @dataclasses.dataclass
 class Coord:
     x: float
-    y: float
-</code></pre>
-<p>We can instantiate this type using <code>__init__</code> by passing both <code>x</code> and <code>y</code> in the calling function.</p>
-<pre><code>Coord(0.0, 0.0)
-</code></pre>
+    y: float</code></pre>
+<p>We can instantiate this type using <code>__init__</code> by passing
+both <code>x</code> and <code>y</code> in the calling function.</p>
+<pre><code>Coord(0.0, 0.0)</code></pre>
 <p>All of the following examples will start with this type.</p>
-<h2>Useful Situations</h2>
-<p>For practical purposes, I have identified several situations in which SFCMs may be useful to you, whether or not you apply other design patterns I have discussed. I will give Python examples for each of these situations and then discuss approaches.</p>
+<h2 id="useful-situations">Useful Situations</h2>
+<p>For practical purposes, I have identified several situations in which
+SFCMs may be useful to you, whether or not you apply other design
+patterns I have discussed. I will give Python examples for each of these
+situations and then discuss approaches.</p>
 <ul>
-<li>The type needs to be constructed in multiple ways, each using different logics or source data.</li>
-<li>Substantial logic is required to instantiate the type but that logic is only used for that purpose.</li>
-<li>You want to avoid situation-specific or inter-dependent defaulted parameters.</li>
+<li>The type needs to be constructed in multiple ways, each using
+different logics or source data.</li>
+<li>Substantial logic is required to instantiate the type but that logic
+is only used for that purpose.</li>
+<li>You want to avoid situation-specific or inter-dependent defaulted
+parameters.</li>
 <li>You need to return multiple instances of the type.</li>
 <li>You are using an existing constructor of an inherited type.</li>
 </ul>
 <p>I will now give examples for each of these situations.</p>
-<h4>Alternative Instantiation Methods</h4>
-<p>The most obvious situation in which you may want to use a SFCM is when there are multiple alternative methods for creating an instance. The following two methods allow you to create the <code>Coord</code> object from either cartesian or <a href="https://www.mathsisfun.com/polar-cartesian-coordinates.html">polar coordinates</a>. Note that the <code>from_xy</code> method here enforces type consistency by calling <code>float</code>, which would also raise an exception if the <code>x</code> or <code>y</code> arguments are not coercible. The <code>from_polar</code> method is also enforcing type consistency implicitly through the use of <code>math.cos</code> and <code>math.sin</code>, which both return floating point numbers.</p>
+<h4 id="alternative-instantiation-methods">Alternative Instantiation
+Methods</h4>
+<p>The most obvious situation in which you may want to use a SFCM is
+when there are multiple alternative methods for creating an instance.
+The following two methods allow you to create the <code>Coord</code>
+object from either cartesian or <a
+href="https://www.mathsisfun.com/polar-cartesian-coordinates.html">polar
+coordinates</a>. Note that the <code>from_xy</code> method here enforces
+type consistency by calling <code>float</code>, which would also raise
+an exception if the <code>x</code> or <code>y</code> arguments are not
+coercible. The <code>from_polar</code> method is also enforcing type
+consistency implicitly through the use of <code>math.cos</code> and
+<code>math.sin</code>, which both return floating point numbers.</p>
 <pre><code>    @classmethod
     def from_xy(cls, x: float, y: float) -&gt; typing.Self:
         return cls(
@@ -133,12 +208,31 @@ class Coord:
         return cls(
             x = r * math.cos(theta),
             y = r * math.sin(theta),
-        )
-</code></pre>
-<p>An alternative approach would be to place the <code>float</code> calls inside of the <code>__init__</code> constructor. With that approach, <code>from_polar</code> would be forced to execute that logic even though it is not necessary because <code>math.sin</code> and <code>math.cos</code> already create type safety. Of course, in this example the call to <code>float</code> is computationally inexpensive, but some types may require more complicated validation or conversion that will not be necessary for every possible way that the object can be instantiated.</p>
-<h4>Type-specific Instantiation Logic</h4>
-<p>SFCMs are a good option when instantiation requires substantial logic but the logic is only used for that purpose. The instantiation logic should live as part of the type, and the SFCM is a good place to put it.</p>
-<p>For example, say we need to sample points from a gaussian distribution by creating a new random coordinate instance according to some parameters. The instantiation logic involves calling <code>random.gauss</code>, and so we put that inside a new <code>from_gaussian</code> method. In contrast to the default constructor, none of the parameters here are actually stored as data - only the data generated from the random functions. You would instantiate the new object with the expression <code>Coord.from_gaussian(..)</code>.</p>
+        )</code></pre>
+<p>An alternative approach would be to place the <code>float</code>
+calls inside of the <code>__init__</code> constructor. With that
+approach, <code>from_polar</code> would be forced to execute that logic
+even though it is not necessary because <code>math.sin</code> and
+<code>math.cos</code> already create type safety. Of course, in this
+example the call to <code>float</code> is computationally inexpensive,
+but some types may require more complicated validation or conversion
+that will not be necessary for every possible way that the object can be
+instantiated.</p>
+<h4 id="type-specific-instantiation-logic">Type-specific Instantiation
+Logic</h4>
+<p>SFCMs are a good option when instantiation requires substantial logic
+but the logic is only used for that purpose. The instantiation logic
+should live as part of the type, and the SFCM is a good place to put
+it.</p>
+<p>For example, say we need to sample points from a gaussian
+distribution by creating a new random coordinate instance according to
+some parameters. The instantiation logic involves calling
+<code>random.gauss</code>, and so we put that inside a new
+<code>from_gaussian</code> method. In contrast to the default
+constructor, none of the parameters here are actually stored as data -
+only the data generated from the random functions. You would instantiate
+the new object with the expression
+<code>Coord.from_gaussian(..)</code>.</p>
 <pre><code>    @classmethod
     def from_gaussian(cls,
         x_mu: float, 
@@ -149,24 +243,38 @@ class Coord:
         return cls(
             x = random.gauss(mu=x_mu, sigma=x_sigma),
             y = random.gauss(mu=y_mu, sigma=y_sigma),
-        )
-</code></pre>
-<p>Most other solutions to this situation are complicated: you either require the calling function to implement this logic or add it to <code>__init__</code> with some complicated defaulted parameters.</p>
-<h4>Situation-specific Parameters</h4>
-<p>SFCMs are a good alternative to the situation where you have an <code>__init__</code> method where the behavior of some parameters varies according to the values of other parameters. Instead, create multiple situation-specific SFCMs for use in different situations.</p>
-<p>For example, say we want to create instances of points that lie along the line <code>x</code>=<code>y</code>. We can create a new instance from a single parameter in this case, because both values can be calculated given the value of x.</p>
+        )</code></pre>
+<p>Most other solutions to this situation are complicated: you either
+require the calling function to implement this logic or add it to
+<code>__init__</code> with some complicated defaulted parameters.</p>
+<h4 id="situation-specific-parameters">Situation-specific
+Parameters</h4>
+<p>SFCMs are a good alternative to the situation where you have an
+<code>__init__</code> method where the behavior of some parameters
+varies according to the values of other parameters. Instead, create
+multiple situation-specific SFCMs for use in different situations.</p>
+<p>For example, say we want to create instances of points that lie along
+the line <code>x</code>=<code>y</code>. We can create a new instance
+from a single parameter in this case, because both values can be
+calculated given the value of x.</p>
 <pre><code>    @classmethod
     def from_xy_line(cls, x: float) -&gt; typing.Self:
-        return cls(x=x, y=x)
-</code></pre>
-<p>If we wanted a simple way to create the origin coordinate, we can create a method that accepts no parameters.</p>
+        return cls(x=x, y=x)</code></pre>
+<p>If we wanted a simple way to create the origin coordinate, we can
+create a method that accepts no parameters.</p>
 <pre><code>    @classmethod
     def from_zero(cls) -&gt; typing.Self:
-        return cls(x=0.0,y=0.0)
-</code></pre>
-<p>In this way, the function signatures themselves make it clear which parameters are needed for a given situation.</p>
-<h4>Returning Multiple Instances</h4>
-<p>In cases where it may be too tedious to create <a href="dsp1_data_collection_types.html">custom collection types</a>, SFCMs can be used to return collections of the implementing type. As an example, say we want to return a set of coordinates created by the reflection of the original point across the x and y axes. In that case, we can return a set of instances representing the desired coordinates.</p>
+        return cls(x=0.0,y=0.0)</code></pre>
+<p>In this way, the function signatures themselves make it clear which
+parameters are needed for a given situation.</p>
+<h4 id="returning-multiple-instances">Returning Multiple Instances</h4>
+<p>In cases where it may be too tedious to create <a
+href="dsp1_data_collection_types.html">custom collection types</a>,
+SFCMs can be used to return collections of the implementing type. As an
+example, say we want to return a set of coordinates created by the
+reflection of the original point across the x and y axes. In that case,
+we can return a set of instances representing the desired
+coordinates.</p>
 <pre><code>    @classmethod
     def from_reflected(cls, x: float, y: float) -&gt; typing.List[typing.Self]:
         return [
@@ -174,20 +282,32 @@ class Coord:
             cls(x = -x, y = y),
             cls(x = x, y = -y),
             cls(x = -x, y = -y),
-        ]
-</code></pre>
-<h4>Calling a Parent Constructor Method</h4>
-<p>SFCMs are good to use when you want to use the <code>__init__</code> method of the parent class and overriding <code>__init__</code> could have unintended side effects. </p>
-<p>Say that we want to create a 2-dimensional vector type that contains the same data as <code>Coord</code> but has some additional methods for vector operations that are not typically defined for coordinates. The data is not different, and therefore we should not define a new <code>__init__</code> method. If any other logic is required, we can add that to the SFCM.</p>
+        ]</code></pre>
+<h4 id="calling-a-parent-constructor-method">Calling a Parent
+Constructor Method</h4>
+<p>SFCMs are good to use when you want to use the <code>__init__</code>
+method of the parent class and overriding <code>__init__</code> could
+have unintended side effects.</p>
+<p>Say that we want to create a 2-dimensional vector type that contains
+the same data as <code>Coord</code> but has some additional methods for
+vector operations that are not typically defined for coordinates. The
+data is not different, and therefore we should not define a new
+<code>__init__</code> method. If any other logic is required, we can add
+that to the SFCM.</p>
 <pre><code>class Vector2D(Coord):
     @classmethod
     def unity(cls) -&gt; typing.Self:
         return cls(x=1.0, y=1.0)
-
+    
     def dot(self, other: typing.Self) -&gt; float:
-        return (self.x * other.x) + (self.y * other.y)
-</code></pre>
-<p>Another situation where this might arise is when inheriting from built-in types when you do not want to risk altering the behavior of the original type. In this case, we can call the <code>Coord.from_gaussian</code> method and return a list of <code>Coord</code> types in the container <code>from_gaussian</code> method. This approach makes it easy and safe to inherit from built-in collection types.</p>
+        return (self.x * other.x) + (self.y * other.y)</code></pre>
+<p>Another situation where this might arise is when inheriting from
+built-in types when you do not want to risk altering the behavior of the
+original type. In this case, we can call the
+<code>Coord.from_gaussian</code> method and return a list of
+<code>Coord</code> types in the container <code>from_gaussian</code>
+method. This approach makes it easy and safe to inherit from built-in
+collection types.</p>
 <pre><code>class Coords(list[Coord]):
     @classmethod
     def from_gaussian(cls,
@@ -197,9 +317,9 @@ class Coord:
         x_sigma: float, 
         y_sigma: float
     ) -&gt; typing.Self:
-        return cls([Coord.from_gaussian(x_mu, y_mu, x_sigma, y_sigma) for _ in range(n)])
-</code></pre>
-<p>You could also use this as an alternative to returning multiple instances from the <code>Coord</code> type.</p>
+        return cls([Coord.from_gaussian(x_mu, y_mu, x_sigma, y_sigma) for _ in range(n)])</code></pre>
+<p>You could also use this as an alternative to returning multiple
+instances from the <code>Coord</code> type.</p>
 <pre><code>    @classmethod
     def from_reflected_points(cls, x: float, y: float) -&gt; typing.Self:
         return cls([
@@ -207,44 +327,82 @@ class Coord:
             Coord(x = -x, y = y),
             Coord(x = x, y = -y),
             Coord(x = -x, y = -y),
-        ])
-</code></pre>
-<h2>Inter-dependent SFCM Calls</h2>
-<p>It is often helpful to be able to instantiate an object with varying levels of specificity, depending on the situation. In this case, you can create multiple SFCMs that call each other successively, effectively chaining the instantiation logic down the call stack. If you know that the instantiation methods will build on each other, this approach is clearer than creating a pool of helper methods that are selectively invoked in every SFCM. </p>
-<p>This approach offers some theoretical perspective. Beyond the ability to instantiate an object in different ways, you can start to think in terms of a tree of successive SFCMs which all lead back to the <code>__init__</code> method. Every time you need a new constructor method, it is worth thinking about where it could exist in this tree.</p>
-<p><img style="width:50%;" class="figure-center" src="https://storage.googleapis.com/public_data_09324832787/blog/sfcm_heirarchy.svg" /> </p>
-<p>Let us return to the example <code>from_xy</code>. Recall that this simple method actually applies a level of validation: by calling <code>float</code>, we ensure the input values are coercible to floats.</p>
+        ])</code></pre>
+<h2 id="inter-dependent-sfcm-calls">Inter-dependent SFCM Calls</h2>
+<p>It is often helpful to be able to instantiate an object with varying
+levels of specificity, depending on the situation. In this case, you can
+create multiple SFCMs that call each other successively, effectively
+chaining the instantiation logic down the call stack. If you know that
+the instantiation methods will build on each other, this approach is
+clearer than creating a pool of helper methods that are selectively
+invoked in every SFCM.</p>
+<p>This approach offers some theoretical perspective. Beyond the ability
+to instantiate an object in different ways, you can start to think in
+terms of a tree of successive SFCMs which all lead back to the
+<code>__init__</code> method. Every time you need a new constructor
+method, it is worth thinking about where it could exist in this
+tree.</p>
+<p><img style="width:50%;" class="figure-center" src="https://storage.googleapis.com/public_data_09324832787/blog/sfcm_heirarchy.svg" /></p>
+<p>Let us return to the example <code>from_xy</code>. Recall that this
+simple method actually applies a level of validation: by calling
+<code>float</code>, we ensure the input values are coercible to
+floats.</p>
 <pre><code>    @classmethod
     def from_xy(cls, x: float, y: float) -&gt; typing.Self:
         return cls(
             x = float(x),
             y = float(y),
-        )
-</code></pre>
-<p>Now revisit the definition of <code>from_xy_line</code>. In the original definition, we simply assigned the input value to both <code>x</code> and <code>y</code> of the new object. Instead of calling <code>__init__</code>, we can call <code>from_xy</code> to add the same validation functionality to this method as well.</p>
+        )</code></pre>
+<p>Now revisit the definition of <code>from_xy_line</code>. In the
+original definition, we simply assigned the input value to both
+<code>x</code> and <code>y</code> of the new object. Instead of calling
+<code>__init__</code>, we can call <code>from_xy</code> to add the same
+validation functionality to this method as well.</p>
 <pre><code>    @classmethod
     def from_xy_line(cls, x: float) -&gt; typing.Self:
-        return cls.from_xy(x=x, y=x)
-</code></pre>
-<p>Now say we may want to add an additional validation step where we ensure <code>x</code> and <code>y</code> are finite. We can create a new method <code>from_xy_finite</code> which checks for finiteness and also calls <code>from_xy</code> to perform the floating point validation. In this way, <code>from_xy_finite</code> is actually adding to the functionality of <code>from_xy</code> without overlap.</p>
+        return cls.from_xy(x=x, y=x)</code></pre>
+<p>Now say we may want to add an additional validation step where we
+ensure <code>x</code> and <code>y</code> are finite. We can create a new
+method <code>from_xy_finite</code> which checks for finiteness and also
+calls <code>from_xy</code> to perform the floating point validation. In
+this way, <code>from_xy_finite</code> is actually adding to the
+functionality of <code>from_xy</code> without overlap.</p>
 <pre><code>    @classmethod
     def from_xy_finite(cls, x: float, y: float) -&gt; typing.Self:
         # raise exception if values are invalid
-        invalids = (float('inf'), float('-inf'))
+        invalids = (float(&#39;inf&#39;), float(&#39;-inf&#39;))
         if x in invalids or y in invalids:
-            raise ValueError(f'x and y must be finite values.')
-
-        return cls.from_xy(x=x, y=y)
-</code></pre>
-<p>If we revisit the SFCM <code>from_zero</code>, we can see that it still should be calling the <code>__init__</code> constructor because we can gaurantee that the inputs are valid floating point numbers, and therefore do not benefit from calling any other SFCM.</p>
+            raise ValueError(f&#39;x and y must be finite values.&#39;)
+        
+        return cls.from_xy(x=x, y=y)</code></pre>
+<p>If we revisit the SFCM <code>from_zero</code>, we can see that it
+still should be calling the <code>__init__</code> constructor because we
+can gaurantee that the inputs are valid floating point numbers, and
+therefore do not benefit from calling any other SFCM.</p>
 <pre><code>@classmethod
 def from_zero(cls) -&gt; typing.Self:
-    return cls(x=0.0,y=0.0)
-</code></pre>
-<p>Taken together, we can think of these SFCM dependencies as a tree where all methods call <code>__init__</code> at the lowest level. Creating a new SFCM is a matter of determining which operations are needed for instantiation.</p>
-<h2>Data Pipelines Using FCMs</h2>
-<p>I have <a href="dsp1_data_collection_types.html">written more extensively</a> about this in the past, but I think it is worth noting how SFCMs fit within larger data pipelines. If we structure our code as a set of immutable data types and the transformations between them, we can do most of the transformation work inside SFCMs.</p>
-<p>A good design principle is that downstream types should know how to construct themselves, and that logic can be placed in SFCMs. For instance, we have our <code>Coord</code> object from the previous example. Now say we may want to transform these existing Cartesian coordinates to radial coordinates. We can create a new type <code>RadialCoord</code> to represent this new data, and write the transformation code in a SFCM <code>from_cartesian</code>. The radial coordinate can be constructed using either the <code>__init__</code> method with the <code>r</code> and <code>theta</code> parameters or the <code>from_cartesian</code> SFCM, which accepts a <code>Coord</code>.</p>
+    return cls(x=0.0,y=0.0)</code></pre>
+<p>Taken together, we can think of these SFCM dependencies as a tree
+where all methods call <code>__init__</code> at the lowest level.
+Creating a new SFCM is a matter of determining which operations are
+needed for instantiation.</p>
+<h2 id="data-pipelines-using-fcms">Data Pipelines Using FCMs</h2>
+<p>I have <a href="dsp1_data_collection_types.html">written more
+extensively</a> about this in the past, but I think it is worth noting
+how SFCMs fit within larger data pipelines. If we structure our code as
+a set of immutable data types and the transformations between them, we
+can do most of the transformation work inside SFCMs.</p>
+<p>A good design principle is that downstream types should know how to
+construct themselves, and that logic can be placed in SFCMs. For
+instance, we have our <code>Coord</code> object from the previous
+example. Now say we may want to transform these existing Cartesian
+coordinates to radial coordinates. We can create a new type
+<code>RadialCoord</code> to represent this new data, and write the
+transformation code in a SFCM <code>from_cartesian</code>. The radial
+coordinate can be constructed using either the <code>__init__</code>
+method with the <code>r</code> and <code>theta</code> parameters or the
+<code>from_cartesian</code> SFCM, which accepts a
+<code>Coord</code>.</p>
 <pre><code>@dataclasses.dataclass
 class RadialCoord:
     r: float
@@ -255,33 +413,43 @@ class RadialCoord:
         return cls(
             r = math.sqrt(coord.x**2 + coord.y**2),
             theta = math.atan2(coord.y/coord.x),
-        )
-</code></pre>
-<p>We can create a radial coordinate using a <code>Coord</code> instance.</p>
+        )</code></pre>
+<p>We can create a radial coordinate using a <code>Coord</code>
+instance.</p>
 <pre><code>c = Coord(5, 4)
-rc = RadialCoord.from_cartesian(c)
-</code></pre>
-<p>Alternatively, we could make this accessible as a call to <code>to_radial(..)</code>.</p>
+rc = RadialCoord.from_cartesian(c)</code></pre>
+<p>Alternatively, we could make this accessible as a call to
+<code>to_radial(..)</code>.</p>
 <pre><code>@dataclasses.dataclass
 class Coord:
     x: float
     y: float
 
     def to_radial(self) -&gt; RadialCoord:
-        return RadialCoord.from_cartesian(self)
-</code></pre>
-<p>The latter step increases the coupling between the two objects, but, in exchange, the resulting interface is quite clean. Placing all of the construction logic in the downstream type's SFCM means that the coupling is weak and can be removed from the upstream type very easily.</p>
-<pre><code>Coord(5, 5).to_radial()
-</code></pre>
-<p>You can imagine how this pattern could be used throughout your data pipelines.</p>
-<h2>In Conclusion</h2>
-<p>SFCMs allow you to write module and extensible data pipelines, and are especially useful when building pipelines composed of immutable types and their transformations. Most of my own work relies heavily on this pattern, and I hope you can benefit too!</p>
-<p>I have also mentioned using SFCMs in a number of other articles that might be helpful:</p>
+        return RadialCoord.from_cartesian(self)</code></pre>
+<p>The latter step increases the coupling between the two objects, but,
+in exchange, the resulting interface is quite clean. Placing all of the
+construction logic in the downstream type’s SFCM means that the coupling
+is weak and can be removed from the upstream type very easily.</p>
+<pre><code>Coord(5, 5).to_radial()</code></pre>
+<p>You can imagine how this pattern could be used throughout your data
+pipelines.</p>
+<h2 id="in-conclusion">In Conclusion</h2>
+<p>SFCMs allow you to write module and extensible data pipelines, and
+are especially useful when building pipelines composed of immutable
+types and their transformations. Most of my own work relies heavily on
+this pattern, and I hope you can benefit too!</p>
+<p>I have also mentioned using SFCMs in a number of other articles that
+might be helpful:</p>
 <ul>
-<li><a href="dsp0_patterns_for_dataclasses.html">Patterns and Antipatterns for Dataclasses</a></li>
-<li><a href="dsp1_data_collection_types.html">Patterns for data collection types</a></li>
-<li><a href="zods0_problem_with_dataframes.html">Are Data Frames too flexible?</a></li>
+<li><a href="dsp0_patterns_for_dataclasses.html">Patterns and
+Antipatterns for Dataclasses</a></li>
+<li><a href="dsp1_data_collection_types.html">Patterns for data
+collection types</a></li>
+<li><a href="zods0_problem_with_dataframes.html">Are Data Frames too
+flexible?</a></li>
 </ul>
+
                     </div>
                 </div>
             </div>

@@ -201,7 +201,7 @@ user will never be able to change the column or index names, for
 instance, without changing the underlying dataframe being encapsulated.
 Because of this, we can guarantee that the property
 <code>sepal_length</code> will always return the pandas series for that
-column,</p></li>
+column.</p></li>
 <li><p><em>We defined the transformations that may be applied to this
 data.</em> We know that <code>species_mean_dataframe</code> is the only
 transformation that will ever be applied to this dataframe directly. If
@@ -332,7 +332,7 @@ present. We would have a significant error that goes silently through
 our data pipeline.</p>
 <p>Explicitly enumerating the columns associated with the input data
 takes more work but can also make your code more modular. Imagine that
-another way of Iris data is collected, but the format of the input data
+another wave of Iris data is collected, but the format of the input data
 is slightly different: some of the column names are different. In this
 case, we may want to separate our column name sets into
 <code>IrisColNames2013</code> and <code>IrisColNames2024</code> types
@@ -340,8 +340,8 @@ which both inherit from <code>BaseIrisColNames</code>. The
 <code>IrisData.from_dataframe</code> factory method constructor could
 then accept a subtype of <code>BaseIrisColNames</code> or you could
 create multiple constructor such as <code>from_2024_dataframe</code>
-which load the appropriate column name type but otherwise behaves the
-exact same. In either case, the user will be required to call the
+which load the appropriate column name type but otherwise behaves
+exactly the same. In either case, the user will be required to call the
 correct input parsing code for the given input data.</p>
 <h2 id="in-conclusion">In Conclusion</h2>
 <p>The tips I shared here are a great start to improving data pipelines
