@@ -53,12 +53,13 @@ class BlogMaker:
             blogroll_template = blogroll_template,
         )
     
-    def render_blogroll_page(self, fname: Path) -> str:
+    def render_blogroll_page(self, fname: Path, post_link: typing.Callable[[BlogPost],str]) -> str:
         '''Renders the blogroll page according to the provided template.'''
         posts = list(sorted(self.posts, key=lambda p: p.date, reverse=True))
         html = self.blogroll_template.render(
             posts=posts,
             updated=datetime.datetime.now(),
+            post_link=post_link,
         )
         with Path(fname).open('w') as f:
             f.write(html)

@@ -18,10 +18,11 @@ if __name__ == '__main__':
             blogroll_template_fname = Path('templates/blogroll_template.html'),
             blogpost_template_fname = Path('templates/blogpost_template.html'),
         )
-        bmaker.render_blogroll_page('blog_drafts.html')
+        post_link = lambda post: f'draft/{post.id}.html'
+        bmaker.render_blogroll_page('blog_drafts.html', post_link=post_link)
 
         for post in bmaker.posts:
-            post.render_blogpost_page(target_fpath=f'draft/{post.id}.html')
+            post.render_blogpost_page(target_fpath=post_link(post))
 
     if True:
         bmaker = blogmaker.BlogMaker.read_from_markdown_files(
@@ -29,10 +30,11 @@ if __name__ == '__main__':
             blogroll_template_fname = Path('templates/blogroll_template.html'),
             blogpost_template_fname = Path('templates/blogpost_template.html'),
         )
-        bmaker.render_blogroll_page('blog.html')
+        post_link = lambda post: f'post/{post.id}.html'
+        bmaker.render_blogroll_page('blog.html', post_link=post_link)
 
         for post in bmaker.posts:
-            post.render_blogpost_page(target_fpath=f'post/{post.id}.html')
+            post.render_blogpost_page(target_fpath=post_link(post))
 
     if True:
         bmaker = blogmaker.BlogMaker.read_from_markdown_files(
@@ -40,9 +42,10 @@ if __name__ == '__main__':
             blogroll_template_fname = Path('templates/ai_blogroll_template.html'),
             blogpost_template_fname = Path('templates/ai_blogpost_template.html'),
         )
-        bmaker.render_blogroll_page('ai-blog.html')
+        post_link = lambda post: f'ai_post/{post.id}.html'
+        bmaker.render_blogroll_page('ai-blog.html', post_link=post_link)
 
         for post in bmaker.posts:
-            post.render_blogpost_page(target_fpath=f'ai_post/{post.id}.html')
+            post.render_blogpost_page(target_fpath=post_link(post))
 
 

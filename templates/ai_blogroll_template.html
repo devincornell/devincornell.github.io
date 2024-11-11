@@ -57,14 +57,14 @@
                     {% for post in posts -%}
                         <!-- Post preview-->
                         <div class="post-preview">
-                            <a href="{{post.html_path}}">
+                            <a href="{{post_link(post)}}">
                                 <h2 class="post-title">{{post.title}}</h2>
                                 <h3 class="post-subtitle">{{post.subtitle}}</h3>
                             </a>
                             <p class="post-meta">
                                 {{post.date.strftime("%b %-d, %Y")}}
                                 <br/>
-                                <a href="{{post.html_path}}">
+                                <a href="{{post_link(post)}}">
                                     <img class="figure-center" src="{{post.blogroll_img_url}}" style="width:75%">
                                 </a>
                             </p>
