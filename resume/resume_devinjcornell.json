@@ -10,6 +10,7 @@
     "sections": [
         {
             "name": "Education",
+            "key": "education",
             "entries": [
                 {
                     "degree": "Ph.D.",
@@ -41,6 +42,7 @@
         },
         {
             "name": "Work Experience",
+            "key": "work_experience",
             "entries": [
                 {
                     "job_type": "freelance",
@@ -117,6 +119,7 @@
         },
         {
             "name": "Graduate Research Projects",
+            "key": "graduate_research",
             "entries": [
                 {
                     "title": "Social Cohesion in the Fat Liberation Community on Twitter",
@@ -221,6 +224,7 @@
         },
         {
             "name":"Publications",
+            "key": "publications",
             "entries": [
                 {
                     "title": "Social Cohesion in the Fat Liberation Community on Twitter",
@@ -301,6 +305,7 @@
         },
         {
             "name": "Conference Presentations",
+            "key": "conference_presentations",
             "entries": [
                 {
                     "title": "All Roads Lead to Polenta: Cultural Attractors at the Junction of Public and Personal Culture",
@@ -346,6 +351,7 @@
         },
         {
             "name" : "Invited Talks and Workshops",
+            "key": "invited_talks_and_workshops",
             "entries": [
                 {
                     "type": "Research Symposium",
@@ -421,6 +427,7 @@
         },
         {
             "name": "Awards and Honors",
+            "key": "awards_and_honors",
             "entries": [
                 {
                     "award": "Professional Development Grant",
@@ -483,6 +490,7 @@
         },
         {
             "name": "Academic Professional Service",
+            "key": "professional_service",
             "entries": [
                 {
                     "title": "Founder",
@@ -498,6 +506,7 @@
         },
         {
             "name": "Teaching and Mentorship",
+            "key": "teaching_and_mentorship",
             "entries": [
                 {
                     "title": "Student Mentor",
@@ -546,6 +555,7 @@
         },
         {
             "name": "Engineering Research and Work Experience",
+            "key": "engineering_experience",
             "entries": [
                 {
                     "job_type": "internship",
