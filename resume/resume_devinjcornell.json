@@ -1,0 +1,621 @@
+{
+    "contact": {
+        "name": "Devin J. Cornell",
+        "email": "devin@devinjcornell.com",
+        "phone": "+1 (515) 981-6764",
+        "website": "devinjcornell.com",
+        "research_interests": "Research Interests: culture, computational social science, network analysis, text analysis.",
+        "title": "Data and Social Science Consultant"
+    },
+
+    "degrees": [
+        {
+            "degree": "Ph.D.",
+            "major": "Sociology",
+            "school": "Duke University",
+            "graduation_year": 2023,
+            "started_year": 2019,
+            "specialization": "Culture, Social Networks, Text Analysis, and Computational Social Science",
+            "thesis_title": "Social Cohesion in the Fat Liberation Community on Twitter"
+        },
+        {
+            "degree": "M.S.",
+            "major": "Sociology",
+            "school": "University of California, Santa Barbara",
+            "graduation_year": 2019,
+            "started_year": 2016,
+            "specialization": "Culture, Social Networks, Text Analysis, and Computational Social Science",
+            "thesis_title": "Discursive Fields and Intra-party Influence in Colombian Politics"
+        },
+        {
+            "degree": "B.S.",
+            "major": "Electrical Enginering",
+            "school": "Missouri University of Science and Technology",
+            "graduation_year": 2015,
+            "started_year": 2011,
+            "specialization": "Minor in mathematics and emphasis on signal processing and machine learning."
+        }
+    ],
+    "work_experience": [
+        {
+            "job_type": "freelance",
+            "title": "Data and AI Specialist, Center of Excellence Lead",
+            "company": "Omnicom Advertising Group Worldwide",
+            "location": "New York, NY",
+            "start": "January 2025",
+            "end": "current",
+            "details": [
+                "Hired and managed a team of 2 data and AI specialists as part of a Center of Excellence.",
+                "Consulted on approaches for connecting data infrastructure to AI agents for creative ideation and business problem solving."
+            ],
+            "skills": [
+                "Python",
+                "Machine Learning",
+                "Large Language Models (LLM)",
+                "OpenAI ChatGPT"
+            ]
+        },
+        {
+            "job_type": "freelance",
+            "title": "Data and Social Science Consultant",
+            "company": "GMR Marketing",
+            "location": "Remote",
+            "start": "October 2024",
+            "end": "current",
+            "details": [
+                "Built statistical and machine learning models to predict memorability of brand experiences.",
+                "Conducted analysis of timesheet data to identify strategic investment opportunities within the organization."
+            ],
+            "skills": [
+                "Python",
+                "Machine Learning",
+                "Large Language Models (LLM)",
+                "OpenAI ChatGPT"
+            ]
+        },
+        {
+            "job_type": "freelance",
+            "title": "Data and Social Science Consultant",
+            "company": "TBWA Worldwide",
+            "location": "New York, NY",
+            "start": "January 2024",
+            "end": "December 2024",
+            "details": [
+                "Analyzed global cultural trends to identify opportunities for innovative new marketing campaigns using survey data and text analysis methods.",
+                "Developed custom data-driven AI agents to support multi-modal creative ideation."
+            ],
+            "skills": [
+                "Python",
+                "Machine Learning",
+                "Large Language Models (LLM)",
+                "OpenAI ChatGPT"
+            ]
+        },
+        {
+            "job_type": "freelance",
+            "title": "Network Analysis Consultant",
+            "company": "Data4Impact",
+            "location": "Chapel Hill, NC",
+            "start": "March 2022",
+            "end": "July 2023",
+            "details": [
+                "Analyzed multi-relational network data from Nigerian organizations to identify challenges and opportunities for health activities in different states."
+            ],
+            "skills": [
+                "Python",
+                "Network Analysis",
+                "R",
+                "Organizational Network Analysis (ONA)"
+            ]
+        },
+        {
+            "job_type": "internship",
+            "title": "Intern, Washington Internship for Students of Engineering (WISE)",
+            "company": "IEEE USA",
+            "location": "Washington, DC",
+            "start": "June 2015",
+            "end": "August 2015",
+            "details": [
+                "Performed interviews and archival research to investigate policy recommendations for USAID operating procedures.",
+                "Wrote paper “A System for Change : USAID Critical Process Improvements” for the WISE Journal of Public Policy."
+            ],
+            "skills": [
+                "Policy writing"
+            ]
+        },
+        {
+            "job_type": "internship",
+            "title": "Intern, Computational Sensing and Satellite Systems",
+            "company": "Sandia National Laboratories",
+            "location": "Albuquerque, NM",
+            "start": "January 2016",
+            "end": "August 2016",
+            "details": [
+                "Programmed machine learning algorithms into embedded sensing platforms.",
+                "Developed embedded drivers to support satellite orienting software.",
+                "Architected digital data acquisition and processing platforms."
+            ],
+            "skills": [
+                "Digital signal processing",
+                "Embedded systems development",
+                "Machine learning"
+            ]
+        },
+        {
+            "job_type": "university_internship",
+            "title": "University Researcher, Center for Artificial Intelligence and Autonomous Systems",
+            "company": "Missouri University of Science and Technology",
+            "location": "Rolla, MO",
+            "start": "August 2014",
+            "end": "May 2015",
+            "details": [
+                "Studied potential of using EEG to control computer interfaces with thought.",
+                "Applied machine learning techniques and nonlinear system modeling.",
+                "Investigated related neuroscience to understand limitations and possibilities."
+            ],
+            "skills": [
+                "Machine learning",
+                "Statistical modeling"
+            ]
+        },
+        {
+            "job_type": "university_internship",
+            "title": "University Researcher, NASA Reduced Gravity Student Flight Opportunities Program",
+            "company": "Missouri University of Science and Technology",
+            "location": "Rolla, MO",
+            "start": "August 2011",
+            "end": "July 2014",
+            "details": [
+                "Designed and tested zero-gravity experiment: Active Compression-Decompression CPR for Long Term Space Travel",
+                "Tested zero gravity experiment aboard NASA “Weightless Wonder” (aka “Vomit Comet”).",
+                "Used MATLAB to process sensor signal data and execute quantitative analysis.",
+                "Created outreach program affecting over one thousand students each year."
+            ],
+            "skills": [
+                "Electronic sensing systems design"
+            ]
+        },
+        {
+            "job_type": "internship",
+            "title": "Intern, Instrumentation Technologies",
+            "company": "Sandia National Laboratories",
+            "location": "Albuquerque, NM",
+            "start": "May 2013",
+            "end": "August 2014",
+            "details": [
+                "Performed data analysis and hardware instrument testing for research on earth penetrators.",
+                "Designed circuit boards for testing latency on low-voltage differential signaling systems."
+            ],
+            "skills": [
+                "Digital signal processing",
+                "Embedded systems development",
+                "PCB design"
+            ]
+        },
+        {
+            "job_type": "internship",
+            "title": "Intern, Ethernet Access Devices and Systems Engineering",
+            "company": "Adtran, Inc.",
+            "location": "Huntsville, AL",
+            "start": "May 2012",
+            "end": "May 2013",
+            "details": [
+                "Developed embedded software for Layer 2 Ethernet Access Devices using C and C++.",
+                "Designed database schemas and wrote server-side Objective C code for an internal website."
+            ],
+            "skills": [
+                "Software engineering",
+                "C",
+                "C++",
+                "Python",
+                "Objective C"
+            ]
+        }
+    ],
+    "research_projects": [
+        {
+            "title": "Social Cohesion in the Fat Liberation Community on Twitter",
+            "institution": "Duke University",
+            "location": "Durham, NC",
+            "start_year": 2022,
+            "end_year": 2023,
+            "link": "https://academic.oup.com/sf/article-abstract/102/1/263/7008118",
+            "details": [
+                "Applied event history analysis with novel measures of interactions to identify types of behaviors that lead to increased social cohesion.",
+                "Developed novel approach to identifying community boundaries and associated sampling frames using social network analysis."
+            ],
+            "research_areas": [
+                "Computational Social Science",
+                "Political Sociology",
+                "Cultural Sociology"
+            ],
+            "skills": [
+                "Python",
+                "Text Analysis",
+                "Natural Language Processing (NLP)",
+                "Social Network Analysis"
+            ]
+        },
+        {
+            "title": "Measuring Gender Stereotypes in 80 Years of American Print Media",
+            "institution": "Duke University",
+            "location": "Durham, NC",
+            "start_year": 2018,
+            "end_year": 2021,
+            "link": "https://academic.oup.com/sf/article-abstract/102/1/263/7008118",
+            "details": [
+                "Collaborated with sociologists to develop measures to capture changes in gender stereotypes latent in several thousands of print media articles.",
+                "Built database and data management infrastructure to support word embedding model training and analysis."
+            ],
+            "research_areas": [
+                "Sociology of Gender",
+                "Cultural Sociology"
+            ],
+            "skills": [
+                "Python",
+                "Text Analysis",
+                "Quantitative Research",
+                "SQL",
+                "Word Embeddings",
+                "Text Analysis"
+            ]
+        },
+        {
+            "title": "Narrative Analysis of Austerity in UK Print Media",
+            "institution": "University of California, Santa Barbara",
+            "location": "Santa Barbara, CA",
+            "start_year": 2018,
+            "end_year": 2019,
+            "link": "https://www.routledge.com/Multimodal-Approaches-to-Media-Discourses-Reconstructing-the-Age-of-Austerity/Griebel-Evert-Heinrich/p/book/9780367332891",
+            "details": [
+                "Developed novel approach to capture narrative as relationships between symbolic entities using network analysis and word embedding models."
+            ],
+            "research_areas": [
+                "Political Sociology",
+                "Cultural Sociology",
+                "Computational Social Science"
+            ],
+            "skills": [
+                "Python",
+                "Text Analysis",
+                "Quantitative Research",
+                "Qualitative Research",
+                "Content Analysis",
+                "SQL",
+                "Word Embeddings"
+            ]
+        },
+        {
+            "title": "Within-party Discursive Influence on Twitter",
+            "institution": "University of California, Santa Barbara",
+            "location": "Santa Barbara, CA",
+            "start_year": 2017,
+            "end_year": 2019,
+            "link": "https://escholarship.org/uc/item/85w8h6qx",
+            "details": [
+                "Applied topic modeling and genetic algorithms to understand political discussions and influence in more than one million Tweets from 50 politicians."
+            ],
+            "research_areas": [
+                "Political Sociology",
+                "Cultural Sociology"
+            ],
+            "skills": [
+                "Python",
+                "Quantitative Research",
+                "Qualitative Research",
+                "Content Analysis",
+                "Computational Social Science",
+                "Text Analysis",
+                "Topic Modeling",
+                "SQL",
+                "Evolutionary Algorithms"
+            ]
+        }
+    ],
+    "publications": [
+        {
+            "title": "Social Cohesion in the Fat Liberation Community on Twitter",
+            "authors": ["Devin J. Cornell"],
+            "publication_type": "dissertation",
+            "publication": "Social Forces",
+            "year": 2023,
+            "links": ["https://www.proquest.com/docview/2819149643"]
+        },
+        {
+            "title": "School, Studying, and Smarts: The Gender of Education Across 80 Years of American Print Media, 1930-2009",
+            "authors": ["Andrei Boutyline", "Alina Arseniev-Koehler", "Devin J. Cornell"],
+            "publication_type": "refereed journal article",
+            "publication": "Social Forces",
+            "year": 2023,
+            "links": [
+                "https://academic.oup.com/sf/article-abstract/102/1/263/7008118",
+                "https://osf.io/preprints/socarxiv/bukdg"
+            ]
+        },
+        {
+            "title": "Perceived gender and political persuasion: a social media field experiment during the 2020 US Democratic presidential primary election",
+            "authors": ["Aidan Combs", "Graham Tierney", "Fatima Alqabandi", "Devin J. Cornell", "Gabriel Varela", "Andrés Castro Araújo", "Lisa P. Argyle", "Christopher A. Bail", "Alexander Volfovsk"],
+            "publication_type": "refereed journal article",
+            "publication": "Scientific Reports",
+            "year": 2023,
+            "links": ["https://www.nature.com/articles/s41598-023-39359-0."]
+        },
+        {
+            "title": "All Roads Lead to Polenta: Cultural Attractors at the Junction of Public and Personal Culture",
+            "authors": ["Andrei Boutyline", "Devin J. Cornell", "Alina Arseniev-Koehler"],
+            "publication_type": "refereed journal article",
+            "publication": "Multimodal Approaches to Media Discourses: Reconstructing the Age of Austerity in the United Kingdom, Routledge",
+            "year": 2021,
+            "links": ["https://onlinelibrary.wiley.com/doi/abs/10.1111/socf.12760"]
+        },
+        {
+            "title": "EU Countries in Crisis: Close and Distant Readings of UK News Articles Using Word Embeddings",
+            "authors": ["Devin J. Cornell", "John W. Mohr"],
+            "publication_type": "book chapter",
+            "publication": "Sociological Forum",
+            "year": 2020,
+            "links": ["https://www.routledge.com/Multimodal-Approaches-to-Media-Discourses-Reconstructing-the-Age-of-Austerity/Griebel-Evert-Heinrich/p/book/9780367332891"]
+        },
+        {
+            "title": "The Moral Foundations Dictionary for News (MFD-N): A Crowd-Sourced Moral Foundations Dictionary for the Automated Analysis of News Corpora",
+            "authors": ["Frederic R Hopp", "Jacob T. Fisher", "Devin J. Cornell", "Richard Huskey", "René Weber"],
+            "publication_type": "refereed journal article",
+            "publication": "Behavior Research Methods",
+            "year": 2020,
+            "links": ["https://link.springer.com/article/10.3758/s13428-020-01433-0"]
+        },
+        {
+            "title": "Discursive Fields and Intra-party Influence in Colombian Politics",
+            "authors": ["Devin J. Cornell"],
+            "publication_type": "MA Thesis",
+            "publication": "UC Santa Barbara eScholarship",
+            "year": 2019,
+            "links": ["https://escholarship.org/uc/item/85w8h6qx"]
+        },
+        {
+            "title": "What causes childhood stunting among children of San Vicente, Guatemala: Employing complimentary, system-analysis approaches",
+            "authors": ["L. E. Voth-Gaeddert", "M. Stoker", "Devin J. Cornell", "D. B. Oerther"],
+            "publication_type": "refereed conference article",
+            "publication": "International Journal of Hygiene and Environmental Health",
+            "year": 2018,
+            "links": ["https://www.sciencedirect.com/science/article/abs/pii/S1438463917306272"]
+        },
+        {
+            "title": "Improving Health Information Systems in Guatemala Using Weighted Correlation Network Analysis",
+            "authors": ["L. E. Voth-Gaeddert", "Devin J. Cornell"],
+            "publication_type": "refereed conference article",
+            "publication": "Global Humanitarian Technology Conference",
+            "year": 2016,
+            "links": ["https://ieeexplore.ieee.org/abstract/document/7857353"]
+        }
+    ],
+    "conference_presentations": [
+        {
+            "title": "All Roads Lead to Polenta: Cultural Attractors at the Junction of Public and Personal Culture",
+            "conference": "American Sociological Association Annual Conference. Roundtable on Culture and Cognition",
+            "location": "Remote",
+            "date": "August 5-9",
+            "year": 2021,
+            "links": []
+        },
+        {
+            "title": "Measuring Meaning at Scale: Computational Methods for the Semantic Construction of Austerity in the UK",
+            "conference": "American Sociological Association Annual Conference. Computational Social Science, Culture, and Cultural Analysis",
+            "location": "",
+            "date": "August 11-14",
+            "year": 2018,
+            "links": []
+        },
+        {
+            "title": "Institutions, Cognition, and Discursive Fields in Colombian Politics",
+            "conference": "Sunbelt. Social Networks and Political Participation",
+            "location": "",
+            "date": "June 26-July 1",
+            "year": 2018,
+            "links": []
+        },
+        {
+            "title": "Discursive Fields on Twitter in the Colombian Right",
+            "conference": "Pacific Sociological Association Annual Conference. Politics and State (Political Sociology)",
+            "location": "",
+            "date": "March 28-31",
+            "year": 2018,
+            "links": []
+        },
+        {
+            "title": "Dual Process Theory and Political Culture",
+            "conference": "Pacific SociologicalAssociation Annual Conference. Theory.",
+            "location": "",
+            "date": "August 11-14",
+            "year": 2018,
+            "links": []
+        }
+    ],
+    "invited_talks_and_workshops": [
+        {
+            "type": "Research Symposium",
+            "title": "Fellow",
+            "event": "Diverse Intelligences Summer Institute at University of St Andrews, Scotland",
+            "organization": "John Templeton Foundation",
+            "month": "August 2020"
+        },
+        {
+            "type": "Research Symposium",
+            "title": "Fellow",
+            "event": "Multimodal Rhetoric in Online Media Communications Workshop",
+            "organization": "ZiF Center for Interdisciplinary Research at Bielefeld University, Germany",
+            "month": "May 2020"
+        },
+        {
+            "type": "Workshop",
+            "title": "Workshop Instructor",
+            "event": "Introduction to Social Network Analysis",
+            "organization": "The Center for Information Technology and Society at University of California Santa Barbara",
+            "month": "March 2019"
+        },
+        {
+            "type": "Workshop",
+            "title": "Workshop Instructor",
+            "event": "Introduction to Computational Text Analysis",
+            "organization": "Broom Center for Demography at The University of California, Santa Barbara",
+            "month": "March 2019"
+        },
+        {
+            "type": "Invited Talk",
+            "title": "Discursive Fields and Influence in Colombian Politics",
+            "event": "TextXD Conference 2018",
+            "organization": "The Berkeley Institute for Data Science at The University of California, Berkeley",
+            "month": "December 2018"
+        },
+        {
+            "type": "Invited Talk",
+            "title": "Invited Talk: “Discursive Fields and Influence in Colombian Politics”",
+            "event": "Workshop on Computational Social Science",
+            "organization": "CompSoc Working Group at The University of California, Los Angeles",
+            "month": "December 2018"
+        },
+        {
+            "type": "Invited Talk",
+            "title": "Fellow",
+            "event": "Diverse Intelligences Summer Institute at University of St Andrews, Scotland",
+            "organization": "John Templeton Foundation",
+            "month": "August 2018"
+        },
+        {
+            "type": "Invited Talk",
+            "title": "Semantic Analysis of News Texts: An Argument for a ‘Back to the Texts’ Approach",
+            "event": "TextXD Conference 2019",
+            "organization": "The Berkeley Institute for Data Science at The University of California, Berkeley",
+            "month": "December 2017"
+        },
+        {
+            "type": "Panelist",
+            "title": "The Future of Natural Language Processing",
+            "event": "TextXD Conference 2019",
+            "organization": "The Berkeley Institute for Data Science at The University of California, Berkeley",
+            "month": "December 2017"
+        },
+        {
+            "type": "Invited Talk",
+            "title": "Word Embedding for Comparative Semantic Analysis",
+            "event": "TextXD Conference 2019",
+            "organization": "The Berkeley Institute for Data Science at The University of California, Berkeley",
+            "month": "December 2017"
+        }
+    ],
+    "awards_and_honors": [
+        {
+            "award": "Professional Development Grant",
+            "organization": "Duke University",
+            "project_title": "Diverse Voices in Computational Social Science",
+            "year": 2021,
+            "collaborators": ["Fatima Alqabandi", "Gabriel Varela"],
+            "description": ""
+        },
+        {
+            "award": "PhD Lab Fellow",
+            "organization": "Franklin Digital Humanities Institute at Duke University",
+            "project_title": "Computational Methods for Analysis and Visualization of Institutional Discursive Fields",
+            "year": 2021,
+            "collaborators": [],
+            "description": ""
+        },
+        {
+            "award": "Instructional Development Grant",
+            "organization": "University of California, Santa Barbara",
+            "project_title": "Integration of Computational Methods in Sociology Curriculum",
+            "year": 2018,
+            "collaborators": ["John W. Mohr"],
+            "description": ""
+        },
+        {
+            "award": "Top Student Paper",
+            "organization": "National Communications Association Annual Meeting",
+            "project_title": "The Moral Foundations Dictionary for News (MFD-N): A Crowd-Sourced Moral Foundations Dictionary for the Automated Analysis of News Corpora",
+            "year": 2018,
+            "collaborators": ["Frederic R. Hopp", "Jacob T. Fisher", "Richard Huskey", "René Weber"],
+            "description": ""
+        },
+        {
+            "award": "Top Student Paper",
+            "organization": "Networks in a Global World (NetGlo) Conference",
+            "project_title": "Institutions, Cognition, and Discursive Fields in Colombian Politics",
+            "year": 2017,
+            "collaborators": [],
+            "description": "Examines the contributions of dual-process models to cultural and institutional analysis in the age of mass social media campaigns. Was not able to attend the conference."
+        },
+        {
+            "award": "Innovation Project Grant",
+            "organization": "NSF Integrative Graduate Education and Research Traineeship Program (IGERT), University of California, Santa Barbara",
+            "project_title": "Populist Culture and Discourse in the Colombian Peace Process",
+            "year": 2017,
+            "collaborators": [],
+            "description": "Grant was awarded to explore the ways that social media has fundamentally changed strategies of populist leaders in the aftermath of the October 2, 2016 peace referendum that was rejected by popular vote. Examines Colombian “political culture” in a broader sense using a unique combination of qualitative interviews, computational text analysis of politician Tweets, and survey analysis with quantitative methods for culture. Travelled to Colombia in Summer 2017 to conduct interviews with politicians and diplomats involved in the peace process."
+        },
+        {
+            "award": "Fellowship in Network Science",
+            "organization": "NSF Integrative Graduate Education and Research Traineeship Program (IGERT), University of California, Santa Barbara",
+            "project_title": "Network Science and Social Networks",
+            "year": 2016,
+            "collaborators": [],
+            "description": "Took courses and completed modules with an interdisciplinary focus on social, biological, and complex networks. Completed projects on quantitative belief networks, US News source comparison using word2vec, text analysis of National Security Strategy documents using word embedding algorithms, and social influence network evolution."
+        }
+    ],
+    "academic_professional_service": [
+        {
+            "title": "Founder",
+            "organization": "Computational Social Science Working Group at Duke University",
+            "years": "2019-2022"
+        },
+        {
+            "title": "Lab Manager",
+            "organization": "Broom Center for Demography at University of California, Santa Barbara",
+            "years": "2018-2019"
+        }
+    ],
+    "teaching_and_mentorship": [
+
+        {
+        "title": "Student Mentor",
+        "program": "Duke Data+ Summer Program",
+        "description": "Mentored eight undergraduates working on projects about analyzing data and generating reports based on survey and text data in the Duke PhD alumni survey and about racialized policing in the US.",
+        "dates": "May-July 2022"
+        },
+        {
+        "title": "Teaching Assistant",
+        "program": "Course: Data Science and Society",
+        "description": "Developed student homework assignments to teach data science concepts and techniques in R with Christopher Bail.",
+        "dates": "Fall 2020, Spring 2021, Spring 2022"
+        },
+        {
+        "title": "Program Manager",
+        "program": "Computational Text Analysis Teaching Pilot Program",
+        "description": "Worked with Prof. John W. Mohr to develop a short project teaching students computational text analysis in a sociological power course.",
+        "dates": "Nov-Dec 2017"
+        },
+        {
+        "title": "Student Mentor",
+        "program": "UCSB IGERT Network Science Summer Program Mentor",
+        "description": "Helped an undergraduate student analyze text corpus of New York Times articles about news articles about Betsy Devos using topic modeling to understand media gender bias.",
+        "dates": "June-July 2017"
+        },
+        {
+        "title": "Mentor",
+        "program": "UCSB Undergraduate Independent Study Course",
+        "description": "Worked with an undergraduate student for an independent study analyzing US National Security Strategy documents using word embedding algorithms.",
+        "dates": "March-May 2017"
+        },
+        {
+        "title": "Mentor",
+        "program": "UCSB Data Science Club",
+        "description": "Work with multiple undergraduates in statistics, computer science, and physics to design and implement text analysis projects using various data sources: New York Times headlines 1851-2017, and NYT news articles about hurricanes in Puerto Rico and Florida.",
+        "dates": "Jan-Dec 2017"
+        },
+        {
+        "title": "Teaching Assistant",
+        "program": "Undergraduate Courses at University of California, Santa Barbara",
+        "description": "Introduction to Sociology, Statistics for the Social Sciences, Sociology Methods.",
+        "dates": "Jan 2017-June 2018"
+        }
+    ]
+}
