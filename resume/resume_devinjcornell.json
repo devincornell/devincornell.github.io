@@ -46,7 +46,7 @@
             "entries": [
                 {
                     "job_type": "freelance",
-                    "title": "Data and AI Specialist, Center of Excellence Lead",
+                    "title": "Senior Data and AI Specialist, Center of Excellence Lead",
                     "company": "Omnicom Advertising Group Worldwide",
                     "location": "New York, NY",
                     "start": "January 2025",
@@ -70,8 +70,8 @@
                     "start": "October 2024",
                     "end": "current",
                     "details": [
-                        "Built statistical and machine learning models to predict memorability of brand experiences.",
-                        "Conducted analysis of timesheet data to identify strategic investment opportunities within the organization."
+                        "Built statistical and machine learning models to predict memorability of brand activation events.",
+                        "Analyze time sheet data to inform organization of project workloads across the agency."
                     ],
                     "skills": [
                         "Python",
