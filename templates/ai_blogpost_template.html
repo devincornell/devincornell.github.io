@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta name="description" content="" />
         <meta name="author" content="" />
-        <title>Devin J. Cornell: New repo for cleaned NSS documents</title>
+        <title>Devin J. Cornell: {{post.title}}</title>
         <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
         <!-- Font Awesome icons (free version)-->
         <!--<script src="https://use.fontawesome.com/releases/v5.15.3/js/all.js" crossorigin="anonymous"></script>-->
@@ -26,7 +26,7 @@
         <!-- Navigation-->
         <nav class="navbar navbar-expand-lg navbar-light" id="mainNav">
             <div class="container px-4 px-lg-5">
-                <p class="navbar-brand"><a href="/">devinjcornell.com</a><span>//</span><a href="/blog">Data Science Blog</a></p>
+                <p class="navbar-brand"><a href="/">devinjcornell.com</a><span>//</span><a href="/ai-blog">AI Blog</a></p>
                 <!--
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
                     Menu
@@ -44,18 +44,19 @@
                 -->
             </div>
         </nav>
+
         <!-- Page Header-->
         <header class="masthead" style="background-image: url('assets/img/post-bg.jpg')">
             <div class="container position-relative px-4 px-lg-5">
                 <div class="row gx-4 gx-lg-5 justify-content-center">
                     <div class="col-md-10 col-lg-8 col-xl-8">
                         <div class="post-heading">
-                            <h1>New repo for cleaned NSS documents</h1>
-                            <h2 class="subheading">I created some python code to download US National Security Strategy documents from github for your text analysis examples.</h2>
+                            <h1>{{post.title}}</h1>
+                            <h2 class="subheading">{{post.subtitle}}</h2>
                             <span class="meta">
                                 Posted by
                                 <a href="/">Devin J. Cornell</a>
-                                on Dec 3, 2019
+                                on {{post.date.strftime("%b %-d, %Y")}}
                             </span>
                         </div>
                     </div>
@@ -67,29 +68,7 @@
             <div class="container px-4 px-lg-5">
                 <div class="row gx-4 gx-lg-5 justify-content-center">
                     <div class="col-md-10 col-lg-8 col-xl-7">
-                        <p>I created a <a href="https://github.com/devincornell/nssdocs">public
-GitHub repo</a> to share a cleaned version of the US National Security
-Strategy documents in plain text. It is a nice dataset to use for text
-analysis demos, and you can use the <a
-href="https://github.com/devincornell/nssdocs/blob/master/example_download.py"><code>download_nss</code>
-function</a> to download the docs from the public repo directly in your
-code.</p>
-<p>I generated these by copy/pasting the pdf text into plain text and
-doing some cleaning like special character conversion and some
-spell-checking. Paragraphs in the text are separated by two newlines,
-and all paragraphs appear on the same line.</p>
-<p>The choice of NSS documents was motivated by one of my all-time
-favorite articles co-authored by my former advisor John Mohr, Robin
-Wagner-Pacifici, and Ronald Breiger. In addition to the documents
-analyzed in that piece, I also copy/pasted text from the Trump 2017 NSS
-document. Each presidential administration since 1987 is required to
-produce at least one document per term, so you can easily compare the
-documents by administration or party.</p>
-<p>Mohr, J. W., Wagner-Pacifici, R., and Breiger, R. L. (2015).
-<em>Toward a computational hermeneutics.</em> Big Data and Society,
-(July–December), 1–8. (<a
-href="https://journals.sagepub.com/doi/full/10.1177/2053951715613809">link</a>)</p>
-
+                        {{body_html}}
                     </div>
                 </div>
             </div>

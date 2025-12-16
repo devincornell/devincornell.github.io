@@ -584,6 +584,12 @@ progress {
   display: inline-block;
 }
 
+.figure-center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .figure-img {
   margin-bottom: 0.5rem;
   line-height: 1;
@@ -3899,8 +3905,9 @@ textarea.form-control-lg {
 .navbar-brand {
   padding-top: 0.3125rem;
   padding-bottom: 0.3125rem;
+  padding-right: 0.5rem;
   /*margin-right: 1rem;*/
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   white-space: nowrap;
 }
 .navbar-nav {
@@ -10597,7 +10604,17 @@ blockquote {
 }
 #mainNav .navbar-brand {
   font-weight: 800;
+  font-size: 1.1rem;
+  color: #2d2d2d;
+  margin-top: 0.0rem;
+  margin-bottom: 0.0rem;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
 }
+#mainNav .navbar-brand a {
+  text-decoration: none;
+}
+
 #mainNav .navbar-toggler {
   font-size: 0.75rem;
   font-weight: 800;
@@ -10610,12 +10627,15 @@ blockquote {
   letter-spacing: 0.0625em;
   text-transform: uppercase;
 }
-@media (min-width: 992px) {
+@media (min-width: 992px) { /* all this is applied in desktop browser */
   #mainNav {
     border-bottom: 1px solid transparent;
     background: transparent;
   }
   #mainNav .navbar-brand {
+    color: #2d2d2d;
+  }
+  #mainNav .navbar-brand a {
     color: #fff;
   }
   #mainNav .navbar-brand:focus, #mainNav .navbar-brand:hover {
@@ -10669,8 +10689,8 @@ footer {
 
 header.masthead {
   position: relative;
-  margin-bottom: 2rem; /*modified!*/
-  padding-top: calc(1rem + 57px); /*modified!*/
+  margin-bottom: 0rem; /*modified!*/
+  padding-top: 6rem; /*modified!*/
   padding-bottom: 1rem; /*modified!*/
   background: no-repeat center center;
   background-color: #6c757d;
@@ -10711,7 +10731,7 @@ header.masthead .site-heading .subheading {
   font-family: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 header.masthead .post-heading h1, header.masthead .post-heading .h1 {
-  font-size: 2.25rem;
+  font-size: 1.8rem;
 }
 header.masthead .post-heading .meta,
 header.masthead .post-heading .subheading {
@@ -10719,13 +10739,13 @@ header.masthead .post-heading .subheading {
   display: block;
 }
 header.masthead .post-heading .subheading {
-  font-size: 1.5rem;
-  font-weight: 600;
+  font-size: 1.1rem;
+  font-weight: 400;
   margin: 0.75rem 0 2rem;
   font-family: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 header.masthead .post-heading .meta {
-  font-size: 1.25rem;
+  font-size: 0.9rem;
   font-weight: 300;
   font-style: italic;
   font-family: "Arial", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
@@ -10746,10 +10766,11 @@ header.masthead .site-heading .h1 {
     font-size: 5rem;
   }
   header.masthead .post-heading h1, header.masthead .post-heading .h1 {
-    font-size: 3.5rem;
+    font-size: 2.0rem;
+    margin-top: 1.0rem;
   }
   header.masthead .post-heading .subheading {
-    font-size: 1.875rem;
+    font-size: 1.1rem;
   }
 }
 
