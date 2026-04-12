@@ -1,139 +1,139 @@
 
+# Architectural Guidelines: Data Containers and Pipelines
 
-## Using Static Factory Methods as Alternative Constructors
+This document outlines the standard patterns for defining, instantiating, and transforming data in our applications. Our architecture relies on explicit data containers, strong encapsulation, strict immutability, and data pipelines constructed via sequential type transformations.
 
-Static factory methods are a powerful pattern for instantiating custom types, especially in data pipelines. By using the `@classmethod` decorator, you can create multiple alternative constructors that handle specific instantiation logic, keeping your `__init__` method clean and focused solely on assigning data attributes.
+### 1. Explicit Data Containers
+We rely on strongly typed, explicit data containers to pass information through the application.
 
-### The Baseline: A Clean `__init__`
-Your default constructor (`__init__`) should only be responsible for inserting data attributes. The `dataclasses` module is perfect for this.
+* **Default to `dataclasses`:** For purely internal data structures, use Python's built-in `@dataclasses.dataclass`. 
+* **Use `pydantic` at I/O Boundaries:** Reserve Pydantic models for interfaces where external validation or specific schemas are beneficial (e.g., FastAPI request/response payloads, or structured outputs for generative AI packages).
+* **Immutability:** Once instantiated, the encapsulated data within these containers should be treated as strictly immutable. Any modification of data should result in the generation of a *new* object, rather than mutating an existing one in place.
+
+### 2. Strict Instantiation via Static Factory Methods
+The default constructor (`__init__`) must remain completely "dumb." It should strictly be used for assigning attributes and should **never** contain default parameters or validation logic. 
+
+Instead, all instantiation logic, default parameter injection, and data coercion must happen within **static factory methods** (using the `@classmethod` decorator).
 
 ```python
 import dataclasses
 import typing
-import math
-import random
 
 @dataclasses.dataclass
-class Coord:
+class Point:
+    # No default values here.
     x: float
     y: float
+
+    # __init__ is generated automatically by @dataclass and is kept strictly for assignment.
+
+    @classmethod
+    def from_coordinates(cls, x: float = 0.0, y: float = 0.0) -> typing.Self:
+        # Defaults and any setup logic live in the factory method.
+        return cls(x=float(x), y=float(y))
 ```
 
-### 5 Ways to Use Alternative Constructors
+### 3. Fail-Fast Validation and Custom Exceptions
+Validation must happen at the moment of instantiation within the factory methods. If data is invalid, the application should fail fast. 
 
-#### 1. Handling Multiple Input Formats
-When a type can be constructed from different source data, use alternative constructors to handle the necessary conversions.
+We heavily utilize **Custom Exceptions** to provide exact details about what went wrong at the lowest possible level. Higher-level orchestration functions are then responsible for catching these custom exceptions and altering application behavior or surfacing the error to the user.
 
 ```python
+class InvalidCoordinateError(ValueError):
+    """Raised when coordinates are non-finite."""
+    pass
+
+@dataclasses.dataclass
+class Point:
+    x: float
+    y: float
+
     @classmethod
     def from_xy(cls, x: float, y: float) -> typing.Self:
-        # Enforces type consistency
-        return cls(x=float(x), y=float(y))
-
-    @classmethod
-    def from_polar(cls, r: float, theta: float) -> typing.Self:
-        return cls(
-            x=r * math.cos(theta),
-            y=r * math.sin(theta),
-        )
-```
-
-#### 2. Encapsulating Specialized Logic
-If creating an object requires substantial logic (like random generation), keep that logic bound to the class via a dedicated constructor.
-
-```python
-    @classmethod
-    def from_gaussian(cls, x_mu: float, y_mu: float, x_sigma: float, y_sigma: float) -> typing.Self:
-        return cls(
-            x=random.gauss(mu=x_mu, sigma=x_sigma),
-            y=random.gauss(mu=y_mu, sigma=y_sigma)
-        )
-```
-
-#### 3. Simplifying Common Configurations
-Avoid complicated default parameters in `__init__`. Instead, create purpose-built methods for specific situations.
-
-```python
-    @classmethod
-    def from_xy_line(cls, x: float) -> typing.Self:
-        return cls(x=x, y=x)
-
-    @classmethod
-    def from_zero(cls) -> typing.Self:
-        return cls(x=0.0, y=0.0)
-```
-
-#### 4. Returning Multiple Instances
-Alternative constructors can return collections of the implementing type, saving you from writing custom collection logic elsewhere.
-
-```python
-    @classmethod
-    def from_reflected(cls, x: float, y: float) -> list[typing.Self]:
-        return [
-            cls(x=x, y=y),
-            cls(x=-x, y=y),
-            cls(x=x, y=-y),
-            cls(x=-x, y=-y),
-        ]
-```
-
-#### 5. Inheriting Safely
-When inheriting from built-in types or existing classes, alternative constructors let you add instantiation methods without the risk of overriding and breaking the parent's `__init__`.
-
-```python
-class Coords(list[Coord]):
-    @classmethod
-    def from_gaussian(cls, n: int, x_mu: float, y_mu: float, x_sigma: float, y_sigma: float) -> typing.Self:
-        return cls([Coord.from_gaussian(x_mu, y_mu, x_sigma, y_sigma) for _ in range(n)])
-```
-
----
-
-### Chaining Constructors for Validation
-When instantiating objects requires varying levels of specificity or validation, you can chain alternative constructors together. Think of this as a tree where every method eventually routes down to `__init__`.
-
-For example, `from_xy_finite` adds validation, then relies on `from_xy` for type coercion, which finally relies on `__init__` for assignment:
-
-```python
-    @classmethod
-    def from_xy_finite(cls, x: float, y: float) -> typing.Self:
         invalids = (float('inf'), float('-inf'))
         if x in invalids or y in invalids:
-            raise ValueError('x and y must be finite')
-        
-        # Chains to another factory method
-        return cls.from_xy(x=x, y=y)
+            raise InvalidCoordinateError(f"Coordinates must be finite. Received x={x}, y={y}")
+        return cls(x=x, y=y)
 ```
 
----
+### 4. Data Pipelines as Type Transformations
+The flow of data through our applications is designed as a pipeline of sequential transformations from one custom type to another. 
 
-### Applying this to Data Pipelines
-In data pipelines, transformations between immutable types are standard. A strong design principle is that **downstream types should know how to construct themselves** from upstream types.
+The logic for transforming an upstream type into a downstream type should live entirely inside the **downstream type's static factory method**. This maintains weak coupling and ensures every object knows exactly how to construct itself from prior states.
 
 ```python
 @dataclasses.dataclass
-class RadialCoord:
+class RadialPoint:
     r: float
     theta: float
 
     @classmethod
-    def from_cartesian(cls, coord: Coord) -> typing.Self:
+    def from_cartesian(cls, point: Point) -> typing.Self:
+        """Transforms the upstream Point type into this downstream type."""
+        import math
         return cls(
-            r = math.sqrt(coord.x**2 + coord.y**2),
-            theta = math.atan2(coord.y, coord.x),
+            r=math.sqrt(point.x**2 + point.y**2),
+            theta=math.atan2(point.y, point.x),
         )
 ```
 
-**Usage:**
+### 5. Composition and Layered Encapsulation
+Our custom types are organized compositionally. Complex types are built by encapsulating lower-level custom types or collections of them. 
+
+We practice **strong encapsulation**: higher-level objects accomplish complex tasks by explicitly delegating to the methods of the lower-level objects they contain.
+
 ```python
-c = Coord(5, 4)
-rc = RadialCoord.from_cartesian(c)
+@dataclasses.dataclass
+class LineSegment:
+    start: Point
+    end: Point
+
+    @classmethod
+    def from_points(cls, start: Point, end: Point) -> typing.Self:
+        return cls(start=start, end=end)
+
+    def length(self) -> float:
+        import math
+        # The LineSegment delegates to the properties of the encapsulated Points
+        return math.sqrt((self.end.x - self.start.x)**2 + (self.end.y - self.start.y)**2)
 ```
 
-For a cleaner interface, you can optionally add a helper method to the upstream type that simply passes itself to the downstream constructor:
+### 6. Chained Serialization Protocols
+Because our architectures are deeply compositional, our serialization logic must be as well. Classes should implement standard serialization methods (typically `to_dict()` and `from_dict()`). 
+
+When a parent object serializes itself, it must chain the serialization calls down to its child components. This explicit contract ensures that any encapsulated type can be safely swapped or refactored without breaking the parent's ability to save or load its state.
 
 ```python
-    # Placed inside the Coord class
-    def to_radial(self) -> RadialCoord:
-        return RadialCoord.from_cartesian(self)
+@dataclasses.dataclass
+class Point:
+    x: float
+    y: float
+
+    def to_dict(self) -> dict:
+        return {"x": self.x, "y": self.y}
+
+    @classmethod
+    def from_dict(cls, data: dict) -> typing.Self:
+        return cls.from_xy(x=data["x"], y=data["y"])
+
+
+@dataclasses.dataclass
+class LineSegment:
+    start: Point
+    end: Point
+
+    def to_dict(self) -> dict:
+        # Chained serialization: Parent relies on children's serialization methods
+        return {
+            "start": self.start.to_dict(),
+            "end": self.end.to_dict()
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> typing.Self:
+        # Chained deserialization
+        return cls(
+            start=Point.from_dict(data["start"]),
+            end=Point.from_dict(data["end"])
+        )
 ```
