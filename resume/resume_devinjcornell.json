@@ -37,7 +37,7 @@
                     "graduation_year": 2015,
                     "started_year": 2011,
                     "specialization": "Minor in mathematics and emphasis on signal processing and machine learning."
-                }        
+                }
             ]
         },
         {
@@ -390,7 +390,7 @@
                 },
                 {
                     "type": "Invited Talk",
-                    "title": "Invited Talk: “Discursive Fields and Influence in Colombian Politics”",
+                    "title": "“Discursive Fields and Influence in Colombian Politics”",
                     "event": "Workshop on Computational Social Science",
                     "organization": "CompSoc Working Group at The University of California, Los Angeles",
                     "month": "December 2018"
