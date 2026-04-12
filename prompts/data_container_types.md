@@ -137,3 +137,66 @@ class LineSegment:
             end=Point.from_dict(data["end"])
         )
 ```
+
+
+### 7. Strongly Typed Collections via Inheritance
+When working with groups of custom objects, it is often beneficial to create dedicated collection types rather than passing around generic `list` or `dict` objects. We achieve this by inheriting directly from Python's standard collection types (e.g., `list[CustomType]` or `dict[str, CustomType]`).
+
+**Do not override the `__init__` method of built-in collections.** Overriding standard collection constructors can lead to unintended side effects or break expected behaviors. Instead, we exclusively use static factory methods to instantiate these custom collections. 
+
+This approach naturally extends our chained instantiation protocol: the collection's factory method iterates over the raw data and delegates the instantiation of individual items to the factory methods of the contained type.
+
+```python
+import dataclasses
+import typing
+
+@dataclasses.dataclass
+class Point:
+    x: float
+    y: float
+
+    @classmethod
+    def from_dict(cls, data: dict) -> typing.Self:
+        return cls(x=float(data["x"]), y=float(data["y"]))
+
+    def to_dict(self) -> dict:
+        return {"x": self.x, "y": self.y}
+
+
+# Inherit directly from list, specifying the contained type
+class PointCloud(list[Point]):
+    
+    @classmethod
+    def from_point_dicts(cls, data_list: list[dict]) -> typing.Self:
+        """
+        Instantiates the collection by chaining down to the contained 
+        type's static factory method.
+        """
+        # We call the class constructor (cls) with a list comprehension
+        # that utilizes the Point.from_dict factory method.
+        return cls([Point.from_dict(item) for item in data_list])
+
+    def to_dict_list(self) -> list[dict]:
+        """Chains serialization down to the contained items."""
+        return [point.to_dict() for point in self]
+
+    def bounding_box(self) -> tuple[Point, Point]:
+        """
+        Custom business logic can now live directly on the collection,
+        leveraging the guaranteed structure of the contained data.
+        """
+        if not self:
+            raise ValueError("Cannot calculate bounding box of an empty PointCloud.")
+        
+        min_x = min(p.x for p in self)
+        max_x = max(p.x for p in self)
+        min_y = min(p.y for p in self)
+        max_y = max(p.y for p in self)
+        
+        return Point(min_x, min_y), Point(max_x, max_y)
+```
+
+**Benefits of this pattern:**
+* **Standard API:** The resulting object behaves exactly like a standard Python list (supporting iteration, indexing, and standard built-in functions like `len()`).
+* **Domain-Specific Logic:** You can attach domain-specific methods (like `bounding_box()` above) directly to the collection, avoiding floating helper functions.
+* **Safe Inheritance:** By relying on static factory methods, we sidestep the complexities and risks of altering how built-in types initialize themselves in memory.
