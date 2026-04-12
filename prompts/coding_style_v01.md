@@ -42,10 +42,6 @@ When creating functions that accept paths as arguments, I always use parameters 
 
 #### SQL Databases
 
-This is a strong start. Below is a tightened, clearer version of your guide with concrete examples that match how you are already working.
-
-SQL Databases
-
 I use SQLAlchemy Core for nearly all SQL work: no ORM models and no raw SQL strings.  
 This gives me three benefits:
 
