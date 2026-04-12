@@ -72,43 +72,51 @@ Why this works well:
 Example: Split Schema Definition from DB Operations
 
     @dataclasses.dataclass
-    class AuthDBTables:
+    class InventoryDBTables:
         metadata: sqlalchemy.MetaData
-        apps: sqlalchemy.Table
-        app_scopes: sqlalchemy.Table
-        api_key_info: sqlalchemy.Table
-
+        products: sqlalchemy.Table
+        warehouses: sqlalchemy.Table
+        stock_levels: sqlalchemy.Table
+    
         @classmethod
         def from_metadata(cls, metadata: sqlalchemy.MetaData) -> typing.Self:
             return cls(
                 metadata=metadata,
-                apps=sqlalchemy.Table(
-                    "applications",
+                products=sqlalchemy.Table(
+                    "products",
                     metadata,
-                    sqlalchemy.Column("application_id", sqlalchemy.String, primary_key=True),
+                    sqlalchemy.Column("product_id", sqlalchemy.String, primary_key=True),
+                    sqlalchemy.Column("name", sqlalchemy.String, nullable=False),
                     sqlalchemy.Column("created_at", UTCDateTime, nullable=False),
                 ),
-                app_scopes=sqlalchemy.Table(
-                    "application_scopes",
+                warehouses=sqlalchemy.Table(
+                    "warehouses",
                     metadata,
-                    sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True, autoincrement=True),
-                    sqlalchemy.Column("application_id", sqlalchemy.String, nullable=False),
-                    sqlalchemy.Column("scope", sqlalchemy.String, nullable=False),
-                    sqlalchemy.UniqueConstraint("application_id", "scope"),
+                    sqlalchemy.Column("warehouse_id", sqlalchemy.String, primary_key=True),
+                    sqlalchemy.Column("city", sqlalchemy.String, nullable=False),
+                    sqlalchemy.Column("created_at", UTCDateTime, nullable=False),
                 ),
-                api_key_info=...
+                stock_levels=sqlalchemy.Table(
+                    "stock_levels",
+                    metadata,
+                    sqlalchemy.Column("product_id", sqlalchemy.String, nullable=False),
+                    sqlalchemy.Column("warehouse_id", sqlalchemy.String, nullable=False),
+                    sqlalchemy.Column("quantity", sqlalchemy.Integer, nullable=False),
+                    sqlalchemy.UniqueConstraint("product_id", "warehouse_id"),
+                ),
             )
 
+            
 This is a good pattern for complex schemas: keep table declarations in one place, then inject them into the DB manager.
 
 Example: Single DB Manager Type
 
     @dataclasses.dataclass
-    class AuthDB:
+    class InventoryDB:
         engine: sqlalchemy.Engine
         metadata: sqlalchemy.MetaData
-        tabs: AuthDBTables
-
+        tabs: InventoryDBTables
+    
         @classmethod
         def from_connection_string(
             cls,
@@ -117,15 +125,14 @@ Example: Single DB Manager Type
         ) -> typing.Self:
             engine = sqlalchemy.create_engine(db_connect_string)
             metadata = sqlalchemy.MetaData()
-            tabs = AuthDBTables.from_metadata(metadata)
-
+            tabs = InventoryDBTables.from_metadata(metadata)
+    
             if create_if_not_exists:
                 metadata.create_all(bind=engine, tables=tabs.all(), checkfirst=True)
             else:
-                # validate required schema exists
                 inspector = sqlalchemy.inspect(engine)
                 ...
-
+    
             return cls(engine=engine, metadata=metadata, tabs=tabs)
 
 Two especially good choices here:
@@ -151,25 +158,21 @@ Typed Row Objects
 I convert rows into explicit dataclasses:
 
     @dataclasses.dataclass
-    class APIKeyInfo:
-        id: int
-        name: str | None
-        key_prefix: str
-        key_hash: str
-        is_active: bool
-        created_at: datetime.datetime
-
+    class ProductStock:
+        product_id: str
+        warehouse_id: str
+        quantity: int
+        updated_at: datetime.datetime
+    
         @classmethod
         def from_row(cls, row: sqlalchemy.engine.Row) -> typing.Self:
             return cls(
-                id=row._mapping["id"],
-                name=row._mapping["name"],
-                key_prefix=row._mapping["key_prefix"],
-                key_hash=row._mapping["key_hash"],
-                is_active=row._mapping["is_active"],
-                created_at=row._mapping["created_at"],
+                product_id=row._mapping["product_id"],
+                warehouse_id=row._mapping["warehouse_id"],
+                quantity=row._mapping["quantity"],
+                updated_at=row._mapping["updated_at"],
             )
-
+            
 This keeps service code clean and avoids leaking database-row details outside the DB layer.
 
 Error Handling Approach
