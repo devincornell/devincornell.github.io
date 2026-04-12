@@ -42,42 +42,150 @@ When creating functions that accept paths as arguments, I always use parameters 
 
 #### SQL Databases
 
-I prefer to use `sqlalchemy` "core" compoonents for almost all my work with SQL databases - no ORM, but also no raw SQL. This way, I can use an in-memory sqlite db and then in production I can use either SQLite or PostgreSQL.
+This is a strong start. Below is a tightened, clearer version of your guide with concrete examples that match how you are already working.
 
-My typical approach for working with SQL databases is to create a single type that maintains the sqlalchemy engine instance (along with the connection pool) and handles all SQL transactions and database operations via the sqlalchemy interface.
+SQL Databases
 
-+ The database type encapsulates all database operations: creating and defining tables and indexes as well as any query transaction logic.
-+ The type maintains engine and metadata instances for the table so that queries can be executed through the type's methods.
-When retrieving rows or aggregations from the database, I like the mthods to return custom types used to encapsulate the rows. If selecting only a subset of columns or creating aggregations, separate custom types should be defined to be very explicit about what is returned.
-+ 
+I use SQLAlchemy Core for nearly all SQL work: no ORM models and no raw SQL strings.  
+This gives me three benefits:
 
-```
-@dataclasses.dataclass
-class MyDB:
-    metadata: sqlalchemy.MetaData
-    engine: sqlalchemy.Engine
-    table1: sqlalchemy.Table
-    table2: sqlalchemy.Table
+1. Portability across SQLite and PostgreSQL.
+2. Strongly typed, composable query construction.
+3. Easy local testing with an in-memory SQLite database.
 
-    @classmethod
-    def from_connection_string(cls, connection_string: str, create_if_not_exists: bool = False) -> MyDB:
-        engine = sqlalchemy.create_engine(connection_string)
-        metadata = sqlalchemy.MetaData()
-        
-        ...
+My preferred structure is to keep all database behavior inside one database manager type. That type owns the engine, metadata, table definitions, and all transaction/query methods. I treat it as the single boundary between application code and SQL.
 
-        return cls(metadata=metadata, engine=engine, table1=table1, table2=table2)
+Core Design Pattern
 
+1. One schema container defines all tables, constraints, and indexes.
+2. One database manager owns the engine and executes all queries.
+3. Public methods express use cases.
+4. Private helpers contain reusable query fragments.
+5. Query results are converted into explicit row types (dataclasses), never returned as raw rows.
 
+Why this works well:
+- Schema is centralized and explicit.
+- Transaction boundaries are easy to reason about.
+- Return types are stable and self-documenting.
+- Switching backends usually requires only connection/config changes.
 
-```
+Example: Split Schema Definition from DB Operations
 
+    @dataclasses.dataclass
+    class AuthDBTables:
+        metadata: sqlalchemy.MetaData
+        apps: sqlalchemy.Table
+        app_scopes: sqlalchemy.Table
+        api_key_info: sqlalchemy.Table
 
-That single type keeps the 
+        @classmethod
+        def from_metadata(cls, metadata: sqlalchemy.MetaData) -> typing.Self:
+            return cls(
+                metadata=metadata,
+                apps=sqlalchemy.Table(
+                    "applications",
+                    metadata,
+                    sqlalchemy.Column("application_id", sqlalchemy.String, primary_key=True),
+                    sqlalchemy.Column("created_at", UTCDateTime, nullable=False),
+                ),
+                app_scopes=sqlalchemy.Table(
+                    "application_scopes",
+                    metadata,
+                    sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True, autoincrement=True),
+                    sqlalchemy.Column("application_id", sqlalchemy.String, nullable=False),
+                    sqlalchemy.Column("scope", sqlalchemy.String, nullable=False),
+                    sqlalchemy.UniqueConstraint("application_id", "scope"),
+                ),
+                api_key_info=...
+            )
 
-. I also like to define the actual SQL tables inside a method of that class so that it can be used to create the database from the static factory method when required (usually exposed as a flag). If the database schema is particularly complicated, it sometimes makes sense to have a separate type instance where I define and expose the SQL tables, then sqlalchemy core transactions can use that as an attribute of the original type (obviously, the database type would maintain a reference to that instance). The naming of that type should be clear: call it `SomethingDB`, and methods of the database-encapsulating type should roughly follow the conventions of the underlying transaction interface: `select_*` for select queries, and so on.
+This is a good pattern for complex schemas: keep table declarations in one place, then inject them into the DB manager.
 
+Example: Single DB Manager Type
 
+    @dataclasses.dataclass
+    class AuthDB:
+        engine: sqlalchemy.Engine
+        metadata: sqlalchemy.MetaData
+        tabs: AuthDBTables
+
+        @classmethod
+        def from_connection_string(
+            cls,
+            db_connect_string: str,
+            create_if_not_exists: bool = False,
+        ) -> typing.Self:
+            engine = sqlalchemy.create_engine(db_connect_string)
+            metadata = sqlalchemy.MetaData()
+            tabs = AuthDBTables.from_metadata(metadata)
+
+            if create_if_not_exists:
+                metadata.create_all(bind=engine, tables=tabs.all(), checkfirst=True)
+            else:
+                # validate required schema exists
+                inspector = sqlalchemy.inspect(engine)
+                ...
+
+            return cls(engine=engine, metadata=metadata, tabs=tabs)
+
+Two especially good choices here:
+- The create_if_not_exists flag makes setup explicit and safe.
+- Validation mode prevents accidental operation against incomplete schemas.
+
+Query/Transaction Conventions
+
+I use:
+- engine.connect() for read-only operations.
+- engine.begin() for operations that mutate state.
+- SQLAlchemy Core select/insert/update/delete expressions only.
+
+I also like naming methods by behavior:
+- get_* for reads.
+- add_* or create_* for inserts.
+- set_* for replace semantics.
+- remove_* for deletes.
+- enable_*/disable_* for state toggles.
+
+Typed Row Objects
+
+I convert rows into explicit dataclasses:
+
+    @dataclasses.dataclass
+    class APIKeyInfo:
+        id: int
+        name: str | None
+        key_prefix: str
+        key_hash: str
+        is_active: bool
+        created_at: datetime.datetime
+
+        @classmethod
+        def from_row(cls, row: sqlalchemy.engine.Row) -> typing.Self:
+            return cls(
+                id=row._mapping["id"],
+                name=row._mapping["name"],
+                key_prefix=row._mapping["key_prefix"],
+                key_hash=row._mapping["key_hash"],
+                is_active=row._mapping["is_active"],
+                created_at=row._mapping["created_at"],
+            )
+
+This keeps service code clean and avoids leaking database-row details outside the DB layer.
+
+Error Handling Approach
+
+I raise domain-specific exceptions instead of raw SQLAlchemy exceptions.  
+Example categories:
+- ApplicationDoesNotExistError
+- ScopeAlreadyExistsError
+- APIKeyDoesNotExistError
+
+This gives callers stable, business-level error semantics independent of backend details.
+
+Suggested Final Wording for Your Guide
+
+I prefer SQLAlchemy Core for database access because it keeps queries explicit and portable without introducing ORM coupling. I encapsulate all SQL behavior in a single SomethingDB type that owns the engine, metadata, and transaction methods. For simple schemas, table definitions live directly in that type; for larger schemas, I define a separate SomethingDBTables container and keep it as an attribute on SomethingDB.  
+All reads and writes go through typed methods, and result rows are converted into explicit dataclasses using from_row factory methods. I use engine.connect() for reads and engine.begin() for writes, and I raise domain-specific exceptions so application code does not depend on low-level database exceptions. This pattern keeps schema, queries, transactions, and return types clear, testable, and backend-agnostic.
 
 #### MongoDB Databases
 
