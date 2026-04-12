@@ -1,211 +1,173 @@
+# Architectural Guide: Type-Safe MongoDB with Raw PyMongo
 
-# MongoDB Development Guide: Raw PyMongo with Type Safety
+This guide details a pattern for implementing a type-safe MongoDB data layer using raw PyMongo and Pydantic. 
 
-**Starting Premise:** I prefer to use raw pymongo without other layers such as Beanie. I define types to represent each document, and manually create serialization methods to read/write objects to the database.
+The core philosophy of this architecture relies on strict separation of concerns:
+1. **Document Types** act purely as data containers with explicit serialization (`to_dict`) and deserialization (`from_dict`) methods.
+2. **Collection Types** are dataclasses instantiated via static factory methods. They encapsulate all MongoDB behavior, maintain the connection state, and expose high-level operations using native PyMongo naming conventions (e.g., `find_*`, `insert_*`). 
 
-## Core Architecture Patterns
+## 1. Document Models (Data Containers)
 
-### 1. Document Models with Pydantic
-
-You define each MongoDB document as a Pydantic model for type safety and validation:
+Define Pydantic models to represent the data stored in MongoDB. Each model must include custom `to_dict` and `from_dict` methods to handle the precise translation between the application's data representation and MongoDB's storage format.
 
 ```python
 import pydantic
 from datetime import datetime
-from typing import Optional
+from typing import Any
 
 class ResearchTaskDoc(pydantic.BaseModel):
-    title: str = Field(description="Descriptive title for the research task")
-    other_info: str | None = Field(default=None, description="Additional information")
-    status: TaskStatus = Field(default=TaskStatus.WORKING, description="Current status")
-    started_at: datetime = Field(default_factory=datetime.now, description="Creation timestamp")
-    reason: str | None = Field(default=None, description="Reason for failure, if applicable")
+    id: str | None = pydantic.Field(default=None, description="Stringified MongoDB _id")
+    title: str = pydantic.Field(description="Descriptive title for the research task")
+    status: str = pydantic.Field(default="WORKING", description="Current status")
+    started_at: datetime = pydantic.Field(default_factory=datetime.now)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize the document for MongoDB insertion/updates."""
+        return self.model_dump(exclude={"id"}, exclude_none=True)
+
+    @staticmethod
+    def from_dict(data: dict[str, Any]) -> "ResearchTaskDoc":
+        """Deserialize a MongoDB dictionary into the document type."""
+        if "_id" in data:
+            data["id"] = str(data.pop("_id"))
+        return ResearchTaskDoc.model_validate(data)
 
 class BookDoc(pydantic.BaseModel):
-    title: str = Field(description="The full standard title of the book")
-    authors: list[str] = Field(description="The authors' names")
-    publication_year: int = Field(description="The year the book was published")
-    research_output: BookResearchOutput = Field(description="Comprehensive researched information")
-    embedding: list[float] = Field(description="Embedding vector representing the book")
+    id: str | None = None
+    title: str
+    authors: list[str]
+    publication_year: int
+    embedding: list[float]
+
+    def to_dict(self) -> dict[str, Any]:
+        return self.model_dump(exclude={"id"})
+
+    @staticmethod
+    def from_dict(data: dict[str, Any]) -> "BookDoc":
+        if "_id" in data:
+            data["id"] = str(data.pop("_id"))
+        return BookDoc.model_validate(data)
 ```
 
-**Key Benefits:**
-- Type safety at compile time
-- Automatic validation
-- Self-documenting with Field descriptions
-- IDE autocompletion support
+## 2. Dedicated Collection Classes (Behavior Encapsulation)
 
-### 2. Collection Base Class Pattern
+Create a dedicated dataclass for every collection. Use a `@classmethod` factory (like `from_database`) to handle the initialization of the underlying PyMongo `AsyncCollection`. 
 
-Create a base class for all collection operations:
+Method names must follow native PyMongo conventions to clearly indicate the underlying operation being performed.
 
 ```python
 import dataclasses
-from typing import Type, TypeVar, Any
+import typing
+import pymongo
 from pymongo.asynchronous.collection import AsyncCollection
 from pymongo.asynchronous.database import AsyncDatabase
 
-T = TypeVar('T')
+class ResearchTaskDoesNotExist(Exception): pass
 
 @dataclasses.dataclass
-class CollectionBase:
-    """Base class for MongoDB collections"""
+class ResearchTaskCollection:
     _collection: AsyncCollection
     collection_name: str
 
     @classmethod
-    def from_database(cls, db: AsyncDatabase, collection_name: str) -> typing.Self:
-        return cls.from_collection(collection=db[collection_name])
-
-    @classmethod
-    def from_collection(cls, collection: AsyncCollection) -> typing.Self:
-        return cls(_collection=collection, collection_name=collection.name)
-
-    async def create_indexes(self):
-        """Override this method in subclasses to define collection indexes"""
-        raise NotImplementedError("create_indexes must be implemented by subclass")
-```
-
-### 3. Dedicated Collection Classes
-
-Each collection gets its own class inheriting from `CollectionBase`:
-
-```python
-class ResearchTaskCollection(CollectionBase):
-    """Document model for tracking asynchronous research tasks"""
+    def from_database(cls, db: AsyncDatabase, collection_name: str = "research_tasks") -> typing.Self:
+        """Factory method to instantiate the collection handler."""
+        return cls(
+            _collection=db[collection_name],
+            collection_name=collection_name
+        )
 
     async def create_indexes(self):
-        '''Create a unique index on title to speed up upserts.'''
+        """Define and build collection indexes."""
         await self._collection.create_index("title", unique=True)
 
-    async def find_task_by_title(self, title: str) -> tuple[ResearchTaskID, ResearchTaskDoc]:
-        """Retrieve a research task by its title."""
-        return await self.find_task({"title": title})
-
-    async def find_task(self, filter: dict[str, Any]) -> tuple[ResearchTaskID, ResearchTaskDoc]:
-        """Find a research task matching the given filter."""
-        data = await self._collection.find_one(filter)
+    async def find_one_task(self, filter_query: dict) -> ResearchTaskDoc:
+        """Executes a find_one query and returns the deserialized document."""
+        data = await self._collection.find_one(filter_query)
         if data is None:
-            raise ResearchTaskDoesNotExist(f"Research task matching {filter} does not exist.")
-        return str(data["_id"]), ResearchTaskDoc.model_validate(data)
+            raise ResearchTaskDoesNotExist(f"No task matches {filter_query}")
+            
+        return ResearchTaskDoc.from_dict(data)
 
-    async def insert_task(self, doc: ResearchTaskDoc) -> str:
-        """Insert a new research task document into the collection."""
+    async def find_tasks(self, filter_query: dict) -> list[ResearchTaskDoc]:
+        """Executes a find query and returns a list of deserialized documents."""
+        cursor = await self._collection.find(filter_query).to_list(length=None)
+        return [ResearchTaskDoc.from_dict(doc) for doc in cursor]
+
+    async def insert_one_task(self, doc: ResearchTaskDoc) -> str:
+        """Executes an insert_one query using the document's serialized dictionary."""
         try:
-            result = await self._collection.insert_one(doc.model_dump())
+            result = await self._collection.insert_one(doc.to_dict())
+            return str(result.inserted_id)
         except pymongo.errors.DuplicateKeyError:
-            raise ResearchTaskAlreadyExists(f"A task with title '{doc.title}' already exists.")
-        return result.inserted_id
+            raise ValueError(f"Task '{doc.title}' already exists.")
+
+    async def update_one_task_status(self, task_id: str, new_status: str) -> bool:
+        """Executes an update_one query."""
+        from bson import ObjectId
+        result = await self._collection.update_one(
+            {"_id": ObjectId(task_id)},
+            {"$set": {"status": new_status}}
+        )
+        return result.modified_count > 0
 ```
 
-## Manual Serialization Patterns
+## 3. Advanced Querying and Projections
 
-### Reading from Database (Deserialization)
-
-```python
-# Single document
-data = await self._collection.find_one(filter)
-if data is None:
-    raise DocumentNotFound()
-return DocumentModel.model_validate(data)
-
-# Multiple documents
-cursor = await self._collection.find(filter).to_list()
-return [(str(doc["_id"]), DocumentModel.model_validate(doc)) for doc in cursor]
-
-# With aggregation pipeline
-pipeline = [{"$match": filter}, {"$project": projection}]
-cursor = self._collection.aggregate(pipeline)
-results = await cursor.to_list()
-return [DocumentModel.model_validate(doc) for doc in results]
-```
-
-### Writing to Database (Serialization)
+For complex aggregations, define specialized data containers to handle the specific projection returned by the pipeline. Maintain the dataclass factory pattern for the collection handling it.
 
 ```python
-# Insert single document
-doc = MyDocumentModel(title="Example", status="active")
-result = await self._collection.insert_one(doc.model_dump())
-return result.inserted_id
-
-# Update document
-update_data = {"status": new_status, "updated_at": datetime.now()}
-result = await self._collection.update_one(
-    {"_id": document_id}, 
-    {"$set": update_data}
-)
-
-# Upsert pattern
-await self._collection.replace_one(
-    filter={"title": doc.title},
-    replacement=doc.model_dump(),
-    upsert=True
-)
-```
-
-## Advanced Patterns from Your Code
-
-### 1. Vector Search Integration
-
-```python
-async def vector_similarity(self, query_vector: List[float], limit: int = 5) -> list[BookResearchWithSimilarity]:
-    '''Perform vector search with MongoDB Atlas vector search.'''
-    pipeline = [
-        {
-            "$vectorSearch": {
-                "index": "vector_index",
-                "path": "embedding", 
-                "queryVector": query_vector,
-                "numCandidates": limit * 10,
-                "limit": limit,
-            }
-        },
-        {
-            "$project": BookResearchWithSimilarity.project()
-        }
-    ]
-    return await self.aggregate(pipeline, projection_model=BookResearchWithSimilarity).to_list()
-
-# Companion model with projection method
 class BookResearchWithSimilarity(pydantic.BaseModel):
-    book: BookDoc = Field(description="The researched book document")
-    similarity: float = Field(description="Similarity score from vector search")
+    book_title: str
+    similarity: float
 
     @staticmethod
-    def project() -> dict[str, str | int | list[float]]:
-        '''Projection definition for MongoDB aggregation to return this model.'''
-        return {
-            "_id": 0,
-            "book": "$research_output.info",
-            "similarity": {"$meta": "vectorSearchScore"}
-        }
+    def from_dict(data: dict[str, Any]) -> "BookResearchWithSimilarity":
+        return BookResearchWithSimilarity.model_validate(data)
+
+@dataclasses.dataclass
+class BookCollection:
+    _collection: AsyncCollection
+    collection_name: str
+
+    @classmethod
+    def from_database(cls, db: AsyncDatabase, collection_name: str = "books") -> typing.Self:
+        return cls(
+            _collection=db[collection_name],
+            collection_name=collection_name
+        )
+
+    async def aggregate_vector_similarity(self, query_vector: list[float], limit: int = 5) -> list[BookResearchWithSimilarity]:
+        pipeline = [
+            {
+                "$vectorSearch": {
+                    "index": "vector_index",
+                    "path": "embedding", 
+                    "queryVector": query_vector,
+                    "numCandidates": limit * 10,
+                    "limit": limit,
+                }
+            },
+            {
+                "$project": {
+                    "_id": 0,
+                    "book_title": "$title",
+                    "similarity": {"$meta": "vectorSearchScore"}
+                }
+            }
+        ]
+        cursor = self._collection.aggregate(pipeline)
+        results = await cursor.to_list(length=None)
+        return [BookResearchWithSimilarity.from_dict(doc) for doc in results]
 ```
 
-### 2. Custom Exception Handling
+## 4. Multi-Collection Management
 
-```python
-# Define domain-specific exceptions
-class ResearchTaskDoesNotExist(Exception):
-    """Custom exception for when a research task is not found in the database."""
-    pass
-
-class ResearchTaskAlreadyExists(Exception):
-    """Custom exception for when a research task with the same title already exists."""
-    pass
-
-# Use in collection methods
-async def find_task(self, filter: dict[str, Any]) -> tuple[str, ResearchTaskDoc]:
-    data = await self._collection.find_one(filter)
-    if data is None:
-        raise ResearchTaskDoesNotExist(f"Research task matching {filter} does not exist.")
-    return str(data["_id"]), ResearchTaskDoc.model_validate(data)
-```
-
-### 3. Manager Pattern for Multi-Collection Operations
+Coordinate operations across multiple collections using a Manager dataclass. This centralizes database dependency injection and utilizes the collection factory methods.
 
 ```python
 @dataclasses.dataclass
-class BookManager:
+class DatabaseManager:
     _db: AsyncDatabase
     _books: BookCollection
     _tasks: ResearchTaskCollection
@@ -219,47 +181,133 @@ class BookManager:
         )
 
     @property
-    def books(self) -> BookCollection:
+    def books(self) -> BookCollection: 
         return self._books
     
     @property 
-    def tasks(self) -> ResearchTaskCollection:
+    def tasks(self) -> ResearchTaskCollection: 
         return self._tasks
 ```
 
-## Database Connection Management
+## 5. Connection Lifecycle
+
+Manage the `AsyncMongoClient` via a module-level singleton to prevent connection pooling exhaustion.
 
 ```python
 from pymongo import AsyncMongoClient
-from typing import Optional
 
-# Module-level singleton pattern
-_client: Optional[AsyncMongoClient] = None
+_client: AsyncMongoClient | None = None
 
-async def get_database_client() -> AsyncMongoClient:
-    """Get or create the MongoDB client singleton."""
+async def get_database_client(mongodb_url: str) -> AsyncMongoClient:
     global _client
     if _client is None:
-        _client = AsyncMongoClient(app_settings.MONGODB_URL)
+        _client = AsyncMongoClient(mongodb_url)
     return _client
 
 async def close_database_connection():
-    """Close the MongoDB connection. Call this on app shutdown."""
     global _client
     if _client:
         _client.close()
         _client = None
 ```
 
-## Best Practices Derived from Your Code
 
-1. **Type Safety First**: Always define Pydantic models before collection classes
-2. **Explicit Index Management**: Create dedicated `create_indexes()` methods for each collection
-3. **Consistent Error Handling**: Define custom exceptions for domain-specific error scenarios
-4. **Return Tuples for ID + Document**: When you need the MongoDB `_id`, return `(id, doc)` tuples
-5. **Projection Models**: For complex aggregation queries, create dedicated models with static projection methods
-6. **Async Throughout**: Use async/await consistently across all database operations
-7. **Manager Pattern**: Coordinate multiple collections through a manager class for complex operations
-8. **Singleton Connections**: Reuse database connections via module-level singletons
+## 6. Using in Your Application
 
-This approach gives you the control and performance of raw PyMongo while maintaining type safety and clean abstractions through Pydantic models and collection classes.
+To use this in your application, you retrieve the client, select the specific database instance, and pass that database to either your individual collection factories or your `DatabaseManager` factory. 
+
+Because PyMongo's asynchronous client requires an event loop, this initialization must happen within an async context (such as an app startup event or an async main function).
+
+Here is the implementation script demonstrating the complete lifecycle.
+
+### Application Entry Point (`main.py`)
+
+```python
+import asyncio
+from datetime import datetime
+
+# Assuming the previous classes are imported from your data layer modules:
+# from db.connection import get_database_client, close_database_connection
+# from db.manager import DatabaseManager
+# from db.models import ResearchTaskDoc
+
+async def main():
+    # 1. Initialization Phase
+    mongodb_url = "mongodb://localhost:27017"
+    
+    try:
+        # Get the singleton client
+        client = await get_database_client(mongodb_url)
+        
+        # Select the specific database
+        db = client["my_application_db"]
+        
+        # Instantiate the manager (which instantiates all collections)
+        db_manager = DatabaseManager.from_database(db)
+        
+        # Optional: Initialize indexes on startup
+        await db_manager.tasks.create_indexes()
+        # await db_manager.books.create_indexes()
+
+        # 2. Application Logic Phase
+        print("--- Executing Database Operations ---")
+        
+        # Create a document type
+        new_task = ResearchTaskDoc(
+            title=f"Task generated at {datetime.now().isoformat()}",
+            status="WORKING"
+        )
+        
+        # Insert using the encapsulated collection method
+        task_id = await db_manager.tasks.insert_one_task(new_task)
+        print(f"Inserted Task ID: {task_id}")
+        
+        # Retrieve and deserialize using the encapsulated collection method
+        retrieved_task = await db_manager.tasks.find_one_task({"_id": task_id}) # Or search by title
+        print(f"Retrieved Task Type: {type(retrieved_task)}")
+        print(f"Retrieved Task Data: {retrieved_task.model_dump()}")
+
+    finally:
+        # 3. Cleanup Phase
+        # Ensure the connection pool is closed when the application exits
+        await close_database_connection()
+        print("Database connection closed.")
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+### Integration with Web Frameworks (e.g., FastAPI)
+
+If you are using a framework like FastAPI, you tie this lifecycle directly to the application lifespan context manager rather than a standard script execution:
+
+```python
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, Request
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    client = await get_database_client("mongodb://localhost:27017")
+    db = client["my_application_db"]
+    app.state.db_manager = DatabaseManager.from_database(db)
+    
+    # Ensure indexes exist
+    await app.state.db_manager.tasks.create_indexes()
+    
+    yield
+    
+    # Shutdown
+    await close_database_connection()
+
+app = FastAPI(lifespan=lifespan)
+
+@app.post("/tasks/")
+async def create_task(request: Request):
+    manager: DatabaseManager = request.app.state.db_manager
+    
+    doc = ResearchTaskDoc(title="API Triggered Task")
+    task_id = await manager.tasks.insert_one_task(doc)
+    
+    return {"id": task_id}
+```
