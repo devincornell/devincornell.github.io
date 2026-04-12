@@ -182,10 +182,8 @@ Example categories:
 
 This gives callers stable, business-level error semantics independent of backend details.
 
-Suggested Final Wording for Your Guide
+Ultimately, this pattern provides the best of both worlds: the explicitness of SQLAlchemy Core without the heavy coupling of an ORM. By encapsulating the engine, schema, and queries inside a single manager class—and strictly returning typed dataclasses and domain-specific exceptions—your application code remains clean, highly testable, and completely agnostic to the underlying database backend.
 
-I prefer SQLAlchemy Core for database access because it keeps queries explicit and portable without introducing ORM coupling. I encapsulate all SQL behavior in a single SomethingDB type that owns the engine, metadata, and transaction methods. For simple schemas, table definitions live directly in that type; for larger schemas, I define a separate SomethingDBTables container and keep it as an attribute on SomethingDB.  
-All reads and writes go through typed methods, and result rows are converted into explicit dataclasses using from_row factory methods. I use engine.connect() for reads and engine.begin() for writes, and I raise domain-specific exceptions so application code does not depend on low-level database exceptions. This pattern keeps schema, queries, transactions, and return types clear, testable, and backend-agnostic.
 
 #### MongoDB Databases
 
