@@ -71,11 +71,11 @@ I tend to use the "|" operator to specify unions, e.g., `Path | str` instead of 
 
 I heavily use `typing.Self`, and I really, really don't like to surround type hints with quotes - it provides more flexibility, but in general I should not have those errors if my code is well-written.
 
-#### Imports
+## Imports
 
 Rather than importing types or functions, I prefer to import entire packages. E.g., instead of using `from fastapi import FastAPI` and using `FastAPI()` within the code, I prefer to use `import fastapi` and then use `fastapi.FastAPI()` from within the code. Ignore this for relative imports obviously.
 
-#### Paths
+## Paths
 
 I heavily use `pathlib` to work with file paths and even to perform basic file operations. For instance, `Path.rglob` and `Path.glob` are much better than using `os.walk`, and `Path.open` is much better than using `open`.
 
