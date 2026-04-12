@@ -2,56 +2,95 @@
 
 ## Architectural Design
 
-Typically I create dataclasses or pydantic types for explicit data containers, and dataclasses are preferred unless working with a package that benefits pydantic types such as `fastapi` request/return types, structured outputs for generative AI packages, or others. I almost exclusively use static factory methods (classmethods), aka "factory class methods" or "“"alternative/non-default constructors", to initialize these classes - the default constructor __init__ is only called from within these functions, so the dataclasses or pydantic type definitions almost never have default parameter values (defaults can be put in the static factory methods). I prefer transformations between types to happen inside the factory methods and otherwise for the encapsulated data to be treated as immutable when possible. My classes typically have serialization format methods `to_dict()` and `from_dict()` that allow them to be stored in files or databases.
+### **Core Data Models**
+* **Prefer `dataclasses`** for standard, explicit data containers.
+* **Use `Pydantic` selectively** only when integrating with packages that require it (e.g., FastAPI, LLM structured outputs).
 
-My individual custom types are typically organized compositionally, where one type has an attribute containing another custom type (or collection thereof). A natural consequence is that the serialization methods are chained together - that is, the `to_json()` method of a parent class will use the `to_json()` of the child class to serialize it. Because of that, any types following that implicit protocol can be swapped out without affecting the serialization pattern.
+### **Instantiation & Validation**
+* **Enforce Immutability:** Treat all encapsulated data as immutable after creation.
+* **Factory-Driven Creation:** Use static factory methods (`@classmethod`) exclusively for instantiation, data transformation, and validation.
+* **Internal Constructors:** The default `__init__` is strictly for internal use by the factory methods. Do not define default parameter values in the class definition; handle them inside the factories.
+* **Fail Fast:** Perform all validation inside the factory methods. 
 
-The compositional structuring of these types typically follows a layering pattern, where methods on higher level objects often call methods of lower-level objects to accomplish tasks - a strong encapsulation philosophy is preferred even when creating hierarchical structures and considering transformations between data types. Custom Exception types used heavily and often raised in lower-level objects and caught in higher level functions to alter behavior.
+### **Architecture & Composition**
+* **Layered Composition:** Build custom types compositionally. Higher-level objects should orchestrate tasks strictly by calling methods on their lower-level component objects.
+* **Strong Encapsulation:** Treat transformations between data types as a distinct pipeline, handled almost entirely by the factory methods to keep logic isolated.
+* **Exception Bubbling:** Heavily utilize custom exceptions to provide detailed failure context. Raise these exceptions at the lowest levels and catch them in higher-level orchestration functions to alter flow.
 
-If you look at the flow of data through the applications, it can often be described as a data pipeline with sequences of transformations from one custom type to another. Most of the transformation logic exists in the static factory methods, and after construction the types should typically be treated as immutable. Any validation logic should also happen at these stages as well - it is important to fail fast, and custom exceptions are a great way to provide detailed information to the user about what went wrong.
+### **Serialization**
+* **Standardized Interfaces:** Implement uniform `to_dict()` and `from_dict()` methods for database storage and file I/O.
+* **Chained Serialization:** Rely on structural subtyping (duck typing). Parent classes serialize themselves by calling the `to_dict()` methods of their component children, allowing any conforming type to be safely swapped into the hierarchy.
+
 
 ## Styles and Conventions
-Also pay attention to the style and naming conventions I use here. I generally rely on these conventions:
 
-I rely heavily on good type hints for static analysis.
-I generally use modern syntax for type hints: “|” for unions, “typing.Self” to refer to the object itself.
-I use pretty standard naming conventions.
-PascalCase for class names.
-snake_case for method and function names.
-Constructor-like classmethods use semantic prefixes: `from_*` for materialization from structured input; `read_*` for file ingress; `to_*` / `write_*` for egress.
+### **Type Hinting & Static Analysis**
+* **Strict Typing:** Rely heavily on comprehensive type hints to empower static analysis tools (like MyPy or Pyright) and prevent runtime errors.
+* **Modern Syntax:** Exclusively use modern Python typing standards, such as the `|` operator for unions (instead of `Union`) and `typing.Self` for methods returning the object's own type.
 
-## Packages and Technologies
+### **Naming Conventions**
+* **Classes:** Use `PascalCase` for all class definitions and custom type aliases.
+* **Methods & Functions:** Use `snake_case` for all functions, methods, and variables.
 
-Take special note of which packages were used for different applications. What are the packages and how are they used within the larger architecture?
+### **Semantic Method Prefixes**
+Use strict, predictable prefixes for your I/O and factory methods to immediately signal their behavior:
+* **`from_*`**: For materialization from structured in-memory input (e.g., `from_dict`, `from_json`).
+* **`read_*`**: For ingress directly from the filesystem or external storage (e.g., `read_csv`, `read_config`).
+* **`to_*`**: For serialization into structured, in-memory formats (e.g., `to_dict`).
+* **`write_*`**: For egress directly to the filesystem or external storage (e.g., `write_file`).
+#### Type Hints
+I use type hints in every function and class signature. Basically, anywhere it is possible to use a type hint, I use it. When making generic collections, I use generics.
+
+For Python 3.12+
+
+
+    class Box[T]:
+        def __init__(self, content: T):
+            self.content = content
+
+        def get_content(self) -> T:
+            return self.content
+
+    int_box = Box(10)      # Inferred as Box[int]
+    str_box = Box("Hello") # Inferred as Box[str]
+
+
+And for Python < 3.12>
+
+    from typing import TypeVar, Generic
+
+    T = TypeVar("T")
+
+    class Box(Generic[T]):
+        def __init__(self, content: T):
+            self.content = content
+
+I often use type hints for task-specific strings. For example, let's say I have a string that is actually an identifier to some resources. I would probbaly use type aliases like `SpecialID = str` for simplicity, but in some cases I might use `SpecialID = typing.NewType("SpecialID", str)`.
+
+I tend to use the "|" operator to specify unions, e.g., `Path | str` instead of `typing.Union[Path,str]`.
+
+I heavily use `typing.Self`, and I really, really don't like to surround type hints with quotes - it provides more flexibility, but in general I should not have those errors if my code is well-written.
 
 #### Imports
 
 Rather than importing types or functions, I prefer to import entire packages. E.g., instead of using `from fastapi import FastAPI` and using `FastAPI()` within the code, I prefer to use `import fastapi` and then use `fastapi.FastAPI()` from within the code. Ignore this for relative imports obviously.
 
-
-#### Custom Types
-
-I typically prefer to use either dataclasses or pydantic for type definitions. `dataclasses` are preferred except when I'm working with packages that work particularly well with `pydantic.BaseModel`, such as `fastapi` input/output types, structured output definitions in `pydantic-ai`, or other such situations.
-
-
 #### Paths
 
-I heavily use `pathlib` to work with file paths and even to perform basic file operations. In particular, `Path.rglob` and `Path.glob` are much better than using `os.walk`, and `Path.open` is much better than using `open`.
+I heavily use `pathlib` to work with file paths and even to perform basic file operations. For instance, `Path.rglob` and `Path.glob` are much better than using `os.walk`, and `Path.open` is much better than using `open`.
 
 When creating functions that accept paths as arguments, I always use parameters that accept `Path|str` values and then convert them to `Path` types internally before working with them. This takes away some ambiguity about where the conversion to `Path` types happens.
 
-#### MongoDB Databases
 
-I prefer to use raw pymongo without other layers such as Beanie. I define types to represent each document, and manually create serialization methods to read/write objects to the database.
+
+
 
 
 #### Tabular Data
 
 Tabular data: I prefer polars over pandas, although sometimes I use pandas. Moving forward, I would strongly prefer to use polars. Typically I avoid dataframes in favor of using polars.Series types which are assigned to attributes of a custom class.
 
-#### Vectors and Matrices
 
-Vectors and Matrices: I prefer numpy for this unless it requires something more like polars.
 
 #### Web APIs
 
