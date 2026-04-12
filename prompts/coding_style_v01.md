@@ -175,9 +175,9 @@ Error Handling Approach
 
 I raise domain-specific exceptions instead of raw SQLAlchemy exceptions.  
 Example categories:
-- ApplicationDoesNotExistError
-- ScopeAlreadyExistsError
-- APIKeyDoesNotExistError
+- ProductDoesNotExistError
+- WarehouseAlreadyExistsError
+- StockLevelMissingError
 
 This gives callers stable, business-level error semantics independent of backend details.
 
