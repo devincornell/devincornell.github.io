@@ -1,36 +1,26 @@
-I need you to analyze this code to pick out patterns, practices, styles, architectures, and designs of the code so I can understand it as an experienced human programmer.
+I need you to analyze this code to pick out patterns, practices, styles, architectures, and designs of the code so I can understand it. I am an experienced human programmer, so I'd like you to include proper language about architectures, design patterns, and language-specific terminology.
 
-Throughout all analyses, you should attempt to develop a deep understanding of the design of individual components as well as how they all fit together to create an architecture around the way that data flows through my code. In your output, you should include examples of the patterns and architectures I used without copying thfe source - instead, create examples which embody the patterns so that someone without knowledge of this particular project can understand it. 
+Throughout all analyses, you should attempt to develop a deep understanding of the design of individual components as well as how they all fit together to create an architecture around the way that data flows through the code. In your output, you should include examples of the patterns and architectures that were used to give a clearer, more concrete understanding of how it operates.
 
-Below I write a little about typical patterns I follow, so keep a lookout for these in this project. Obviously ignore if it isn’t relevant to this particular project.
 
-## Type Definitions, Compositional Structures, Layering, and Pipelines
+## Type Definitions, Compositional or Inheritance Structures, Layering, and Pipelines
 
-Typically I create dataclasses or pydantic types for explicit data containers. I almost exclusively use static factory methods (classmethods), aka “factory class methods” or “alternative/non-default constructors”, to initialize these classes - the default constructor __init__ is only called from within these functions, so the dataclasses or pydantic type definitions almost never have default parameter values (defaults can be put in the static factory methods). I prefer transformations between types to happen inside the factory methods and otherwise for the encapsulated data to be treated as immutable when possible. My classes typically have serialization format methods `to_dict()` and `from_dict()` that allow them to be stored in files or databases.
+Dive deep into the architecture present in the code. I want to know these things specifically:
 
-My individual custom types are typically organized compositionally, where one type has an attribute containing another custom type (or collection thereof). A natural consequence is that the serialization methods are chained together - that is, the `to_json()` method of a parent class will use the `to_json()` of the child class to serialize it. Because of that, any types following that implicit protocol can be swapped out without affecting the serialization pattern.
++ type definitions: how are individual types/classes defined and used? Are they dataclasses or pydantic types, or do they tend to look different?
++ type structures: what are the compositional or polymorphic structures that make up the architecture of this project? How do the types interact? What are the design patterns that tend to relate the objects to each other?
++ functional layering: at a more abstract level, what are the various layers that the architecture creates?
++ data pipelines: how does the overall architecture facilitate the flow of data from inputs to outputs, and what are the intermediary data structures that the data takes throughout the pipeline?
 
-The compositional structuring of these types typically follows a layering pattern, where methods on higher level objects often call methods of lower-level objects to accomplish tasks - a strong encapsulation philosophy is preferred even when creating hierarchical structures and considering transformations between data types. Custom Exception types used heavily and often raised in lower-level objects and caught in higher level functions to alter behavior.
-
-If you look at the flow of data through the applications, it can often be described as a data pipeline with sequences of transformations from one custom type to another. Most of the transformation logic exists in the static factory methods, and after construction the types should typically be treated as immutable. Any validation logic should also happen at these stages as well - it is important to fail fast, and custom exceptions are a great way to provide detailed information to the user about what went wrong.
 
 ## Styles and Conventions
-Also pay attention to the style and naming conventions I use here. I generally rely on these conventions:
 
-I rely heavily on good type hints for static analysis.
-I generally use modern syntax for type hints: “|” for unions, “typing.Self” to refer to the object itself.
-I use pretty standard naming conventions.
-PascalCase for class names.
-snake_case for method and function names.
-Constructor-like classmethods use semantic prefixes: `from_*` for materialization from structured input; `read_*` for file ingress; `to_*` / `write_*` for egress.
+What are the styles and naming conventions used throughout the project and how do they relate to architectural aspects.
+
++ Use of type hints
++ naming conventions for functions, classes, and modules
+
 
 ## Packages and Technologies
 
 Take special note of which packages were used for different applications. What are the packages and how are they used within the larger architecture?
-
-Custom Types: I typically prefer to use either dataclasses or pydantic for type definitions.
-SQL: I prefer to use the database-agnostic sqlalchemy package “core” components - no ORM, but also not raw SQL. For tests, I use an in-memory sqlite db and then in production usually it is PostgreSQL. Note the way I define an manipulate schemas.
-MongoDB: I prefer to use raw pymongo without other layers such as Beanie. I define types to represent each document, and manually create serialization methods to read/write objects to the database.
-Tabular data: I prefer polars over pandas, although sometimes I use pandas. Moving forward, I would strongly prefer to use polars. Typically I avoid dataframes in favor of using polars.Series types which are assigned to attributes of a custom class.
-Vectors and Matrices: I prefer numpy for this unless it requires something more like polars.
-Web APIs: I mostly use API-first designs, so fastapi is my go-to framework for creating websites. Sometimes I even manually write the API interface and completely vibe-code the UI as an html template. I use the fastapi endpoints to create a definitions for the request and then can explain to the vibe-coding LLM how exactly to write the UI (but I don’t know any front-end frameworks).
