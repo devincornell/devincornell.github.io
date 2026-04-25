@@ -24,21 +24,26 @@
 
 ## Styles and Conventions
 
-### **Type Hinting & Static Analysis**
+### Type Hinting & Static Analysis
+
 * **Strict Typing:** Rely heavily on comprehensive type hints to empower static analysis tools (like MyPy or Pyright) and prevent runtime errors.
 * **Modern Syntax:** Exclusively use modern Python typing standards, such as the `|` operator for unions (instead of `Union`) and `typing.Self` for methods returning the object's own type.
 
-### **Naming Conventions**
+### Naming Conventions
+
 * **Classes:** Use `PascalCase` for all class definitions and custom type aliases.
 * **Methods & Functions:** Use `snake_case` for all functions, methods, and variables.
 
-### **Semantic Method Prefixes**
+### Semantic Method Prefixes
+
 Use strict, predictable prefixes for your I/O and factory methods to immediately signal their behavior:
+
 * **`from_*`**: For materialization from structured in-memory input (e.g., `from_dict`, `from_json`).
 * **`read_*`**: For ingress directly from the filesystem or external storage (e.g., `read_csv`, `read_config`).
 * **`to_*`**: For serialization into structured, in-memory formats (e.g., `to_dict`).
 * **`write_*`**: For egress directly to the filesystem or external storage (e.g., `write_file`).
-#### Type Hints
+
+### Type Hints
 I use type hints in every function and class signature. Basically, anywhere it is possible to use a type hint, I use it. When making generic collections, I use generics.
 
 For Python 3.12+
@@ -55,7 +60,7 @@ For Python 3.12+
     str_box = Box("Hello") # Inferred as Box[str]
 
 
-And for Python < 3.12>
+And for Python < 3.12:
 
     from typing import TypeVar, Generic
 
@@ -80,10 +85,6 @@ Rather than importing types or functions, I prefer to import entire packages. E.
 I heavily use `pathlib` to work with file paths and even to perform basic file operations. For instance, `Path.rglob` and `Path.glob` are much better than using `os.walk`, and `Path.open` is much better than using `open`.
 
 When creating functions that accept paths as arguments, I always use parameters that accept `Path|str` values and then convert them to `Path` types internally before working with them. This takes away some ambiguity about where the conversion to `Path` types happens.
-
-
-
-
 
 
 #### Tabular Data
