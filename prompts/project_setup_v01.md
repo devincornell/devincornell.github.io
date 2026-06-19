@@ -2,7 +2,7 @@
 
 ### Project Initialization
 
-This project was initialized using UV's modern Python package management:
+The project should be initialized using UV's modern Python package management:
 
 ```bash
 uv init your-project-name
@@ -11,7 +11,7 @@ cd your-project-name
 
 ### Project Structure
 
-The project follows Python packaging best practices with a clear separation of concerns:
+The project should follow Python packaging best practices with a clear separation of concerns:
 
 ```
 your-project-name/
@@ -33,10 +33,8 @@ your-project-name/
 ├── tests/                     # Test suite
 │   ├── test_module_a.py
 │   └── test_module_b.py
-├── example_api/               # Example usage
-│   └── main.py
-└── notebooks/                 # Jupyter notebooks for exploration
-    └── exploration.ipynb
+└── examples/                 # Jupyter notebooks for examples
+    └── example1.ipynb
 ```
 
 This structure provides:
@@ -101,22 +99,15 @@ The Makefile provides essential commands for daily development:
 install:
 	uv pip install -e . --native-tls
 
-server:
-	uv run uvicorn src.api.main:app --reload
-
 test:
 	uv run pytest tests/test_module_a.py
 	uv run pytest tests/test_module_b.py
 
-example:
-	uv run uvicorn example_api.main:app --reload
 ```
 
 **Command Breakdown**:
-- `make install`: Installs the package in editable mode using UV's pip interface with native TLS support for secure connections
-- `make server`: Launches the main API server with auto-reload for development, typically used when the package includes web service components
+- `make install`: Installs the package in editable mode using UV's pip interface with native TLS support for secure connections. Note: example notebooks and tests will all rely on this method for installation.
 - `make test`: Runs the comprehensive test suite module by module, allowing for granular testing and easier debugging of specific components
-- `make example`: Starts the example application server demonstrating package usage in realistic scenarios with hot reloading
 
 ### Testing Strategy
 
