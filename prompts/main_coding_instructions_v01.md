@@ -339,54 +339,57 @@ class LineSegment(BaseModel):
     # new_segment = LineSegment.model_validate(data)
 ```
 
-### 9. Strongly Typed Collections via Inheritance
+### 9. Strongly Typed Collections via Pydantic `RootModel`
 
-When working with groups of custom objects, it is often beneficial to create dedicated collection types rather than passing around generic `list` or `dict` objects. We achieve this by inheriting directly from Python's standard collection types (e.g., `list[CustomType]` or `dict[str, CustomType]`).
+When working with groups of custom objects, it is often beneficial to create dedicated collection types rather than passing around generic `list` or `dict` objects.
 
-**Do not override the `__init__` method of built-in collections.** Overriding standard collection constructors can lead to unintended side effects or break expected behaviors. Instead, we exclusively use static factory methods to instantiate these custom collections.
+**Do not subclass Python's built-in `list` or `dict`.** Subclassing C-implemented built-ins can lead to unexpected behaviors where standard operations (like slicing) bypass your custom methods.
 
-This approach naturally extends our chained instantiation protocol: the collection's factory method iterates over the raw data and delegates the instantiation of individual items to the factory methods of the contained type.
+Instead, rely on Pydantic v2's `RootModel`. This pattern natively extends our chained instantiation and serialization protocols without requiring custom factory methods for the collection itself. By defining a `RootModel`, Pydantic automatically handles parsing lists of dictionaries into lists of your custom models, and dumping them back to standard Python lists.
+
+You can still attach custom business logic directly to the collection, and you can expose standard Python dunder methods (like `__iter__`) to make the object behave exactly like a native list.
 
 ```python
 import typing
 from typing import Annotated
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, RootModel
 
 class Point(BaseModel):
     x: Annotated[float, Field()]
     y: Annotated[float, Field()]
 
+# Inherit from RootModel to create a strongly typed collection
+class PointCloud(RootModel):
+    root: list[Point]
 
-# Inherit directly from list, specifying the contained type
-class PointCloud(list[Point]):
-    
-    @classmethod
-    def from_point_dicts(cls, data_list: list[dict]) -> typing.Self:
-        """
-        Instantiates the collection by chaining down to the contained 
-        type's native validation method.
-        """
-        # We call the class constructor (cls) with a list comprehension
-        # that utilizes the Point.model_validate method.
-        return cls([Point.model_validate(item) for item in data_list])
-
-    def to_dict_list(self) -> list[dict]:
-        """Chains serialization down to the contained items."""
-        return [point.model_dump() for point in self]
+    def __iter__(self) -> typing.Iterator[Point]:
+        """Optional: Expose iteration directly so it behaves like a standard list."""
+        return iter(self.root)
 
     def bounding_box(self) -> tuple[Point, Point]:
         """
         Custom business logic can now live directly on the collection,
         leveraging the guaranteed structure of the contained data.
         """
-        if not self:
+        if not self.root:
             raise ValueError("Cannot calculate bounding box of an empty PointCloud.")
         
+        # We can iterate over self directly because we defined __iter__
         min_x = min(p.x for p in self)
         max_x = max(p.x for p in self)
         min_y = min(p.y for p in self)
         max_y = max(p.y for p in self)
         
         return Point(x=min_x, y=min_y), Point(x=max_x, y=max_y)
+
+# Instantiation and serialization are handled entirely by Pydantic natively:
+#
+# raw_data = [{"x": 1.0, "y": 2.0}, {"x": 3.0, "y": 4.0}]
+#
+# 1. Native chained instantiation (no custom from_point_dicts needed)
+# cloud = PointCloud.model_validate(raw_data)
+# 
+# 2. Native chained serialization (no custom to_dict_list needed)
+# data_list = cloud.model_dump()
 
 ```
