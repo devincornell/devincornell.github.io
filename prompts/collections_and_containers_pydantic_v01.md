@@ -10,7 +10,64 @@ We rely on strongly typed, explicit data containers to pass information through 
 * **Attribute Annotation:** All fields should be annotated using the `Annotated[type, Field(...)]` pattern to allow for explicit field-level configuration, metadata, and constraints.
 * **Immutability:** Once instantiated, the encapsulated data within these containers should be treated as strictly immutable. Any modification of data should result in the generation of a *new* object, rather than mutating an existing one in place.
 
-### 2. Strict Instantiation via Static Factory Methods
+### 2. Enforcing Strict Immutability
+
+To natively enforce immutability in Pydantic v2, assign a `ConfigDict` with `frozen=True` to the `model_config` attribute of your models.
+
+This configuration prevents any attribute reassignment after instantiation, raising a `ValidationError` if mutation is attempted. It also makes your models hashable, allowing them to be used safely in Python `set`s or as `dict` keys.
+
+#### The Single Model Approach
+You can apply this directly to individual models:
+
+```python
+from typing import Annotated
+from pydantic import BaseModel, ConfigDict, Field
+
+class Point(BaseModel):
+    # Enforces strict immutability for this model
+    model_config = ConfigDict(frozen=True)
+
+    x: Annotated[float, Field(description="The x-coordinate")]
+    y: Annotated[float, Field(description="The y-coordinate")]
+```
+
+#### The Architectural Base Class Approach
+For application-wide architectural guidelines, the cleanest pattern is to define a custom base class that inherits from `BaseModel` and sets the frozen configuration. All domain models then inherit from this custom base class, guaranteeing uniform immutability across the entire data pipeline.
+
+```python
+from typing import Annotated
+from pydantic import BaseModel, ConfigDict, Field
+
+class ImmutableBaseModel(BaseModel):
+    """Base model that enforces immutability across the application."""
+    model_config = ConfigDict(frozen=True)
+
+class Point(ImmutableBaseModel):
+    x: Annotated[float, Field()]
+    y: Annotated[float, Field()]
+
+class LineSegment(ImmutableBaseModel):
+    start: Annotated[Point, Field()]
+    end: Annotated[Point, Field()]
+```
+
+#### Handling "Mutations" (Generating New Objects)
+Because the architectural guidelines dictate that "Any modification of data should result in the generation of a *new* object," you can pair `frozen=True` with Pydantic's built-in `model_copy(update=...)` method. This allows you to easily generate a new immutable instance with specific fields altered, without touching the original object.
+
+```python
+p1 = Point(x=1.0, y=2.0)
+
+# Attempting to mutate in place will fail fast:
+# p1.x = 5.0  --> Raises pydantic.ValidationError
+
+# Correct approach: Generate a new object with the updated value
+p2 = p1.model_copy(update={"x": 5.0})
+
+print(p1) # Point(x=1.0, y=2.0) -> Unchanged
+print(p2) # Point(x=5.0, y=2.0) -> New object
+```
+
+### 3. Strict Instantiation via Static Factory Methods
 
 The default constructor (`__init__`) must remain completely "dumb." It should strictly be used for assigning attributes and should **never** contain default parameters or custom logic.
 
@@ -35,7 +92,7 @@ class Point(BaseModel):
 
 ```
 
-### 3. Fail-Fast Validation and Custom Exceptions
+### 4. Fail-Fast Validation and Custom Exceptions
 
 Validation must happen at the moment of instantiation within the factory methods. If data is invalid, the application should fail fast.
 
@@ -63,7 +120,7 @@ class Point(BaseModel):
 
 ```
 
-### 4. Native Pydantic Validation
+### 5. Native Pydantic Validation
 
 While custom validation can occur in factory methods, we strongly encourage leveraging Pydantic's native validation decorators (`@field_validator` and `@model_validator`) for enforcing strict data constraints directly on the model. This ensures that data is valid regardless of how the object was constructed and cleanly separates constraint logic from factory assembly.
 
@@ -90,7 +147,7 @@ class BoundedPoint(BaseModel):
         return self
 ```
 
-### 5. Data Pipelines as Type Transformations
+### 6. Data Pipelines as Type Transformations
 
 The flow of data through our applications is designed as a pipeline of sequential transformations from one custom type to another.
 
@@ -116,7 +173,7 @@ class RadialPoint(BaseModel):
 
 ```
 
-### 6. Composition and Layered Encapsulation
+### 7. Composition and Layered Encapsulation
 
 Our custom types are organized compositionally. Complex types are built by encapsulating lower-level custom types or collections of them.
 
@@ -142,7 +199,7 @@ class LineSegment(BaseModel):
 
 ```
 
-### 7. Chained Serialization Protocols
+### 8. Chained Serialization Protocols
 
 Because our architectures are deeply compositional, our serialization logic must be as well. Do not implement custom `to_dict()` or `from_dict()` methods. Instead, rely entirely on Pydantic's native `.model_dump()` and `.model_validate()` methods.
 
@@ -169,7 +226,7 @@ class LineSegment(BaseModel):
     # new_segment = LineSegment.model_validate(data)
 ```
 
-### 8. Strongly Typed Collections via Inheritance
+### 9. Strongly Typed Collections via Inheritance
 
 When working with groups of custom objects, it is often beneficial to create dedicated collection types rather than passing around generic `list` or `dict` objects. We achieve this by inheriting directly from Python's standard collection types (e.g., `list[CustomType]` or `dict[str, CustomType]`).
 
