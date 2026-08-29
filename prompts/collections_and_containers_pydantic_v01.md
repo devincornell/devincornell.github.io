@@ -117,9 +117,9 @@ class LineSegment(BaseModel):
 
 ### 6. Chained Serialization Protocols
 
-Because our architectures are deeply compositional, our serialization logic must be as well. Classes should implement standard serialization methods (typically `to_dict()` and `from_dict()`).
+Because our architectures are deeply compositional, our serialization logic must be as well. Do not implement custom `to_dict()` or `from_dict()` methods. Instead, rely entirely on Pydantic's native `.model_dump()` and `.model_validate()` methods.
 
-*Note: While Pydantic natively supports chained serialization via `.model_dump()` and `.model_validate()`, we maintain explicit custom mapping functions when we need tight control over exactly how domain models translate to and from specific payload structures.*
+Pydantic natively handles chained serialization. When you call `.model_dump()` on a parent model, it automatically serializes all nested Pydantic models. Similarly, `.model_validate()` automatically parses and instantiates nested models from dictionaries.
 
 ```python
 import typing
@@ -130,33 +130,16 @@ class Point(BaseModel):
     x: Annotated[float, Field()]
     y: Annotated[float, Field()]
 
-    def to_dict(self) -> dict:
-        return {"x": self.x, "y": self.y}
-
-    @classmethod
-    def from_dict(cls, data: dict) -> typing.Self:
-        return cls(x=data["x"], y=data["y"])
-
 
 class LineSegment(BaseModel):
     start: Annotated[Point, Field()]
     end: Annotated[Point, Field()]
 
-    def to_dict(self) -> dict:
-        # Chained serialization: Parent relies on children's serialization methods
-        return {
-            "start": self.start.to_dict(),
-            "end": self.end.to_dict()
-        }
-
-    @classmethod
-    def from_dict(cls, data: dict) -> typing.Self:
-        # Chained deserialization
-        return cls(
-            start=Point.from_dict(data["start"]),
-            end=Point.from_dict(data["end"])
-        )
-
+    # Serialization and deserialization are handled natively:
+    # point = Point(x=1.0, y=2.0)
+    # segment = LineSegment(start=point, end=Point(x=3.0, y=4.0))
+    # data = segment.model_dump()  # {'start': {'x': 1.0, 'y': 2.0}, 'end': {'x': 3.0, 'y': 4.0}}
+    # new_segment = LineSegment.model_validate(data)
 ```
 
 ### 7. Strongly Typed Collections via Inheritance
@@ -176,13 +159,6 @@ class Point(BaseModel):
     x: Annotated[float, Field()]
     y: Annotated[float, Field()]
 
-    @classmethod
-    def from_dict(cls, data: dict) -> typing.Self:
-        return cls(x=float(data["x"]), y=float(data["y"]))
-
-    def to_dict(self) -> dict:
-        return {"x": self.x, "y": self.y}
-
 
 # Inherit directly from list, specifying the contained type
 class PointCloud(list[Point]):
@@ -191,15 +167,15 @@ class PointCloud(list[Point]):
     def from_point_dicts(cls, data_list: list[dict]) -> typing.Self:
         """
         Instantiates the collection by chaining down to the contained 
-        type's static factory method.
+        type's native validation method.
         """
         # We call the class constructor (cls) with a list comprehension
-        # that utilizes the Point.from_dict factory method.
-        return cls([Point.from_dict(item) for item in data_list])
+        # that utilizes the Point.model_validate method.
+        return cls([Point.model_validate(item) for item in data_list])
 
     def to_dict_list(self) -> list[dict]:
         """Chains serialization down to the contained items."""
-        return [point.to_dict() for point in self]
+        return [point.model_dump() for point in self]
 
     def bounding_box(self) -> tuple[Point, Point]:
         """
