@@ -63,7 +63,34 @@ class Point(BaseModel):
 
 ```
 
-### 4. Data Pipelines as Type Transformations
+### 4. Native Pydantic Validation
+
+While custom validation can occur in factory methods, we strongly encourage leveraging Pydantic's native validation decorators (`@field_validator` and `@model_validator`) for enforcing strict data constraints directly on the model. This ensures that data is valid regardless of how the object was constructed and cleanly separates constraint logic from factory assembly.
+
+```python
+import typing
+from typing import Annotated
+from pydantic import BaseModel, Field, field_validator, model_validator
+
+class BoundedPoint(BaseModel):
+    x: Annotated[float, Field()]
+    y: Annotated[float, Field()]
+
+    @field_validator('x', 'y')
+    @classmethod
+    def check_finite(cls, v: float) -> float:
+        if v in (float('inf'), float('-inf')):
+            raise ValueError(f"Coordinates must be finite. Received {v}")
+        return v
+
+    @model_validator(mode='after')
+    def check_first_quadrant(self) -> typing.Self:
+        if self.x < 0 or self.y < 0:
+            raise ValueError(f"Point must be in the first quadrant. Received x={self.x}, y={self.y}")
+        return self
+```
+
+### 5. Data Pipelines as Type Transformations
 
 The flow of data through our applications is designed as a pipeline of sequential transformations from one custom type to another.
 
@@ -89,7 +116,7 @@ class RadialPoint(BaseModel):
 
 ```
 
-### 5. Composition and Layered Encapsulation
+### 6. Composition and Layered Encapsulation
 
 Our custom types are organized compositionally. Complex types are built by encapsulating lower-level custom types or collections of them.
 
@@ -115,7 +142,7 @@ class LineSegment(BaseModel):
 
 ```
 
-### 6. Chained Serialization Protocols
+### 7. Chained Serialization Protocols
 
 Because our architectures are deeply compositional, our serialization logic must be as well. Do not implement custom `to_dict()` or `from_dict()` methods. Instead, rely entirely on Pydantic's native `.model_dump()` and `.model_validate()` methods.
 
@@ -142,7 +169,7 @@ class LineSegment(BaseModel):
     # new_segment = LineSegment.model_validate(data)
 ```
 
-### 7. Strongly Typed Collections via Inheritance
+### 8. Strongly Typed Collections via Inheritance
 
 When working with groups of custom objects, it is often beneficial to create dedicated collection types rather than passing around generic `list` or `dict` objects. We achieve this by inheriting directly from Python's standard collection types (e.g., `list[CustomType]` or `dict[str, CustomType]`).
 
