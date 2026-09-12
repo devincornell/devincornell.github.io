@@ -28,22 +28,11 @@ This is a compilation of different strategies, styles, and architectures that De
 
 ### Type Hinting & Static Analysis
 
-* **Strict Typing:** Rely heavily on comprehensive type hints to empower static analysis tools (like MyPy or Pyright) and prevent runtime errors. Raw dictionaries should almost never be used.
+* **Strict Typing:** Rely heavily on comprehensive type hints to empower static analysis tools (like MyPy or Pyright) and prevent runtime errors.
+* **Data Structures** Raw dictionaries should almost never be used to represent complex data structures - you might as well use defined pydantic types with composition.
 * **Modern Syntax:** Exclusively use modern Python typing standards, such as the `|` operator for unions (instead of `Union`) and `typing.Self` for methods returning the object's own type.
+* **Use Generics for Functions and Classes:**: when applicable, use generics for both classes and functions. For Python 3.12 use `MyClass[T]` syntax and for earlier versions you can use `T = TypeVar("T")` and `MyClass(Generic[T])`.
 
-### Naming Conventions
-
-* **Classes:** Use `PascalCase` for all class definitions and custom type aliases.
-* **Methods & Functions:** Use `snake_case` for all functions, methods, and variables.
-
-### Semantic Method Prefixes
-
-Use strict, predictable prefixes for your I/O and factory methods to immediately signal their behavior:
-
-* **`from_*`**: For materialization from structured in-memory input (e.g., `from_dict`, `from_json`).
-* **`read_*`**: For ingress directly from the filesystem or external storage (e.g., `read_csv`, `read_config`).
-* **`to_*`**: For serialization into structured, in-memory formats (e.g., `to_dict`).
-* **`write_*`**: For egress directly to the filesystem or external storage (e.g., `write_file`).
 
 ### Type Hints
 I use type hints in every function and class signature. Basically, anywhere it is possible to use a type hint, I use it. When making generic collections, I use generics.
@@ -51,10 +40,12 @@ I use type hints in every function and class signature. Basically, anywhere it i
 For Python 3.12+
 
     class Box[T]:
+    '''Represents a Box with content.'''
         def __init__(self, content: T):
             self.content = content
 
         def get_content(self) -> T:
+            '''Get the content attribute.'''
             return self.content
 
     int_box = Box(10)      # Inferred as Box[int]
@@ -68,14 +59,29 @@ And for Python < 3.12:
     T = TypeVar("T")
 
     class Box(Generic[T]):
+    '''Represents a Box with content.'''
         def __init__(self, content: T):
             self.content = content
 
 I often use type hints for task-specific strings. For example, let's say I have a string that is actually an identifier to some resources. I would probbaly use type aliases like `SpecialID = str` for simplicity, but in some cases I might use `SpecialID = typing.NewType("SpecialID", str)`.
 
-I tend to use the "|" operator to specify unions, e.g., `Path | str` instead of `typing.Union[Path,str]`.
 
 I heavily use `typing.Self`. Instead of surrounding type hints with quotes for forward references, explicitly mandate `from __future__ import annotations` at the top of your files. This allows the use of unquoted forward references seamlessly.
+
+
+
+### Naming Conventions
+
+* **Classes:** Use `PascalCase` for all class definitions and custom type aliases.
+* **Methods & Functions:** Use `snake_case` for all functions, methods, and variables.
+
+Use strict, predictable prefixes for your I/O and factory methods to immediately signal their behavior:
+
+* **`from_*`**: For materialization from structured in-memory input (e.g., `from_dict`, `from_json`).
+* **`read_*`**: For ingress directly from the filesystem or external storage (e.g., `read_csv`, `read_config`).
+* **`to_*`**: For serialization into structured, in-memory formats (e.g., `to_dict`).
+* **`write_*`**: For egress directly to the filesystem or external storage (e.g., `write_file`).
+
 
 ### Imports
 
@@ -84,7 +90,7 @@ For capitalized classes and types, it is standard and acceptable to use `from x 
 ## Tools for the Job
 
 + Tabular Data
-    + When possible, I prefer to use lists/dicts of dataclasses or `pydantic` types.
+    + When possible, I prefer to use lists/dicts of dataclasses or `pydantic` types over dataframes.
     + When dataframes really are the right solution, use Polars instead of Pandas.
 + Paths
     + Use `pathlib` for every application involving tasks that it can actually solve.
@@ -92,7 +98,7 @@ For capitalized classes and types, it is standard and acceptable to use `from x 
     + `Path.open` is much better than using `open`.
 + Web Sites/APIs
     + Use `fastapi` for all web applications.
-    + If a graphical interface is needed, write the API interface and then write an html UI that actually calls the endpoints.
+    + If a graphical interface is needed, write the API interface and then write an html UI that actually calls the endpoints asynchronously.
     + Be sure to use pydantic-settings with the fastapi app.
     + Use dependency injection over middleware when possible.
     + Use FastMCP for adding MCP servers to the API.
@@ -137,6 +143,7 @@ from typing import Annotated
 from pydantic import BaseModel, ConfigDict, Field
 
 class Point(BaseModel):
+    '''A single point in Cartesian space'''
     # Enforces strict immutability for this model
     model_config = ConfigDict(frozen=True)
 
@@ -156,12 +163,14 @@ class ImmutableBaseModel(BaseModel):
     model_config = ConfigDict(frozen=True)
 
 class Point(ImmutableBaseModel):
-    x: Annotated[float, Field()]
-    y: Annotated[float, Field()]
+    '''A single point in Cartesian space'''
+    x: Annotated[float, Field(description="The x-coordinate")]
+    y: Annotated[float, Field(description="The y-coordinate")]
 
 class LineSegment(ImmutableBaseModel):
-    start: Annotated[Point, Field()]
-    end: Annotated[Point, Field()]
+    '''A line segment specified by two points in Cartesian space.'''
+    start: Annotated[Point, Field(description="Starting point for the line.")]
+    end: Annotated[Point, Field(description="Ending point for the line.")]
 ```
 
 #### Handling "Mutations" (Generating New Objects)
@@ -221,8 +230,8 @@ class InvalidCoordinateError(ValueError):
     pass
 
 class Point(BaseModel):
-    x: Annotated[float, Field()]
-    y: Annotated[float, Field()]
+    x: Annotated[float, Field(description="The x-coordinate")]
+    y: Annotated[float, Field(description="The y-coordinate")]
 
     @classmethod
     def from_xy(cls, x: float, y: float) -> typing.Self:
@@ -243,8 +252,8 @@ from typing import Annotated
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 class BoundedPoint(BaseModel):
-    x: Annotated[float, Field()]
-    y: Annotated[float, Field()]
+    x: Annotated[float, Field(description="The x-coordinate")]
+    y: Annotated[float, Field(description="The y-coordinate")]
 
     @field_validator('x', 'y')
     @classmethod
@@ -273,8 +282,8 @@ from typing import Annotated
 from pydantic import BaseModel, Field
 
 class RadialPoint(BaseModel):
-    r: Annotated[float, Field()]
-    theta: Annotated[float, Field()]
+    r: Annotated[float, Field(description='Radius of the point in polar coords.')]
+    theta: Annotated[float, Field(description='Angle of the point in polar coords.')]
 
     @classmethod
     def from_cartesian(cls, point: 'Point') -> typing.Self:
