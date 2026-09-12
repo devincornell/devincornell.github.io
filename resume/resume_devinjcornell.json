@@ -45,15 +45,34 @@
             "key": "work_experience",
             "entries": [
                 {
-                    "job_type": "freelance",
-                    "title": "Senior Data and AI Specialist, Center of Excellence Lead",
-                    "company": "Omnicom Advertising Group Worldwide",
+                    "job_type": "full-time",
+                    "title": "Director of AI Applications",
+                    "company": "Omnicom Advertising",
                     "location": "New York, NY",
-                    "start": "January 2025",
+                    "start": "March 2026",
                     "end": "current",
                     "details": [
-                        "Hired and managed a team of 2 data and AI specialists as part of a Center of Excellence.",
-                        "Consulted on approaches for connecting data infrastructure to AI agents for creative ideation and business problem solving."
+                        "Lead a team of AI and data specialists to explore and evaluate new techniques for building data-powered AI tools.",
+                        "Identify and evaluate the extent to which new technologies can support creative strategy research."
+                    ],
+                    "skills": [
+                        "Python",
+                        "Machine Learning",
+                        "Large Language Models (LLM)",
+                        "OpenAI ChatGPT"
+                    ]
+                },
+                {
+                    "job_type": "full-time",
+                    "title": "Senior AI Data Specialist",
+                    "company": "Omnicom Advertising",
+                    "location": "New York, NY (Remote)",
+                    "start": "January 2025",
+                    "end": "March 2026",
+                    "details": [
+                        "Identified opportunities for using AI to help agencies get more value from their data.",
+                        "Developed custom AI and data-powered tools to assist with creative ideation and cultural analysis.",
+                        "Led a team focused on AI enablement and helping agency teams build AI tools for client work."
                     ],
                     "skills": [
                         "Python",
@@ -64,13 +83,13 @@
                 },
                 {
                     "job_type": "freelance",
-                    "title": "Data and Social Science Consultant",
+                    "title": "Data Science Consultant (2 contracts, ~200+ hrs)",
                     "company": "GMR Marketing",
-                    "location": "Remote",
+                    "location": "New Berlin, WI (Remote)",
                     "start": "October 2024",
                     "end": "current",
                     "details": [
-                        "Built statistical and machine learning models to predict memorability of brand activation events.",
+                        "Used machine learning and statistical models to predict memorability of brand activation events.",
                         "Analyze time sheet data to inform organization of project workloads across the agency."
                     ],
                     "skills": [
@@ -81,18 +100,20 @@
                     ]
                 },
                 {
-                    "job_type": "freelance",
-                    "title": "Data and Social Science Consultant",
+                    "job_type": "full-time",
+                    "title": "Data and AI Specialist",
                     "company": "TBWA Worldwide",
-                    "location": "New York, NY",
+                    "location": "New York, NY (Remote)",
                     "start": "January 2024",
                     "end": "December 2024",
                     "details": [
-                        "Analyzed global cultural trends to identify opportunities for innovative new marketing campaigns using survey data and text analysis methods.",
-                        "Developed custom data-driven AI agents to support multi-modal creative ideation."
+                        "Analyzed primary research survey data from 30 countries to understand global cultural trends for developing innovative new brand strategies.",
+                        "Created AI agents to infuse creative ideation with data about cultural trends and emerging technologies.",
+                        "Developed AI agents to support strategy research about emerging technologies."
                     ],
                     "skills": [
                         "Python",
+                        "Survey Research",
                         "Machine Learning",
                         "Large Language Models (LLM)",
                         "OpenAI ChatGPT"
