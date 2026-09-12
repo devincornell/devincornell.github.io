@@ -325,18 +325,24 @@ class LineSegment(BaseModel):
     # new_segment = LineSegment.model_validate(data)
 ```
 
-### 9. Strongly Typed Collections via Pydantic `RootModel`
+### 9. Custom Collections: `RootModel` and `UserList` / `UserDict`
 
-When working with groups of custom objects, it is often beneficial to create dedicated collection types.
+When working with groups of custom objects, you should create dedicated collection types to encapsulate domain logic.
 
-**Do not subclass Python's built-in `list` or `dict`.** Subclassing C-implemented built-ins can lead to unexpected behaviors where standard operations (like slicing) bypass your custom methods.
+**Do not subclass Python's built-in `list` or `dict`.** Because the core collections are implemented in C for performance, their internal operations often bypass Python-level overrides. For example, if you subclass `dict` to validate entries, using `.update()` will completely ignore your validation and write directly to the underlying C structure.
 
-Instead, rely on Pydantic v2's `RootModel`. This pattern natively extends our chained instantiation and serialization protocols without requiring custom factory methods for the collection itself. By defining a `RootModel`, Pydantic automatically handles parsing lists of dictionaries into lists of your custom models, and dumping them back to standard Python lists.
+Depending on where the collection sits in your architecture, use one of two approaches:
 
-You can still attach custom business logic directly to the collection, and you can expose standard Python dunder methods (like `__iter__`) to make the object behave exactly like a native list, although `pydantic.RootModel` already implements `__iter__`.
+#### Approach A: Pydantic `RootModel` (For Boundaries and Serialization)
+
+When your collection needs to cross system boundaries (e.g., API requests/responses, database I/O, LLM structured outputs) or requires strict recursive validation, use Pydantic's `RootModel`.
+
+This pattern natively extends our chained instantiation and serialization protocols without requiring custom factory methods for the collection itself. Pydantic automatically handles parsing raw iterables or dictionaries into collections of your custom models, and dumping them back out.
+
+**Sequences (Lists):**
+Pydantic V2 automatically implements `__iter__` for `RootModel` if the underlying `root` type is iterable, meaning you can loop over the object natively without boilerplate.
 
 ```python
-import typing
 from typing import Annotated
 from pydantic import BaseModel, Field, RootModel
 
@@ -344,23 +350,15 @@ class Point(BaseModel):
     x: Annotated[float, Field()]
     y: Annotated[float, Field()]
 
-# Inherit from RootModel to create a strongly typed collection
 class PointCloud(RootModel):
+    """A strongly typed list of Point objects."""
     root: list[Point]
 
-    def __iter__(self) -> typing.Iterator[Point]:
-        """Optional: Expose iteration directly so it behaves like a standard list."""
-        return iter(self.root)
-
     def bounding_box(self) -> tuple[Point, Point]:
-        """
-        Custom business logic can now live directly on the collection,
-        leveraging the guaranteed structure of the contained data.
-        """
         if not self.root:
             raise ValueError("Cannot calculate bounding box of an empty PointCloud.")
         
-        # We can iterate over self directly because we defined __iter__
+        # RootModel natively supports iteration because the root is a list
         min_x = min(p.x for p in self)
         max_x = max(p.x for p in self)
         min_y = min(p.y for p in self)
@@ -368,14 +366,61 @@ class PointCloud(RootModel):
         
         return Point(x=min_x, y=min_y), Point(x=max_x, y=max_y)
 
-# Instantiation and serialization are handled entirely by Pydantic natively:
-#
-# raw_data = [{"x": 1.0, "y": 2.0}, {"x": 3.0, "y": 4.0}]
-#
-# 1. Native chained instantiation (no custom from_point_dicts needed)
-# cloud = PointCloud.model_validate(raw_data)
-# 
-# 2. Native chained serialization (no custom to_dict_list needed)
+# 1. Native chained instantiation (no custom factory needed)
+# cloud = PointCloud.model_validate([{"x": 1.0, "y": 2.0}, {"x": 3.0, "y": 4.0}])
+
+# 2. Native chained serialization
 # data_list = cloud.model_dump()
+
+```
+
+**Mappings (Dictionaries):**
+To create a strongly typed map, type the `root` as a `dict`. To make the `RootModel` feel more like a native Python dictionary, you can expose standard dunder methods (like `__getitem__`) that route to the underlying `root`.
+
+```python
+class PointRegistry(RootModel):
+    """A strongly typed dictionary mapping string IDs to Point objects."""
+    root: dict[str, Point]
+
+    def __getitem__(self, key: str) -> Point:
+        """Route item access directly to the underlying dictionary."""
+        return self.root[key]
+
+    def __contains__(self, key: str) -> bool:
+        return key in self.root
+
+    def get_points_in_quadrant(self, quadrant: int) -> list[Point]:
+        """Attach domain logic directly to the map."""
+        # ... logic filtering self.root.values() ...
+        pass
+
+# Instantiation from a raw dictionary:
+# registry = PointRegistry.model_validate({"origin": {"x": 0.0, "y": 0.0}})
+# print(registry["origin"].x) # Accessible natively via __getitem__
+
+```
+
+#### Approach B: `collections.UserList` and `UserDict` (For Internal Domain Logic)
+
+If you need a custom collection strictly for internal business logic and do not want the overhead of Pydantic's serialization/validation engine, use the standard library's `collections.UserList` or `collections.UserDict`.
+
+These are pure-Python wrappers around native lists and dicts. They store their underlying data in a standard `.data` attribute, guaranteeing that all built-in methods (like `.update()`, `.extend()`, or slicing) will safely and correctly route through any custom overrides you define.
+
+```python
+from collections import UserList
+import typing
+
+class InternalPointCloud(UserList):
+    # Type hint the inherited 'data' attribute for strict static analysis
+    data: list['Point']
+
+    @classmethod
+    def from_points(cls, points: list['Point']) -> typing.Self:
+        # Use standard static factory methods as dictated by the architecture
+        return cls(points)
+
+    def bounding_box(self) -> tuple['Point', 'Point']:
+        # Custom logic goes here
+        pass
 
 ```
