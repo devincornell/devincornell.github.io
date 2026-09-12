@@ -29,7 +29,7 @@ This is a compilation of different strategies, styles, and architectures that De
 * **Classes:** Use `PascalCase` for all class definitions and custom type aliases.
 * **Methods & Functions:** Use `snake_case` for all functions, methods, and variables.
 
-Use strict, predictable prefixes for your I/O and factory methods to immediately signal their behavior:
+Use strict, predictable prefixes for your I/O and factory methods to immediately signal their behavior. In general, you should rely on the built-in Pydantic serialization methods - use these only if some complex serialization/deserialization logic is required.
 
 * **`from_*`**: For materialization from structured in-memory input (e.g., `from_dict`, `from_json`).
 * **`read_*`**: For ingress directly from the filesystem or external storage (e.g., `read_csv`, `read_config`).
@@ -221,7 +221,7 @@ class Point(BaseModel):
 
 ### 5. Native Pydantic Validation
 
-While most validation can occur in factory methods, it may sometimes be better to use Pydantic's native validation decorators (`@field_validator` and `@model_validator`) for enforcing strict data constraints directly on the model. This ensures that data is valid regardless of how the object was constructed and cleanly separates constraint logic from factory assembly.
+While most validation can occur in factory methods, it may sometimes be useful to use Pydantic's native validation decorators (`@field_validator` and `@model_validator`) for enforcing strict data constraints directly on the model.
 
 ```python
 import typing
@@ -300,7 +300,7 @@ class LineSegment(BaseModel):
 
 ### 8. Chained Serialization Protocols
 
-Because our architectures are deeply compositional, our serialization logic must be as well. Do not implement custom `to_dict()` or `from_dict()` methods. Instead, rely entirely on Pydantic's native `.model_dump()` and `.model_validate()` methods.
+Because our architectures are deeply compositional, our serialization logic must be as well. Unless some important logic is required for serialization/deserialization, avoid implementing custom `to_dict()` or `from_dict()` methods. Instead, rely on Pydantic's native `.model_dump()` and `.model_validate()` methods when possible.
 
 Pydantic natively handles chained serialization. When you call `.model_dump()` on a parent model, it automatically serializes all nested Pydantic models. Similarly, `.model_validate()` automatically parses and instantiates nested models from dictionaries.
 
@@ -327,13 +327,13 @@ class LineSegment(BaseModel):
 
 ### 9. Strongly Typed Collections via Pydantic `RootModel`
 
-When working with groups of custom objects, it is often beneficial to create dedicated collection types rather than passing around generic `list` or `dict` objects.
+When working with groups of custom objects, it is often beneficial to create dedicated collection types.
 
 **Do not subclass Python's built-in `list` or `dict`.** Subclassing C-implemented built-ins can lead to unexpected behaviors where standard operations (like slicing) bypass your custom methods.
 
 Instead, rely on Pydantic v2's `RootModel`. This pattern natively extends our chained instantiation and serialization protocols without requiring custom factory methods for the collection itself. By defining a `RootModel`, Pydantic automatically handles parsing lists of dictionaries into lists of your custom models, and dumping them back to standard Python lists.
 
-You can still attach custom business logic directly to the collection, and you can expose standard Python dunder methods (like `__iter__`) to make the object behave exactly like a native list.
+You can still attach custom business logic directly to the collection, and you can expose standard Python dunder methods (like `__iter__`) to make the object behave exactly like a native list, although `pydantic.RootModel` already implements `__iter__`.
 
 ```python
 import typing
