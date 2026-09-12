@@ -1,4 +1,4 @@
-# Devin Cornell's Coding Guide
+# Coding Guide
 
 This is a compilation of different strategies, styles, and architectures that Devin Cornell likes to use when writing code.
 
@@ -64,7 +64,7 @@ For capitalized classes and types, it is standard and acceptable to use `from x 
     + Use `pydantic-ai` to make AI-powered tools.
     + when advanced Google-specific tools (such as Web Search) are needed, use the `python.genai` package.
 + SQL Databases
-    + Use `sqlalchemy` Core patterns (ideally not ORM).
+    + Use `sqlalchemy` Core patterns (ideally not ORM if it cannot be helped).
 + NoSQL Databases
     + Use `pymongo` with MongoDB, avoid Beanie and similar tools.
     + Ideally use custom types to represent documents.
