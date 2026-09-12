@@ -3,71 +3,25 @@
 This is a compilation of different strategies, styles, and architectures that Devin Cornell likes to use when writing code.
 
 
-## General Design Principles
-
-### **Core Data Models**
-* **Default to `pydantic`:** For all data structures, use `pydantic.BaseModel`. Pydantic provides robust typing, built-in validation, and excellent integration with external boundaries (e.g., FastAPI request/response payloads, or structured outputs for generative AI packages).
-* **Attribute Annotation:** Every pydantic type should use attribute typing in the format `Annotated[type, Field(...)]` to maximize metadata included in the type. This will be used by many packages that accept pydantic types.
-
-### **Instantiation & Validation**
-* **Enforce Immutability:** Treat all encapsulated data as immutable after creation.
-* **Factory-Driven Creation:** Use static factory methods (`@classmethod`) exclusively for instantiation, data transformation, and validation.
-* **Internal Constructors:** Do not override or write custom `__init__` methods. Embrace the automated validation and initialization that happens under the hood during instantiation. Do not define default parameter values in the class definition; handle them inside the factories.
-* **Fail Fast:** Perform all validation inside the factory methods. 
-
-### **Architecture & Composition**
-* **Layered Composition:** Build custom types compositionally. Higher-level objects should orchestrate tasks strictly by calling methods on their lower-level component objects.
-* **Strong Encapsulation:** Treat transformations between data types as a distinct pipeline, handled almost entirely by the factory methods to keep logic isolated.
-* **Exception Bubbling:** Heavily utilize custom exceptions to provide detailed failure context. Raise these exceptions at the lowest levels and catch them in higher-level orchestration functions to alter flow.
-
-### **Serialization**
-* **Standardized Interfaces:** Use pydantic methods for converting types to/from dictionaries.
 
 
 ## Styles and Conventions
 
-### Type Hinting & Static Analysis
+### Docstrings and Annotations
+
+* **Docstrings:** Use docstrings extensively. Every class, property, function, and method should have a docstring describing what it does. Add parameter descriptions to the docstrings only when requested explicitly.
+* **Attribute Annotations:** All pydantic type attributes should use annotations like `Annotated[type, Field(description='..', ...)]` with good descriptions for both readability and so they can be used by the many packages that accept pydantic types.
+
+
+### Extensive Type Hints
 
 * **Strict Typing:** Rely heavily on comprehensive type hints to empower static analysis tools (like MyPy or Pyright) and prevent runtime errors.
 * **Data Structures** Raw dictionaries should almost never be used to represent complex data structures - you might as well use defined pydantic types with composition.
 * **Modern Syntax:** Exclusively use modern Python typing standards, such as the `|` operator for unions (instead of `Union`) and `typing.Self` for methods returning the object's own type.
-* **Use Generics for Functions and Classes:**: when applicable, use generics for both classes and functions. For Python 3.12 use `MyClass[T]` syntax and for earlier versions you can use `T = TypeVar("T")` and `MyClass(Generic[T])`.
-
-
-### Type Hints
-I use type hints in every function and class signature. Basically, anywhere it is possible to use a type hint, I use it. When making generic collections, I use generics.
-
-For Python 3.12+
-
-    class Box[T]:
-    '''Represents a Box with content.'''
-        def __init__(self, content: T):
-            self.content = content
-
-        def get_content(self) -> T:
-            '''Get the content attribute.'''
-            return self.content
-
-    int_box = Box(10)      # Inferred as Box[int]
-    str_box = Box("Hello") # Inferred as Box[str]
-
-
-And for Python < 3.12:
-
-    from typing import TypeVar, Generic
-
-    T = TypeVar("T")
-
-    class Box(Generic[T]):
-    '''Represents a Box with content.'''
-        def __init__(self, content: T):
-            self.content = content
-
-I often use type hints for task-specific strings. For example, let's say I have a string that is actually an identifier to some resources. I would probbaly use type aliases like `SpecialID = str` for simplicity, but in some cases I might use `SpecialID = typing.NewType("SpecialID", str)`.
-
-
-I heavily use `typing.Self`. Instead of surrounding type hints with quotes for forward references, explicitly mandate `from __future__ import annotations` at the top of your files. This allows the use of unquoted forward references seamlessly.
-
+* **Use Generics for Functions and Classes:** when applicable, use generics for both classes and functions. For Python 3.12 use `MyClass[T]` syntax and for earlier versions you can use `T = TypeVar("T")` and `MyClass(Generic[T])`.
+* **Semantic Typing:** use semantic typing of some kind. The default strategy should be to use type aliases, e.g., `UserId = int` (or `type UserId = int` for Python 3.12+). If it is deemed to be far better, use nominal subtyping with `NewType` like `UserId = typing.NewType("UserId", int)`.
+* **Self-referencing Hints:** When applicable, use `typing.Self` with `from __future__ import annotations` (or `from typing_extensions import Self` for Python < 3.11)
+* **Attribute Annotations:** All pydantic type attributes should use annotations like `Annotated[type, Field(description='..', ...)]` with good descriptions for both readability and so they can be used by the many packages that accept pydantic types.
 
 
 ### Naming Conventions
@@ -86,6 +40,7 @@ Use strict, predictable prefixes for your I/O and factory methods to immediately
 ### Imports
 
 For capitalized classes and types, it is standard and acceptable to use `from x import y` (e.g., `from fastapi import FastAPI`). Reserve `import x` for modules with overlapping function names to prevent namespace collisions. Ignore this for relative imports obviously.
+
 
 ## Tools for the Job
 
@@ -119,7 +74,29 @@ For capitalized classes and types, it is standard and acceptable to use `from x 
 
 ## Architectural Guidelines
 
-This document outlines the standard patterns for defining, instantiating, and transforming data in our applications. Our architecture relies on explicit data containers, strong encapsulation, strict immutability, and data pipelines constructed via sequential type transformations.
+This document outlines the standard patterns for defining, instantiating, and transforming data in our applications. The architectures rely on explicit data containers, strong encapsulation, strict immutability, and data pipelines constructed via sequential type transformations.
+
+Here are some general principles to start with.
+
+#### **Core Data Models**
+* **Default to `pydantic`:** For all data structures, use `pydantic.BaseModel`. Pydantic provides robust typing, built-in validation, and excellent integration with external boundaries (e.g., FastAPI request/response payloads, or structured outputs for generative AI packages).
+* **Attribute Annotation:** Every pydantic type should use attribute typing in the format `Annotated[type, Field(...)]` to maximize metadata included in the type. This will be used by many packages that accept pydantic types.
+
+#### **Instantiation & Validation**
+* **Enforce Immutability:** Treat all encapsulated data as immutable after creation.
+* **Factory-Driven Creation:** Use static factory methods (`@classmethod`) exclusively for instantiation, data transformation, and validation.
+* **Internal Constructors:** Do not override or write custom `__init__` methods. Embrace the automated validation and initialization that happens under the hood during instantiation. Do not define default parameter values in the class definition; handle them inside the factories.
+* **Fail Fast:** Perform all validation inside the factory methods. 
+
+#### **Architecture & Composition**
+* **Layered Composition:** Build custom types compositionally. Higher-level objects should orchestrate tasks strictly by calling methods on their lower-level component objects.
+* **Strong Encapsulation:** Treat transformations between data types as a distinct pipeline, handled almost entirely by the factory methods to keep logic isolated.
+* **Exception Bubbling:** Heavily utilize custom exceptions to provide detailed failure context. Raise these exceptions at the lowest levels and catch them in higher-level orchestration functions to alter flow.
+
+#### **Serialization**
+* **Standardized Interfaces:** Use pydantic methods for converting types to/from dictionaries.
+
+
 
 ### 1. Explicit Data Containers
 
@@ -152,7 +129,7 @@ class Point(BaseModel):
 ```
 
 #### The Architectural Base Class Approach
-For application-wide architectural guidelines, the cleanest pattern is to define a custom base class that inherits from `BaseModel` and sets the frozen configuration. All domain models then inherit from this custom base class, guaranteeing uniform immutability across the entire data pipeline.
+For multi-use architectural guidelines, the cleanest pattern is to define a custom base class that inherits from `BaseModel` and sets the frozen configuration. All domain models then inherit from this custom base class, guaranteeing uniform immutability across the entire data pipeline. Use this sparingly, as it increases complexity of the code.
 
 ```python
 from typing import Annotated
@@ -216,7 +193,7 @@ class Point(BaseModel):
 
 ### 4. Fail-Fast Validation and Custom Exceptions
 
-Validation must happen at the moment of instantiation within the factory methods. If data is invalid, the application should fail fast.
+Validation must happen at the moment of instantiation within the factory methods rather than within pydantic validators. If data is invalid, the application should fail fast.
 
 We heavily utilize **Custom Exceptions** to provide exact details about what went wrong at the lowest possible level. Higher-level orchestration functions are then responsible for catching these custom exceptions and altering application behavior or surfacing the error to the user.
 
@@ -244,7 +221,7 @@ class Point(BaseModel):
 
 ### 5. Native Pydantic Validation
 
-While custom validation can occur in factory methods, we strongly encourage leveraging Pydantic's native validation decorators (`@field_validator` and `@model_validator`) for enforcing strict data constraints directly on the model. This ensures that data is valid regardless of how the object was constructed and cleanly separates constraint logic from factory assembly.
+While most validation can occur in factory methods, it may sometimes be better to use Pydantic's native validation decorators (`@field_validator` and `@model_validator`) for enforcing strict data constraints directly on the model. This ensures that data is valid regardless of how the object was constructed and cleanly separates constraint logic from factory assembly.
 
 ```python
 import typing
