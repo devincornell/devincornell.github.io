@@ -33,12 +33,6 @@ This is a compilation of different strategies, styles, and architectures that De
 * **Classes:** Use `PascalCase` for all class definitions and custom type aliases.
 * **Methods & Functions:** Use `snake_case` for all functions, methods, and variables.
 
-Use strict, predictable prefixes for your I/O and factory methods to immediately signal their behavior. In general, you should rely on the built-in Pydantic serialization methods - use these only if some complex serialization/deserialization logic is required.
-
-* **`from_*`**: For materialization from structured in-memory input (e.g., `from_dict`, `from_json`).
-* **`read_*`**: For ingress directly from the filesystem or external storage (e.g., `read_csv`, `read_config`).
-* **`to_*`**: For serialization into structured, in-memory formats (e.g., `to_dict`).
-* **`write_*`**: For egress directly to the filesystem or external storage (e.g., `write_file`).
 
 
 ### Imports
@@ -79,11 +73,9 @@ Here are some general principles to start with.
 
 ### Type Definitions
 
-We rely on strongly typed, explicit data containers to pass information through the application.
+Rely on strongly typed, explicit `pydantic` data containers to pass information through the application. 
 
-* **Default to `pydantic`:** For all data structures, use `pydantic.BaseModel`. Pydantic provides robust typing, built-in validation, and excellent integration with external boundaries (e.g., FastAPI request/response payloads, or structured outputs for generative AI packages).
-* **Immutability:** Once instantiated, the encapsulated data within these containers should be treated as strictly immutable. Any modification of data should result in the generation of a *new* object, rather than mutating an existing one in place.
-
+Pydantic provides robust typing, built-in validation, and excellent integration with external boundaries (e.g., FastAPI request/response payloads, or structured outputs for generative AI packages).
 
 #### Annotations
 
@@ -96,7 +88,8 @@ Here are some general preferences:
 
 ##### Annotation With Fields
 
-All pydantic class fields should be annotated using the `Annotated[type, Field(...)]` pattern to allow for explicit field-level configuration, metadata, and constraints. `Field` instances should always have descriptions. Ideally they should also include examples or other attributes that make the meaning of the type clearer to the reader and more useful for runtime consumers.
+* All pydantic class fields should be annotated using the `Annotated[type, Field(...)]` pattern to allow for explicit field-level configuration, metadata, and constraints.
+* `Field` instances should always have descriptions. Ideally they should also include examples or other attributes that make the meaning of the type clearer to the reader and more useful for runtime consumers.
 
 ```python
 from typing import Annotated
@@ -110,39 +103,61 @@ class Point(BaseModel):
 
 ##### Semantic Typing
 
-Semantic typing with `NewType` should be used wherever relevant.
+Semantic typing with `NewType` should be used for primatives wherever relevant.
 
-Note that `Annotated` itself does not provide type safety for static analyzers, but you can use `NewType` alongside `Annotated` in several ways:
+Note that `Annotated` itself does not provide type safety, but you should use `NewType` alongside `Annotated` for primatives:
 
 * If the given type is to be used as part of a core domain concept, define semantic type privately (e.g., `_MyNewType = NewType('_MyNewType', int)`) and then use `MyNewType = Annotated[_MyNewType, Field(..)]` to include description, examples, and any other validation logic.
 * If you have strong distinction between application layer and a core domain model, use something like `UserId = NewType('UserId', int)` in the domain model and then `ValidatedUserId = Annotated[UserId, Field(gt=0)]` in the application layer.
 
 ##### Generics
 
-Always use generics with `TypeVar` in both type and method definitions where applicable.
+* Always use generics with `TypeVar` in both type and method definitions where applicable.
 
 ##### Protocols
 
-Use of protocols.
+* Always use `typing.Protocol` where relevant - particularly for strategy patterns or APIs that accepts complex types or type definitions.
+* Use `@runtime_checkable` only on API boundaries or other high-stakes interfaces.
 
 #### Instantiation
 
+* Almost always use static factory methods (`@classmethod`) exclusively for custom type instantiation, data transformation, and validation.
+* Non-default constructors should follow the naming convention `from_*` (e.g., `from_vector`)
+* Do not override or write custom `__init__` methods. Embrace the automated validation and initialization that happens under the hood during instantiation.
+* Do not define default parameter values in the class definition; instead, add them to the constructors (usually as a constructor paramter default).
+* Use validation logic in constructors when parameters may be complicated or constructor is handling input validation.
 
 #### Immutability
 
-* Almost always treat custom type instances as immutable, even if you don't need to 
-* The most basic form of enforcement is to make copies of the mutable types inside nondefault constructors.
-* If you need stronger enforcement, set the attribute `model_config = ConfigDict(frozen=True)` in your pydantic type. This raises a `ValidationError` if mutation is attempted
-
-
-To natively enforce immutability in Pydantic v2, assign a `ConfigDict` with `frozen=True` to the `model_config` attribute of your models.
-
-This configuration prevents any attribute reassignment after instantiation, raising a `ValidationError` if mutation is attempted. It also makes your models hashable, allowing them to be used safely in Python `set`s or as `dict` keys.
-
-
+* Almost always treat custom type instances as immutable.
+* You should almost always make copies of the mutable types inside nondefault constructors.
+* In rare cases where you need enforcement (e.g., when presenting read-only information), set the attribute `model_config = ConfigDict(frozen=True)` in your pydantic type.
 
 #### Validation
 
+Because instnaces are treated as immutable, it is usually sufficient to validate data inside nondefault constructors.
+
+In cases where there are multiple constructors and every instance must definitionally conform to the constraint, it can be added to the definition itself as a declarative constraint.
+
+* In most cases, set constraints in `Field(..)` instances, as it is fast and gives runtime consumers access for automatic documentation creation.
+* When validation requires custom validation on a single attribute, use `field_validator`.
+* When validation requires custom validation on multiple attributes, use `model_validator`.
+* When writing re-usable `Annotated` types without `Field(..)` (usually outside a pydantic type definition), use `AfterValidator` or `BeforeValidator`.
+
+##### Serialization
+
+* Use `model_dump`/`model_dump_json` or `model_validate`/`model_validate_json` wherever possible (sepecially if you only need to set an `alias` set in the `Field`).
+* When possible, re-use `model_dump`/`model_dump_json` or `model_validate`/`model_validate_json` as part of the custom serializers/deserializers.
+* If complex serialization/deserialization is required, preempively create both serialization (`to_*`) and deserialization (`from_`) methods.
+* In multi-level or recursive compositional data structures, chain subtype serialization/deserialization methods.
+
+
+### Collection Types
+
+### Architecture
+
+
+#### Protocols and Structural Subtyping
 
 
 
@@ -159,43 +174,13 @@ This configuration prevents any attribute reassignment after instantiation, rais
 
 
 
-#### The Single Model Approach
-You can apply this directly to individual models:
 
-```python
-from typing import Annotated
-from pydantic import BaseModel, ConfigDict, Field
 
-class Point(BaseModel):
-    '''A single point in Cartesian space'''
-    # Enforces strict immutability for this model
-    model_config = ConfigDict(frozen=True)
 
-    x: Annotated[float, Field(description="The x-coordinate")]
-    y: Annotated[float, Field(description="The y-coordinate")]
-```
 
-#### The Architectural Base Class Approach
-For multi-use architectural guidelines, the cleanest pattern is to define a custom base class that inherits from `BaseModel` and sets the frozen configuration. All domain models then inherit from this custom base class, guaranteeing uniform immutability across the entire data pipeline. Use this sparingly, as it increases complexity of the code.
 
-```python
-from typing import Annotated
-from pydantic import BaseModel, ConfigDict, Field
 
-class ImmutableBaseModel(BaseModel):
-    """Base model that enforces immutability across the application."""
-    model_config = ConfigDict(frozen=True)
 
-class Point(ImmutableBaseModel):
-    '''A single point in Cartesian space'''
-    x: Annotated[float, Field(description="The x-coordinate")]
-    y: Annotated[float, Field(description="The y-coordinate")]
-
-class LineSegment(ImmutableBaseModel):
-    '''A line segment specified by two points in Cartesian space.'''
-    start: Annotated[Point, Field(description="Starting point for the line.")]
-    end: Annotated[Point, Field(description="Ending point for the line.")]
-```
 
 #### Handling "Mutations" (Generating New Objects)
 Because the architectural guidelines dictate that "Any modification of data should result in the generation of a *new* object," you can pair `frozen=True` with Pydantic's built-in `model_copy(update=...)` method. This allows you to easily generate a new immutable instance with specific fields altered, without touching the original object.
