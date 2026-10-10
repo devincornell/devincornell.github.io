@@ -89,8 +89,14 @@ We rely on strongly typed, explicit data containers to pass information through 
 
 Annotations are often useful for both readers and runtime consumers (e.g., `fastapi`, `google.genai`, or `pydantic-ai` applications).
 
-* **Annotations:** All fields should be annotated using the `Annotated[type, Field(...)]` pattern to allow for explicit field-level configuration, metadata, and constraints.
-* **Field metadata:** `Field` instances should always have descriptions. Ideally they should also include examples or other attributes that make the meaning of the type clearer to the reader and more useful for runtime consumers.
+Here are some general preferences:
+
+* Use modern typing features using `from __future__ import annotations`.
+* Avoid using strings for type hint names (e.g., `list['MyType']` vs `list[MyType]`) - if these are needed, the application design is probably weak.
+
+##### Annotation With Fields
+
+All pydantic class fields should be annotated using the `Annotated[type, Field(...)]` pattern to allow for explicit field-level configuration, metadata, and constraints. `Field` instances should always have descriptions. Ideally they should also include examples or other attributes that make the meaning of the type clearer to the reader and more useful for runtime consumers.
 
 ```python
 from typing import Annotated
@@ -102,31 +108,37 @@ class Point(BaseModel):
     y: Annotated[float, Field(description="The y-coordinate")]
 ```
 
-`Annotated` itself does not provide type safety from static analyzers, so you will still need to use `NewType` where semantic typing is required. Conventions for their use depends on how the type is intended to be used:
+##### Semantic Typing
 
-* If a given type (and any definitional validation) is being used as a core domain concept, define semantic type privately (e.g., `_MyNewType = NewType('_MyNewType', int)`) and then use `MyNewType = Annotated[_MyNewType, Field(..)]` to include description, examples, and any other validation logic.
-* In cases where a type is primarily being used at the application layer outside of the core domain model, you would use something like `UserId = NewType('UserId', int)` in the domain model and then `ValidatedUserId = Annotated[UserId, Field(gt=0)]` in the application level.
+Semantic typing with `NewType` should be used wherever relevant.
 
-When discussuing
+Note that `Annotated` itself does not provide type safety for static analyzers, but you can use `NewType` alongside `Annotated` in several ways:
 
+* If the given type is to be used as part of a core domain concept, define semantic type privately (e.g., `_MyNewType = NewType('_MyNewType', int)`) and then use `MyNewType = Annotated[_MyNewType, Field(..)]` to include description, examples, and any other validation logic.
+* If you have strong distinction between application layer and a core domain model, use something like `UserId = NewType('UserId', int)` in the domain model and then `ValidatedUserId = Annotated[UserId, Field(gt=0)]` in the application layer.
 
+##### Generics
 
-In domain-driven design, it often makes sense to separate core domain logic from API/infrastructure layer, and in this case `NewType` would be used in the core domain concept and `Annotated` would be used for domain ingestion. For example, `UserId = NewType('UserId', int)` is the core domain concept and then `ValidatedUserId = Annotated[UserId, Field(gt=0)]` would be used in your pydantic type.
+Always use generics with `TypeVar` in both type and method definitions where applicable.
 
-Heavy use of semantic typing is strongly encouraged.
+##### Protocols
 
-Use the pattern `MyNewType = NewType('MyNewType', int)` when you expect to re-use `MyNewType` in multiple locations.
+Use of protocols.
 
-Static analyzers do not recognize type consistency through `Annotated` because they simply defer to the `type` argument. To have the best of both worlds, define a semantic type privately (e.g., `_MyNewType = NewType('_MyNewType', int)`) for a base semantic type and then `MyNewType = Annotated[_MyNewType, Field(..)]`
+#### Instantiation
 
 
 #### Immutability
+
+* Almost always treat custom type instances as immutable, even if you don't need to 
+* The most basic form of enforcement is to make copies of the mutable types inside nondefault constructors.
+* If you need stronger enforcement, set the attribute `model_config = ConfigDict(frozen=True)` in your pydantic type. This raises a `ValidationError` if mutation is attempted
+
 
 To natively enforce immutability in Pydantic v2, assign a `ConfigDict` with `frozen=True` to the `model_config` attribute of your models.
 
 This configuration prevents any attribute reassignment after instantiation, raising a `ValidationError` if mutation is attempted. It also makes your models hashable, allowing them to be used safely in Python `set`s or as `dict` keys.
 
-#### Instantiation
 
 
 #### Validation
