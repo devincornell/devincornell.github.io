@@ -67,15 +67,17 @@ Here are some general principles to start with.
 
 
 
+* Use custom or semantic types for almost every kind of data.
+* Use strong encapsulation - only the type itself should know the implementation details.
+* Avoid inheritance in favor of composition wherever possible, even if it makes some designs more complicated.
 
 
 
 
 ### Type Definitions
 
-Rely on strongly typed, explicit `pydantic` data containers to pass information through the application. 
+Always rely on strongly typed, explicit `pydantic` data containers to pass information through the application. 
 
-Pydantic provides robust typing, built-in validation, and excellent integration with external boundaries (e.g., FastAPI request/response payloads, or structured outputs for generative AI packages).
 
 #### Annotations
 
@@ -130,7 +132,8 @@ Note that `Annotated` itself does not provide type safety, but you should use `N
 #### Immutability
 
 * Almost always treat custom type instances as immutable.
-* You should almost always make copies of the mutable types inside nondefault constructors.
+* Use `model_copy` to create new instances by copying old values. This is similar to `clone` in Rust. Avoid trying to re-implement this behavior with custom methods.
+* You should almost always make copies of mutable collections (e.g., `list`, `dict`, and `set`) inside nondefault constructors.
 * In rare cases where you need enforcement (e.g., when presenting read-only information), set the attribute `model_config = ConfigDict(frozen=True)` in your pydantic type.
 
 #### Validation
@@ -150,13 +153,15 @@ In cases where there are multiple constructors and every instance must definitio
 * When possible, re-use `model_dump`/`model_dump_json` or `model_validate`/`model_validate_json` as part of the custom serializers/deserializers.
 * If complex serialization/deserialization is required, preempively create both serialization (`to_*`) and deserialization (`from_`) methods.
 * In multi-level or recursive compositional data structures, chain custom subtype serialization/deserialization methods (`model_dump` and `model_validate` already do this).
-
-
+* Use `computed_field` when you want to add attributes to the serialized object that are computed from existing properties.
+* Use `AliasChoices` when deserializating data with an inconsistent fromat, but do not overdo it.
 
 ### Custom Collection Types
 
 If you need functions or validations that operate on collections of specific types (including custom types or primitive semantic types), create custom collection types with `RootModel`.
 
+* In most cases, you should define the type using syntax like `class PointList(list[Point])` instead of using a `root` attribute.
+* In cases where definitional constraints/validation is required for the collection, use `RootClass.model_validator`.
 
 ```python
 from typing import Annotated, NewType
@@ -189,15 +194,61 @@ class UniqueNamesList(RootModel[list[PointName]]):
             raise ValueError("All names in the list must be unique")
 ```
 
-* In most cases, you should define the type using syntax like `class PointList(list[Point])` instead of using a `root` attribute.
-* In cases where definitional constraints/validation is required for the collection, use `RootClass.model_validator`.
 
 
 
 ### Architecture
 
+Architecturally speaking, the best designs have strong type safety and are highly compositional.
 
 #### Protocols and Structural Subtyping
+
+
+#### Data Flow and Transformations
+
+* Data transformations between types can be implemented primarily in non-default constructors.
+
+```python
+import math
+from typing import Annotated, Self
+from pydantic import BaseModel, Field
+
+class CartesianPoint(BaseModel):
+    '''A single point in Cartesian space'''
+    x: Annotated[float, Field(description="The x-coordinate")]
+    y: Annotated[float, Field(description="The y-coordinate")]
+
+    @classmethod
+    def from_polar(cls, point: PolarPoint) -> Self:
+        """Transforms the upstream PolarPoint type into this downstream CartesianPoint type."""
+        return cls(
+            x=point.r * math.cos(point.theta),
+            y=point.r * math.sin(point.theta),
+        )
+
+    def to_polar(self) -> PolarPoint:
+        """Transforms this Cartesian point into a polar point."""
+        return PolarPoint.from_cartesian(self)
+
+class PolarPoint(BaseModel):
+    '''A single point in polar coordinates'''
+    r: Annotated[float, Field(description='Radius of the point in polar coords.')]
+    theta: Annotated[float, Field(description='Angle of the point in polar coords.')]
+
+    @classmethod
+    def from_cartesian(cls, point: CartesianPoint) -> Self:
+        """Transforms the upstream Point type into this downstream type."""
+        return cls(
+            r=math.sqrt(point.x**2 + point.y**2),
+            theta=math.atan2(point.y, point.x),
+        )
+
+    def to_cartesian(self) -> CartesianPoint:
+        """Transforms this polar point into a Cartesian point."""
+        return CartesianPoint.from_polar(self)
+```
+
+
 
 
 
