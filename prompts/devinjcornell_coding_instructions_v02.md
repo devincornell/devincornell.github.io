@@ -15,13 +15,17 @@ This is a compilation of different strategies, styles, and architectures that De
 
 ### Extensive Type Hints
 
-* **Strict Typing:** Rely heavily on comprehensive type hints to empower static analysis tools (like MyPy or Pyright) and prevent runtime errors.
+
 * **Data Structures** Raw dictionaries should almost never be used to represent complex data structures - you might as well use defined pydantic types with composition.
+* **Strict Typing:** Rely heavily on comprehensive type hints to empower static analysis tools (like MyPy or Pyright) and prevent runtime errors.
 * **Modern Syntax:** Exclusively use modern Python typing standards, such as the `|` operator for unions (instead of `Union`) and `typing.Self` for methods returning the object's own type.
 * **Use Generics for Functions and Classes:** when applicable, use generics for both classes and functions. For Python 3.12 use `MyClass[T]` syntax and for earlier versions you can use `T = TypeVar("T")` and `MyClass(Generic[T])`.
 * **Semantic Typing:** use semantic typing of some kind. The default strategy should be to use type aliases, e.g., `UserId = int` (or `type UserId = int` for Python 3.12+). If it is deemed to be far better, use nominal subtyping with `NewType` like `UserId = typing.NewType("UserId", int)`.
 * **Self-referencing Hints:** When applicable, use `typing.Self` with `from __future__ import annotations` (or `from typing_extensions import Self` for Python < 3.11)
 * **Attribute Annotations:** All pydantic type attributes should use annotations like `Annotated[type, Field(description='..', ...)]` with good descriptions for both readability and so they can be used by the many packages that accept pydantic types.
+
+
+---
 
 
 ### Naming Conventions
@@ -41,36 +45,7 @@ Use strict, predictable prefixes for your I/O and factory methods to immediately
 
 For capitalized classes and types, it is standard and acceptable to use `from x import y` (e.g., `from fastapi import FastAPI`). Reserve `import x` for modules with overlapping function names to prevent namespace collisions. Ignore this for relative imports obviously.
 
-
-## Tools for the Job
-
-+ Tabular Data
-    + When possible, I prefer to use lists/dicts of dataclasses or `pydantic` types over dataframes.
-    + When dataframes really are the right solution, use Polars instead of Pandas.
-+ Paths
-    + Use `pathlib` for every application involving tasks that it can actually solve.
-    + `Path.rglob` and `Path.glob` are much better than using `os.walk`.
-    + `Path.open` is much better than using `open`.
-+ Web Sites/APIs
-    + Use `fastapi` for all web applications.
-    + If a graphical interface is needed, write the API interface and then write an html UI that actually calls the endpoints asynchronously.
-    + Be sure to use pydantic-settings with the fastapi app.
-    + Use dependency injection over middleware when possible.
-    + Use FastMCP for adding MCP servers to the API.
-    + Custom types should be used for both response and request objects. Ideally some of those types could come from other application logic.
-+ Environment Management
-    + Use `pydantic-settings` for environment management.
-+ LLMs or Agents
-    + Use `pydantic-ai` to make AI-powered tools.
-    + when advanced Google-specific tools (such as Web Search) are needed, use the `python.genai` package.
-+ SQL Databases
-    + Use `sqlalchemy` Core patterns (ideally not ORM if it cannot be helped).
-+ NoSQL Databases
-    + Use `pymongo` with MongoDB, avoid Beanie and similar tools.
-    + Ideally use custom types to represent documents.
-
-
-
+---
 
 ## Architectural Guidelines
 
@@ -98,19 +73,79 @@ Here are some general principles to start with.
 
 
 
-### 1. Explicit Data Containers
+
+
+
+
+### Type Definitions
 
 We rely on strongly typed, explicit data containers to pass information through the application.
 
 * **Default to `pydantic`:** For all data structures, use `pydantic.BaseModel`. Pydantic provides robust typing, built-in validation, and excellent integration with external boundaries (e.g., FastAPI request/response payloads, or structured outputs for generative AI packages).
-* **Attribute Annotation:** All fields should be annotated using the `Annotated[type, Field(...)]` pattern to allow for explicit field-level configuration, metadata, and constraints.
 * **Immutability:** Once instantiated, the encapsulated data within these containers should be treated as strictly immutable. Any modification of data should result in the generation of a *new* object, rather than mutating an existing one in place.
 
-### 2. Enforcing Strict Immutability
+
+#### Annotations
+
+Annotations are often useful for both readers and runtime consumers (e.g., `fastapi`, `google.genai`, or `pydantic-ai` applications).
+
+* **Annotations:** All fields should be annotated using the `Annotated[type, Field(...)]` pattern to allow for explicit field-level configuration, metadata, and constraints.
+* **Field metadata:** `Field` instances should always have descriptions. Ideally they should also include examples or other attributes that make the meaning of the type clearer to the reader and more useful for runtime consumers.
+
+```python
+from typing import Annotated
+from pydantic import BaseModel, Field
+
+class Point(BaseModel):
+    '''A single point in Cartesian space'''
+    x: Annotated[float, Field(description="The x-coordinate")]
+    y: Annotated[float, Field(description="The y-coordinate")]
+```
+
+`Annotated` itself does not provide type safety from static analyzers, so you will still need to use `NewType` where semantic typing is required. Conventions for their use depends on how the type is intended to be used:
+
+* If a given type (and any definitional validation) is being used as a core domain concept, define semantic type privately (e.g., `_MyNewType = NewType('_MyNewType', int)`) and then use `MyNewType = Annotated[_MyNewType, Field(..)]` to include description, examples, and any other validation logic.
+* In cases where a type is primarily being used at the application layer outside of the core domain model, you would use something like `UserId = NewType('UserId', int)` in the domain model and then `ValidatedUserId = Annotated[UserId, Field(gt=0)]` in the application level.
+
+When discussuing
+
+
+
+In domain-driven design, it often makes sense to separate core domain logic from API/infrastructure layer, and in this case `NewType` would be used in the core domain concept and `Annotated` would be used for domain ingestion. For example, `UserId = NewType('UserId', int)` is the core domain concept and then `ValidatedUserId = Annotated[UserId, Field(gt=0)]` would be used in your pydantic type.
+
+Heavy use of semantic typing is strongly encouraged.
+
+Use the pattern `MyNewType = NewType('MyNewType', int)` when you expect to re-use `MyNewType` in multiple locations.
+
+Static analyzers do not recognize type consistency through `Annotated` because they simply defer to the `type` argument. To have the best of both worlds, define a semantic type privately (e.g., `_MyNewType = NewType('_MyNewType', int)`) for a base semantic type and then `MyNewType = Annotated[_MyNewType, Field(..)]`
+
+
+#### Immutability
 
 To natively enforce immutability in Pydantic v2, assign a `ConfigDict` with `frozen=True` to the `model_config` attribute of your models.
 
 This configuration prevents any attribute reassignment after instantiation, raising a `ValidationError` if mutation is attempted. It also makes your models hashable, allowing them to be used safely in Python `set`s or as `dict` keys.
+
+#### Instantiation
+
+
+#### Validation
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #### The Single Model Approach
 You can apply this directly to individual models:
@@ -424,3 +459,39 @@ class InternalPointCloud(UserList):
         pass
 
 ```
+
+
+
+---
+
+## Tools for the Job
+
+### Preferred Packages
+
++ Tabular Data
+    + When possible, I prefer to use lists/dicts of dataclasses or `pydantic` types over dataframes.
+    + When dataframes really are the right solution, use Polars instead of Pandas.
++ Paths
+    + Use `pathlib` for every application involving tasks that it can actually solve.
+    + `Path.rglob` and `Path.glob` are much better than using `os.walk`.
+    + `Path.open` is much better than using `open`.
++ Web Sites/APIs
+    + Use `fastapi` for all web applications.
+    + If a graphical interface is needed, write the API interface and then write an html UI that actually calls the endpoints asynchronously.
+    + Be sure to use pydantic-settings with the fastapi app.
+    + Use dependency injection over middleware when possible.
+    + Use FastMCP for adding MCP servers to the API.
+    + Custom types should be used for both response and request objects. Ideally some of those types could come from other application logic.
++ Environment Management
+    + Use `pydantic-settings` for environment management.
++ LLMs or Agents
+    + Use `pydantic-ai` to make AI-powered tools.
+    + when advanced Google-specific tools (such as Web Search) are needed, use the `python.genai` package.
++ SQL Databases
+    + Use `sqlalchemy` Core patterns (ideally not ORM if it cannot be helped).
++ NoSQL Databases
+    + Use `pymongo` with MongoDB, avoid Beanie and similar tools.
+    + Ideally use custom types to represent documents.
+
+
+### Supporting Tools
