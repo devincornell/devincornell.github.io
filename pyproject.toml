@@ -1,0 +1,19 @@
+[project]
+name = "devincornell-github-io"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Devin Cornell", email = "devin@devinjcornell.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "pydantic>=2.14.0",
+]
+
+[project.scripts]
+devincornell-github-io = "devincornell_github_io:main"
+
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13.0"]
+build-backend = "uv_build"

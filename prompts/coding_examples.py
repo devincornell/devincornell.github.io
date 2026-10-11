@@ -28,16 +28,3 @@ class UniqueNamesList(RootModel[list[PointName]]):
     def check_uniqueness(self) -> None:
         if len(self.root) != len(set(self.root)):
             raise ValueError("All names in the list must be unique")
-
-
-class RadialPoint(BaseModel):
-    r: Annotated[float, Field(description='Radius of the point in polar coords.')]
-    theta: Annotated[float, Field(description='Angle of the point in polar coords.')]
-
-    @classmethod
-    def from_cartesian(cls, point: 'Point') -> typing.Self:
-        """Transforms the upstream Point type into this downstream type."""
-        return cls(
-            r=math.sqrt(point.x**2 + point.y**2),
-            theta=math.atan2(point.y, point.x),
-        )
