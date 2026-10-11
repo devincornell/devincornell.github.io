@@ -228,7 +228,7 @@ The following are design principles of DDD:
 ## Preferred Packages
 
 + Tabular Data
-    + When possible, I prefer to use lists/dicts of dataclasses or `pydantic` types over dataframes.
+    + When possible,  use lists/dicts of dataclasses or `pydantic` types over dataframes.
     + When dataframes really are the right solution, use Polars instead of Pandas.
 + Paths
     + Use `pathlib` for every application involving tasks that it can actually solve.
