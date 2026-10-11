@@ -5,13 +5,19 @@ This provides strategies, styles, and architectural instructions that Devin J. C
 
 ## Tooling
 
++ **Package management**: install and use UV for package management.
++ **Formatting and linting**: install and configure Ruff, which will format your code according to PEP 8.
++ **Type checking**: install and configure Pywrite (Pylance).
++ **Unit tests**: use the Pytest framework.
++ **Automated actions**: Use Justfile for managing and running common routines/commands (instead of Make).
+
 
 
 ## Styles and Conventions
 
 ### Docstrings and Annotations
 
-* Use modern Google-style docstrings. Every class, function, and method should have a docstring describing what it does.
+* Use modern Google-style docstrings for 2026. Every class, function, and method should have a docstring describing what it does.
 * Modern python includes type hints, so you do not need to specify argument types in modern Python docstrings.
 
 ### Use of Exceptions
