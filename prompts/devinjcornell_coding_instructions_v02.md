@@ -203,12 +203,61 @@ class UniqueNamesList(RootModel[list[PointName]]):
 
 Architecturally speaking, the best designs have strong type safety and are highly compositional.
 
-#### Protocols and Structural Subtyping
+
+#### Domain-driven Design
+
+Where possible, attempt to adhere to the general engineering principles and philosophy of Doman-driven Design (DDD).
+
+* **Strategic Boundaries & Language**
+* Define **Bounded Contexts** to establish explicit boundaries (such as a specific team or subsystem) where a particular model applies.
+* Collaborate with domain experts to build a **Ubiquitous Language** strictly within that context.
+* Relentlessly exercise this shared language across all team communication, diagrams, and directly in the code.
+
+* **Architecture & Isolation**
+* Design the application using a **Layered Architecture**.
+* Isolate the domain model and its core business logic into one distinct layer.
+* Ensure the domain layer never depends on or permeates into the user interface, application logic, or infrastructure layers.
+
+* **Tactical Domain Modeling**
+* Codify the model using specific tactical building blocks.
+* Model **Entities** (or Reference Objects) for elements defined by a continuous lifecycle and unique identity.
+* Model **Value Objects** for immutable characteristics or descriptors that do not require an identity.
+* Model **Domain Events** to track discrete, past activities that domain experts care about as full-fledged, immutable objects.
+
+* **Data Consistency & Lifecycles**
+* Cluster Entities and Value Objects into **Aggregates** to define internal transactional boundaries and enforce consistency.
+* Designate a single entity as the Aggregate root; external objects must only hold references to this root.
+* Use **Factories** to handle the complex creation and assembly of aggregates without exposing their internal structures.
+* Use **Repositories** to fully encapsulate database access, providing clients with the illusion of an in-memory collection of aggregate roots.
+
+* **Integration & System Mapping**
+* Draw a **Context Map** to explicitly describe the points of contact, translations, and isolation mechanisms between different Bounded Contexts.
+* Apply **Continuous Integration**—merging code frequently and running automated tests—to prevent the model from fragmenting within a single Bounded Context.
+
+
+
+
+
+
+* Use a core set of concepts and language that are ubiqutous through out the system.
+    * Core concepts should each appear within bounded contexts where boundary 
+
+
+    * Codify core Entities, Reference objects, and Value objects  as custom types with compositional relationships. 
+    * Each custom type (and constraints) creates contracts that determine internal behavior as well as the boundaries between parts of the application.
+    * Use and re-use these types ubiquitously throughout the various architectural layers.
+* Design the application in distinct architectural layers.
+    * Each layer is module and addresses separate concerns of your application.
+    * Each layer provides a set of foundational building blocks (determined by Entities) to higher-order layers.
+    * The core set of concepts and language should permeate all layers and be re-used as often as possible.
+
+
+##### Protocols and Structural Subtyping
 
 * Structural subtyping using `Protocol` is strongly preferred over nominal subtyping.
 * Use `Protocol` when implementing Observer, Adapter, and Repository (Dependency Injection) design patterns.
 
-#### Data Flow and Transformations
+##### Data Flow and Transformations
 
 * Data transformations between types can be implemented in non-default constructors.
 * Typed perspective
