@@ -1,7 +1,9 @@
 # Coding Guide
 
-This is a compilation of different strategies, styles, and architectures that Devin Cornell likes to use when writing code.
+This provides strategies, styles, and architectural instructions that Devin J. Cornell expects coders to follow.
 
+
+## Tooling
 
 
 
@@ -9,89 +11,46 @@ This is a compilation of different strategies, styles, and architectures that De
 
 ### Docstrings and Annotations
 
-* **Docstrings:** Use docstrings extensively. Every class, property, function, and method should have a docstring describing what it does. Add parameter descriptions to the docstrings only when requested explicitly.
-* **Attribute Annotations:** All pydantic type attributes should use annotations like `Annotated[type, Field(description='..', ...)]` with good descriptions for both readability and so they can be used by the many packages that accept pydantic types.
+* Use modern Google-style docstrings. Every class, function, and method should have a docstring describing what it does.
+* Modern python includes type hints, so you do not need to specify argument types in modern Python docstrings.
 
+### Use of Exceptions
 
-### Extensive Type Hints
+* Heavily utilize custom exceptions to provide detailed failure context.
+* Fail fast and hard - do not attempt to recover from issues with input data automatically.
+* When needed, use inheritance to give users flexibility in the way they handle exceptions.
+* Raise these exceptions at the lowest levels possible so they can be caught in higher-level code.
 
-
-* **Data Structures** Raw dictionaries should almost never be used to represent complex data structures - you might as well use defined pydantic types with composition.
-* **Strict Typing:** Rely heavily on comprehensive type hints to empower static analysis tools (like MyPy or Pyright) and prevent runtime errors.
-* **Modern Syntax:** Exclusively use modern Python typing standards, such as the `|` operator for unions (instead of `Union`) and `typing.Self` for methods returning the object's own type.
-* **Use Generics for Functions and Classes:** when applicable, use generics for both classes and functions. For Python 3.12 use `MyClass[T]` syntax and for earlier versions you can use `T = TypeVar("T")` and `MyClass(Generic[T])`.
-* **Semantic Typing:** use semantic typing of some kind. The default strategy should be to use type aliases, e.g., `UserId = int` (or `type UserId = int` for Python 3.12+). If it is deemed to be far better, use nominal subtyping with `NewType` like `UserId = typing.NewType("UserId", int)`.
-* **Self-referencing Hints:** When applicable, use `typing.Self` with `from __future__ import annotations` (or `from typing_extensions import Self` for Python < 3.11)
-* **Attribute Annotations:** All pydantic type attributes should use annotations like `Annotated[type, Field(description='..', ...)]` with good descriptions for both readability and so they can be used by the many packages that accept pydantic types.
-
-
----
-
-
-### Naming Conventions
-
-* **Classes:** Use `PascalCase` for all class definitions and custom type aliases.
-* **Methods & Functions:** Use `snake_case` for all functions, methods, and variables.
-
-
-
-### Imports
-
-For capitalized classes and types, it is standard and acceptable to use `from x import y` (e.g., `from fastapi import FastAPI`). Reserve `import x` for modules with overlapping function names to prevent namespace collisions. Ignore this for relative imports obviously.
-
----
+For instance, instead of using `mydict.get(key)`, you should use `mydict[key]` in most cases to indicate the data did not follow the expected format. You would only want to use `get` in a small number of situations.
 
 ## Architectural Guidelines
 
-This document outlines the standard patterns for defining, instantiating, and transforming data in our applications. The architectures rely on explicit data containers, strong encapsulation, strict immutability, and data pipelines constructed via sequential type transformations.
+There are several aspects of architectural guidelines discussed here:
 
-Here are some general principles to start with.
-
-#### **Core Data Models**
-* **Default to `pydantic`:** For all data structures, use `pydantic.BaseModel`. Pydantic provides robust typing, built-in validation, and excellent integration with external boundaries (e.g., FastAPI request/response payloads, or structured outputs for generative AI packages).
-* **Attribute Annotation:** Every pydantic type should use attribute typing in the format `Annotated[type, Field(...)]` to maximize metadata included in the type. This will be used by many packages that accept pydantic types.
-
-#### **Instantiation & Validation**
-* **Enforce Immutability:** Treat all encapsulated data as immutable after creation.
-* **Factory-Driven Creation:** Use static factory methods (`@classmethod`) exclusively for instantiation, data transformation, and validation.
-* **Internal Constructors:** Do not override or write custom `__init__` methods. Embrace the automated validation and initialization that happens under the hood during instantiation. Do not define default parameter values in the class definition; handle them inside the factories.
-* **Fail Fast:** Perform all validation inside the factory methods. 
-
-#### **Architecture & Composition**
-* **Layered Composition:** Build custom types compositionally. Higher-level objects should orchestrate tasks strictly by calling methods on their lower-level component objects.
-* **Strong Encapsulation:** Treat transformations between data types as a distinct pipeline, handled almost entirely by the factory methods to keep logic isolated.
-* **Exception Bubbling:** Heavily utilize custom exceptions to provide detailed failure context. Raise these exceptions at the lowest levels and catch them in higher-level orchestration functions to alter flow.
-
-#### **Serialization**
-* **Standardized Interfaces:** Use pydantic methods for converting types to/from dictionaries.
-
-
-
-* Use custom or semantic types for almost every kind of data.
-* Use strong encapsulation - only the type itself should know the implementation details.
-* Avoid inheritance in favor of composition wherever possible, even if it makes some designs more complicated.
-
-
-
+* Custom types
+* Custom collection types
+* Architecture and design principles
 
 ### Type Definitions
 
-Always rely on strongly typed, explicit `pydantic` data containers to pass information through the application. 
+Custom types should almost always be created using `pydantic.BaseModel` for strong typing and because they work seamlessly with many Python packages.
 
+#### Type Hints
 
-#### Annotations
-
-Annotations are often useful for both readers and runtime consumers (e.g., `fastapi`, `google.genai`, or `pydantic-ai` applications).
+Type hints are often useful for both readers and runtime consumers (e.g., `fastapi`, `google.genai`, or `pydantic-ai` applications).
 
 Here are some general preferences:
 
 * Use modern typing features using `from __future__ import annotations`.
 * Avoid using strings for type hint names (e.g., `list['MyType']` vs `list[MyType]`) - if these are needed, the application design is probably weak.
+* Use `Self` to reference a type's own type, not the name of the class in strings or anything else.
+* Use operator syntax for type hints. E.g., `|` instead of `Union`, etc.
 
 ##### Annotation With Fields
 
 * All pydantic class fields should be annotated using the `Annotated[type, Field(...)]` pattern to allow for explicit field-level configuration, metadata, and constraints.
 * `Field` instances should always have descriptions. Ideally they should also include examples or other attributes that make the meaning of the type clearer to the reader and more useful for runtime consumers.
+* Field descriptions should often include references to other types to indicate to the user how they may be related.
 
 ```python
 from typing import Annotated
@@ -195,14 +154,10 @@ class UniqueNamesList(RootModel[list[PointName]]):
 ```
 
 
-
-
 ### Architecture and Patterns
 
-
-
-Architecturally speaking, the best designs have strong type safety and are highly compositional.
-
+* Use strong typing principles.
+* Use composition over inheritance wherever possible, even if it means more complicated data structures.
 
 #### Domain-driven Design
 
