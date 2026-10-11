@@ -119,7 +119,7 @@ Note that `Annotated` itself does not provide type safety, but you should use `N
 ##### Protocols
 
 * Always use `typing.Protocol` where relevant - particularly for strategy patterns or APIs that accepts complex types or type definitions.
-* Use `@runtime_checkable` only on API boundaries or other high-stakes interfaces.
+* Use `@runtime_checkable` only on API boundaries or other high-stakes interfaces; otherwise, trust static analyzers.
 
 #### Instantiation
 
@@ -197,16 +197,21 @@ class UniqueNamesList(RootModel[list[PointName]]):
 
 
 
-### Architecture
+### Architecture and Patterns
+
+
 
 Architecturally speaking, the best designs have strong type safety and are highly compositional.
 
 #### Protocols and Structural Subtyping
 
+* Structural subtyping using `Protocol` is strongly preferred over nominal subtyping.
+* Use `Protocol` when implementing Observer, Adapter, and Repository (Dependency Injection) design patterns.
 
 #### Data Flow and Transformations
 
-* Data transformations between types can be implemented primarily in non-default constructors.
+* Data transformations between types can be implemented in non-default constructors.
+* Typed perspective
 
 ```python
 import math
