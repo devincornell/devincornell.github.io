@@ -206,104 +206,45 @@ Architecturally speaking, the best designs have strong type safety and are highl
 
 #### Domain-driven Design
 
-Where possible, attempt to adhere to the general engineering principles and philosophy of Doman-driven Design (DDD).
+Generally attempt to adhere to the engineering principles and philosophy of Doman-driven Design (DDD). There is one primary exception: when it is convenient, you may re-use Entities or Value Objects in multiple architectural layers to avoid creating duplicate objects that store almost exactly the same information. This can be especially helpful for types that are very complex with many attributes or definitional constraints. The use of compositional data structures can help reduce the risk of such an approach.
 
-* **Strategic Boundaries & Language**
-* Define **Bounded Contexts** to establish explicit boundaries (such as a specific team or subsystem) where a particular model applies.
-* Collaborate with domain experts to build a **Ubiquitous Language** strictly within that context.
-* Relentlessly exercise this shared language across all team communication, diagrams, and directly in the code.
+The following are design principles of DDD:
 
-* **Architecture & Isolation**
-* Design the application using a **Layered Architecture**.
-* Isolate the domain model and its core business logic into one distinct layer.
-* Ensure the domain layer never depends on or permeates into the user interface, application logic, or infrastructure layers.
+##### Structural Architecture & Isolation
 
-* **Tactical Domain Modeling**
-* Codify the model using specific tactical building blocks.
-* Model **Entities** (or Reference Objects) for elements defined by a continuous lifecycle and unique identity.
-* Model **Value Objects** for immutable characteristics or descriptors that do not require an identity.
-* Model **Domain Events** to track discrete, past activities that domain experts care about as full-fledged, immutable objects.
+* Partition the system using a Layered Architecture to completely isolate the domain model and business logic into a single, cohesive layer.
+* A layer may depend in some part on the layers beneath it, but never above; each layer provides a set of building blocks that higher layers can use.
+* Eliminate all dependencies within the domain layer on infrastructure, user interfaces, or application logic.
+* Decompose the code into cohesive Modules (packages) that reflect high-level domain concepts, ensuring low coupling between different parts of the system.
 
-* **Data Consistency & Lifecycles**
-* Cluster Entities and Value Objects into **Aggregates** to define internal transactional boundaries and enforce consistency.
-* Designate a single entity as the Aggregate root; external objects must only hold references to this root.
-* Use **Factories** to handle the complex creation and assembly of aggregates without exposing their internal structures.
-* Use **Repositories** to fully encapsulate database access, providing clients with the illusion of an in-memory collection of aggregate roots.
+##### Tactical Domain Objects
 
-* **Integration & System Mapping**
-* Draw a **Context Map** to explicitly describe the points of contact, translations, and isolation mechanisms between different Bounded Contexts.
-* Apply **Continuous Integration**—merging code frequently and running automated tests—to prevent the model from fragmenting within a single Bounded Context.
+* Define objects with a continuous lifecycle and unique identity as Entities.
+* Define immutable characteristics, attributes, or calculations as Value Objects, ensuring all their operations are side-effect-free.
+* Define significant domain processes or transformations that do not naturally belong to an Entity or Value Object as standalone Services.
+* Define discrete, past activities in the domain as full-fledged, immutable Domain Events.
 
+##### State Management & Transactional Boundaries
 
+* Cluster related Entities and Value Objects into Aggregates to establish strict boundaries for data consistency.
+* Designate a single entity as the Aggregate root to enforce all invariants and consistency rules for the cluster.
+* Restrict external objects to holding references only to the Aggregate root, never to its interior elements.
+* Apply consistency rules synchronously within an Aggregate boundary, and handle updates across different Aggregates asynchronously.
 
+##### Encapsulating Object Lifecycles
 
+* Delegate the complex assembly of entire aggregates or large value objects to Factories, enforcing creation invariants without exposing internal structures to the client.
+* Delegate object storage and retrieval to Repositories, providing the application logic with the illusion of an in-memory collection of aggregate roots while encapsulating the underlying database technology.
+* Restrict Repositories to only provide direct access to Aggregate roots, rather than individual interior objects.
 
+#### Data Pipelines and Transformations
 
-* Use a core set of concepts and language that are ubiqutous through out the system.
-    * Core concepts should each appear within bounded contexts where boundary 
+* Data transformations between types should be implemented in non-default constructors so that only the type itself needs to be privy to its own implementation.
 
-
-    * Codify core Entities, Reference objects, and Value objects  as custom types with compositional relationships. 
-    * Each custom type (and constraints) creates contracts that determine internal behavior as well as the boundaries between parts of the application.
-    * Use and re-use these types ubiquitously throughout the various architectural layers.
-* Design the application in distinct architectural layers.
-    * Each layer is module and addresses separate concerns of your application.
-    * Each layer provides a set of foundational building blocks (determined by Entities) to higher-order layers.
-    * The core set of concepts and language should permeate all layers and be re-used as often as possible.
-
-
-##### Protocols and Structural Subtyping
+#### Protocols and Structural Subtyping
 
 * Structural subtyping using `Protocol` is strongly preferred over nominal subtyping.
 * Use `Protocol` when implementing Observer, Adapter, and Repository (Dependency Injection) design patterns.
-
-##### Data Flow and Transformations
-
-* Data transformations between types can be implemented in non-default constructors.
-* Typed perspective
-
-```python
-import math
-from typing import Annotated, Self
-from pydantic import BaseModel, Field
-
-class CartesianPoint(BaseModel):
-    '''A single point in Cartesian space'''
-    x: Annotated[float, Field(description="The x-coordinate")]
-    y: Annotated[float, Field(description="The y-coordinate")]
-
-    @classmethod
-    def from_polar(cls, point: PolarPoint) -> Self:
-        """Transforms the upstream PolarPoint type into this downstream CartesianPoint type."""
-        return cls(
-            x=point.r * math.cos(point.theta),
-            y=point.r * math.sin(point.theta),
-        )
-
-    def to_polar(self) -> PolarPoint:
-        """Transforms this Cartesian point into a polar point."""
-        return PolarPoint.from_cartesian(self)
-
-class PolarPoint(BaseModel):
-    '''A single point in polar coordinates'''
-    r: Annotated[float, Field(description='Radius of the point in polar coords.')]
-    theta: Annotated[float, Field(description='Angle of the point in polar coords.')]
-
-    @classmethod
-    def from_cartesian(cls, point: CartesianPoint) -> Self:
-        """Transforms the upstream Point type into this downstream type."""
-        return cls(
-            r=math.sqrt(point.x**2 + point.y**2),
-            theta=math.atan2(point.y, point.x),
-        )
-
-    def to_cartesian(self) -> CartesianPoint:
-        """Transforms this polar point into a Cartesian point."""
-        return CartesianPoint.from_polar(self)
-```
-
-
-
 
 
 
