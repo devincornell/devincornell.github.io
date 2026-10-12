@@ -88,7 +88,7 @@ import uuid
 
 @dataclass(slots=True, frozen=True)
 class UserInfo:
-    name: Annotated[str, Field(description="Public name of the user.", default='<NAME_EMPTY>')]
+    name: Annotated[str, Field(description="Public name of the user.")]
     age: Annotated[int, Field(description="Age of the user (does not appear publicly).", gt=0, lt=150)]
 
 class User(BaseModel):
@@ -100,8 +100,8 @@ We can then generate the type schema using `User.model_json_schema()`, serialize
 
 Adding these arguments to the `pydantic.Field` type hints in the dataclass has the following consequences:
 
-* `UserInfo.name` has a `default` value. This default value will not be used in the default constructor, but it is added to the generated schema and allows the field to be optional when deserializing with `model_validate`.
 * `UserInfo.age` has constraints `gt` and `lt`. These constraints will not be validated when the default constructor is called, but they will be specified in the generated schema (`User.model_json_schema()`) and validated against when calling `User.model_validate`.
+* If `UserInfo.name` had a `default` value, it would not be used in the default constructor, but it would added to the generated schema and allows the field to be optional when deserializing with `model_validate`. Generally speaking, this is bad practice though.
 
 
 ##### Semantic Typing
@@ -166,15 +166,22 @@ For pydantic types:
 
 ##### Serialization
 
+General rules:
+
+* If custom serialization/deserialization methods are needed, use the naming conventions `.to_*(...)` and `.from_*(...)`, respectively.
+* When types are compositionally complex, custom methods need to be chained to attribute types.
+
 For dataclasses:
-* Allow the user to use `dataclasses.asdict` if there is no transformation required in the serialization.
-* If additional logic is required, create custom serialization methods using the naming convention `.to_*(...)`.
-* Note that serialization methods may need to be chaned to attribute types for compositionally complex types.
+
+When serialization/deserialization is needed, always create a custom methods (even if they just call `dataclasses.asdict`) for these reasons:
+
+* There is no built-in inverse to `dataclasses.asdict` that chains to compositionally nested types, so a custom deserialization method would be required in any case.
+* It also makes it clear that the user should rarely be using `dataclasses.asdict` by itself.
+
 
 For pydantic types:
-* Allow the user to use `model_dump`/`model_dump_json` or `model_validate`/`model_validate_json` wherever possible (especially if you only need to set an `alias` in the `Field`).
-* If complex serialization/deserialization is required, preemptively create both serialization (`to_*`) and deserialization (`from_`) methods.
-* In multi-level or recursive compositional data structures, chain custom subtype serialization/deserialization methods (`model_dump` and `model_validate` already do this).
+* Allow the user to use `model_dump` and `model_validate` wherever possible (especially if you only need to set an `alias` in the `Field`), as this already handles recursive serialization.
+* If complex serialization/deserialization is required, you can still create custom methods.
 * Use `computed_field` when you want to add attributes to the serialized object that are computed from existing properties.
 * Use `AliasChoices` when deserializing data with an inconsistent format, but do not overdo it.
 
