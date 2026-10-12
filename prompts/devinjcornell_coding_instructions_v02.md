@@ -187,7 +187,143 @@ For pydantic types:
 
 ### Custom Collection Types
 
+It often makes sense to create custom collection types to manage collections of custom types. E.g., instead of creating a regular list with type `list[MyType]`, you could create a collection type `MyTypeList` that is unique to lists with that particular type of element.
+
+Create custom collection types in these situations:
+
+* You need a single method which instantiates groups of custom type collections by calling their constructors.
+* You need to define methods which are relevant only to collections containing the custom types.
+
+
+#### Subtype Native Collection Types
+
+In most cases, it makes the most sense to subtype native data structures, with one key rule: never overwrite existing methods, especially the default constructors. This addresses the potential issues with inheriting directly from `list` and `dict`, but it is still best practice to use `UserList` and `UserDict` from collections. To better adhere to the immutability principles, subtyping `tuple` is preferred over `UserList`.
+
+This is an example (with docstrings removed for brevity):
+
+```python
+
+from dataclasses import dataclass
+from typing import Iterable, Self, NewType
+from collections import UserList, UserDict
+
+@dataclass(slots=True, frozen=True)
+class MyType:
+    value: int
+
+class ImmutableMyTypeList(tuple[MyType, ...]):
+    @classmethod
+    def from_values(cls, values: Iterable[int]) -> Self:
+        return cls(MyType(value=v) for v in values)
+    def mean(self) -> float:
+        if not self:
+            raise ValueError("Cannot compute mean of an empty ImmutableMyTypeList.")
+        return sum(item.value for item in self) / len(self)
+
+MyTypeName = NewType("MyTypeName", str)
+
+class MyTypeDict(UserDict[MyTypeName, MyType]):
+    @classmethod
+    def from_values(cls, values: dict[str, int]) -> Self:
+        return cls({MyTypeName(k): MyType(value=v) for k, v in values.items()})
+
+ImmutableMyTypeList.from_values([4, 5, 6]).mean()
+MyTypeDict.from_values({"a": 7, "b": 8, "c": 9})
+```
+
+#### Collection Wrappers
+
+There are several cases where you would want to create a collection type wrapper.
+
+* You need to return a single root type.
+* The desired data interface does not match the interface of the underlying collection type.
+
+When creating a collection of dataclass types, you can create an immutable dataclass wrapper. The wrapper class should be immutable even if `values` is of a mutable type.
+
+```python
+@dataclass(slots=True, frozen=True)
+class AnotherType:
+    values: tuple[MyType, ...]
+    @classmethod
+    def from_values(cls, values: Iterable[int]) -> Self:
+        return cls(values=tuple(MyType(value=v) for v in values))
+```
+
+If you root type must be a pydantic type, you can use `pydantic.RootModel`. This makes it possible to use pydantic methods such as `model_dump`, `model_validate`, `model_json_schema`.
+
+A few points about preferred usage:
+
+* In most cases, you should define the type using syntax like `class PointList(RootModel[list[Point]])` instead of using a `root` attribute type.
+* In cases where definitional constraints/validation is required for the collection, use `RootClass.model_validator`.
+
+```python
+from typing import Annotated, NewType
+from pydantic import BaseModel, Field, RootModel, model_validator
+
+class Point(BaseModel):
+    '''A single point in Cartesian space'''
+    x: Annotated[float, Field(description="The x-coordinate")]
+    y: Annotated[float, Field(description="The y-coordinate")]
+
+class PointList(RootModel[list[Point]]):
+    '''List of points.'''
+    def mean(self) -> float:
+        pass
+
+PointName = NewType('PointName', str)
+
+class PointMap(RootModel[dict[PointName, Point]]):
+    '''Dictionary mapping point names to points.'''
+    def names(self) -> list[PointName]:
+        return list(self.root.keys())
+
+    def point_list(self) -> PointList:
+        return PointList(root=list(self.root.values()))
+
+class UniqueNamesList(RootModel[list[PointName]]):
+    @model_validator(mode='after')
+    def check_uniqueness(self) -> None:
+        if len(self.root) != len(set(self.root)):
+            raise ValueError("All names in the list must be unique")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+In cases where the desired data interface does not match the underlying collection type, it can be helpful to create a simple wrapper.
+you can always creat collection wrappers.
+
+
+#### Core Domain Layer Collections
+
+Inheriting.
+
+* 
+* Create custom static factory constructor methods for instantiation. 
+
+The DDD philosophy dictates that we primarily should espose.
+
+For core domain layers (`dataclasses`):
+
+
+    For mutable domain collections (or if relying on read-only convention), subclass collections.UserList or collections.UserDict.
+
+    For strictly immutable domain lists, subclass tuple.
+
+    Validation must occur in a @classmethod factory constructor before instantiation.
+
 If you need functions or validations that operate on collections of specific types (including custom types or primitive semantic types), create custom collection types with `RootModel`.
+
+#### Boundary and Schema Layers (`pydantic.RootModel`)
 
 * In most cases, you should define the type using syntax like `class PointList(list[Point])` instead of using a `root` attribute.
 * In cases where definitional constraints/validation is required for the collection, use `RootClass.model_validator`.

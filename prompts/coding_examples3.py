@@ -22,7 +22,6 @@ class UserDataclass:
 
 d = asdict(UserDataclass(info=UserInfo(name="Alice", age=30)))
 print(d)
-dataclasses.
 exit()
 
 # schema generation:
