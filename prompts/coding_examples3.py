@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from typing import Annotated
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
+import dataclasses
 from pydantic import BaseModel, Field
 import uuid
 
@@ -13,6 +14,16 @@ class UserInfo:
 class User(BaseModel):
     uuid: Annotated[str, Field(description="Unique identifier of the instance.")]
     info: UserInfo
+
+@dataclass(slots=True, frozen=True)
+class UserDataclass:
+    info: UserInfo
+
+
+d = asdict(UserDataclass(info=UserInfo(name="Alice", age=30)))
+print(d)
+dataclasses.
+exit()
 
 # schema generation:
 # model_json_schema uses the dataclass Field metadata to generate the schema

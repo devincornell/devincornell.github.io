@@ -104,51 +104,6 @@ Adding these arguments to the `pydantic.Field` type hints in the dataclass has t
 * `UserInfo.age` has constraints `gt` and `lt`. These constraints will not be validated when the default constructor is called, but they will be specified in the generated schema (`User.model_json_schema()`) and validated against when calling `User.model_validate`.
 
 
-
-
-In dataclasses, `pydantic.Field` type hints only provide metadata for schema creation and serialization/deserialization - they do not affect the behavior of the type itself like `Field` does for pydantic types. See the following example:
-
-
-* **constraints**: Pydantic will use constraint information (e.g., `gt`, `lt`, etc) for validation on instantiation, while dataclasses only use this for schema generation.
-* default values: x
-* schema metadata.
-
-
-Schema generation:
-
-* Tools such as `fastapi`, `google.genai`, or `pydantic-ai` all generate schemas from the types using the pydantic method `MyType.model_json_schema()`.
-* If present, the 
-
-
-
-The behavior of `pydantic.Field` varies according to whether a 
-
-
-`pydantic.Field` in Pydantic type definitions:
-
-* Constraints should be added to `Field` in both dataclasses and pydantic types for runtime consumption (e.g., schema generation), though note that regular dataclasses do not use them for runtime validation.
-* For dataclasses, all constraints/validation should be omitted from the `Field`.
-
-
-allow for explicit field-level configuration, metadata, and constraints.
-
-
-Whether a type 
-
-* All dataclass and pydantic fields should be annotated using the `Annotated[type, pydantic.Field(...)]` pattern to allow for explicit field-level configuration, metadata, and constraints.
-* `Field` instances should always have descriptions. Ideally they should also include examples or other attributes that make the meaning of the type clearer to the reader and more useful for runtime consumers.
-* Field descriptions should often include references to other types to indicate to the user how they may be related.
-
-```python
-from typing import Annotated
-from pydantic import BaseModel, Field
-
-class Point(BaseModel):
-    '''A single point in Cartesian space'''
-    x: Annotated[float, Field(description="The x-coordinate")]
-    y: Annotated[float, Field(description="The y-coordinate")]
-```
-
 ##### Semantic Typing
 
 Semantic typing with `NewType` should be used for primitives wherever relevant.
@@ -167,58 +122,57 @@ Note that `Annotated` itself does not provide type safety, but you should use `N
 * Always use `typing.Protocol` where relevant - particularly for strategy patterns or APIs that accepts complex types or type definitions.
 * Use `@runtime_checkable` only on API boundaries or other high-stakes interfaces; otherwise, trust static analyzers.
 
-#### Instantiation
+#### Object Instantiation & Constructors
 
-Custom types should often include both default and non-default static factory constructors.
-
-Carefully consider whether to include particular features in the default constructor (especially the one created by pydantic) vs non-default static factory constructors.
-
-In most cases, the default constructor should force the user to provide all attributes and only serve to create the instance from the provided data. Use non-default constructors when you need any of these things:
-
-* **Default values**: place these in non-default constructors, as they are not essential to the definition of a type.
-* **Parsing logic**: some parsing logic comes with general type safety.
-* Validation logic that is specific to some instantiation method
-* Performant
+Divide instantiation strictly between the default constructor (`__init__`) and static factory methods (`@classmethod`). The default constructor acts as a pure, raw initializer; all variations, convenience defaults, transformations, and complex parsing belong in named factory constructors.
 
 
-* Leave default pydantic `__init__` constructors purely for creating the container.
-* Use non-default
+Universal Rules (Dataclasses & Pydantic Models):
 
+* Explicit Default Initialization: Do not assign field defaults or default factories directly in class definitions. The default constructor must require every field explicitly. Default arguments belong only in static factory signatures.
+* Factory Naming Convention: Non-default static factories must use the @classmethod decorator and adhere to the from_* prefix (e.g., from_raw_payload(), from_coordinates()).
+* Keep __init__ and __post_init__ Pure: Avoid custom processing or transformation logic in __post_init__. If an object requires multi-step derivation or conditional setup, handle it inside a dedicated from_* factory before calling the constructor.
+* If any type in a compositionally nested data structure requires logic in a non-default constructor, the non-default constructors will need to be chained to all subtypes.
 
+Pydantic Boundary Types:
++ Definitional Constraints Only: Field constraints (e.g., gt=0, regex patterns) apply globally across all construction paths. Reserve them strictly for invariant rules that define valid raw data.
++ Minimal Parsing in Schemas: Restrict built-in Pydantic logic to fundamental type coercion and structural model/field validators. Domain mapping, data reshaping, or business-logic verification must occur in explicit from_* factory methods or boundary converters.
 
-* In most cases, avoid adding default factories and values to the pydantic type definition - instead, force the client user to provide all values when using the default constructor.
-
-
-Embrace the automated validation and initialization that happens under the hood during instantiation.
-* Use static factory methods (`@classmethod`) where logic or defaults are required for instantiation.
-
-exclusively for custom type instantiation, data transformation, and validation.
-* Non-default constructors should follow the naming convention `from_*` (e.g., `from_vector`)
-* Do not define default parameter values in the class definition; instead, add them to the constructors (usually as a constructor parameter default).
-* Use validation logic in constructors when parameters may be complicated or constructor is handling input validation.
 
 #### Immutability
 
-* Almost always treat custom type instances as immutable.
-* Use `model_copy` to create new instances by copying old values. This is similar to `clone` in Rust. Avoid trying to re-implement this behavior with custom methods.
+General rules:
+* Almost always treat custom type instances (pydantic or dataclasses) as immutable.
 * You should almost always make copies of mutable collections (e.g., `list`, `dict`, and `set`) inside nondefault constructors.
-* In rare cases where you need enforcement (e.g., when presenting read-only information), set the attribute `model_config = ConfigDict(frozen=True)` in your pydantic type.
+* When enforcing immutability, also enable slots for speed and memory efficiency.
+
+For dataclasses:
+* You should almost always enforce using decorator arguments `@dataclass(slots=True, frozen=True)`, as the runtime overhead is low.
+
+For pydantic types:
+* For enforcement, set the attribute `model_config = ConfigDict(frozen=True)` in your pydantic type.
+* Use `model_copy` to create new instances by copying old values. This is similar to `clone` in Rust. Avoid trying to re-implement this behavior with custom methods.
 
 #### Validation
 
-Because instances are treated as immutable, it is usually sufficient to validate data inside nondefault constructors.
+For dataclasses:
+* Constraint validation should almost always happen in non-default static factory constructors. Use helper classmethods if logic is common to multiple constructors.
 
-In cases where there are multiple constructors and every instance must definitionally conform to the constraint, it can be added to the definition itself as a declarative constraint.
-
-* In most cases, set constraints in `Field(..)` instances, as it is fast and gives runtime consumers access for automatic documentation creation.
+For pydantic types:
+* When constraints are independent of constructor method, set validation in `Field(...)` to apply to all constructors.
+* When writing re-usable `Annotated` types without `Field(...)`, use `AfterValidator` or `BeforeValidator`.
 * When validation requires custom validation on a single attribute, use `field_validator`.
 * When validation requires custom validation on multiple attributes, use `model_validator`.
-* When writing re-usable `Annotated` types without `Field(..)` (usually outside a pydantic type definition), use `AfterValidator` or `BeforeValidator`.
 
 ##### Serialization
 
-* Use `model_dump`/`model_dump_json` or `model_validate`/`model_validate_json` wherever possible (especially if you only need to set an `alias` in the `Field`).
-* When possible, re-use `model_dump`/`model_dump_json` or `model_validate`/`model_validate_json` as part of the custom serializers/deserializers.
+For dataclasses:
+* Allow the user to use `dataclasses.asdict` if there is no transformation required in the serialization.
+* If additional logic is required, create custom serialization methods using the naming convention `.to_*(...)`.
+* Note that serialization methods may need to be chaned to attribute types for compositionally complex types.
+
+For pydantic types:
+* Allow the user to use `model_dump`/`model_dump_json` or `model_validate`/`model_validate_json` wherever possible (especially if you only need to set an `alias` in the `Field`).
 * If complex serialization/deserialization is required, preemptively create both serialization (`to_*`) and deserialization (`from_`) methods.
 * In multi-level or recursive compositional data structures, chain custom subtype serialization/deserialization methods (`model_dump` and `model_validate` already do this).
 * Use `computed_field` when you want to add attributes to the serialized object that are computed from existing properties.
