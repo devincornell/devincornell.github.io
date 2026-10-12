@@ -7,7 +7,7 @@ This provides strategies, styles, and architectural instructions that Devin J. C
 
 + **Package management**: install and use UV for package management.
 + **Formatting and linting**: install and configure Ruff, which will format your code according to PEP 8.
-+ **Type checking**: install and configure Pywrite (Pylance).
++ **Type checking**: install and configure Pyright (Pylance).
 + **Unit tests**: use the Pytest framework.
 + **Automated actions**: Use Justfile for managing and running common routines/commands (instead of Make).
 
@@ -27,7 +27,7 @@ This provides strategies, styles, and architectural instructions that Devin J. C
 * When needed, use inheritance to give users flexibility in the way they handle exceptions.
 * Raise these exceptions at the lowest levels possible so they can be caught in higher-level code.
 
-For instance, instead of using `mydict.get(key)`, you should use `mydict[key]` in most cases to indicate the data did not follow the expected format. You would only want to use `get` in a small number of situations.
+For instance, use `mydict.get(key)` only when there is a good domain reason that a key does not exist. Use `mydict[key]` in most cases to add structural integrity to your program.
 
 ## Architectural Guidelines
 
@@ -39,7 +39,11 @@ There are several aspects of architectural guidelines discussed here:
 
 ### Type Definitions
 
-Custom types should almost always be created using `pydantic.BaseModel` for strong typing and because they work seamlessly with many Python packages.
+* Use strong typing everywhere - custom types should be used in almost every part of an application.
+* Use `pydantic.BaseModel` for most custom types rather than using `dataclasses` or creating from scratch.
+* Even domain objects should use pydantic, even if it does create an external dependency. 
+* Custom types should primarily be used as data containers with extra logic for interacting with the underlying data.
+
 
 #### Type Hints
 
@@ -88,9 +92,31 @@ Note that `Annotated` itself does not provide type safety, but you should use `N
 
 #### Instantiation
 
-* Almost always use static factory methods (`@classmethod`) exclusively for custom type instantiation, data transformation, and validation.
+Custom types should often include both default and non-default static factory constructors.
+
+Carefully consider whether to include particular features in the default constructor (especially the one created by pydantic) vs non-default static factory constructors.
+
+In most cases, the default constructor should force the user to provide all attributes and only serve to create the instance from the provided data. Use non-default constructors when you need any of these things:
+
+* **Default values**: place these in non-default constructors, as they are not essential to the definition of a type.
+* **Parsing logic**: some parsing logic comes with general type safety.
+* Validation logic that is specific to some instantiation method
+* Performant
+
+
+* Leave default pydantic `__init__` constructors purely for creating the container.
+* Use non-default
+
+
+
+* In most cases, avoid adding default factories and values to the pydantic type definition - instead, force the client user to provide all values when using the default constructor.
+
+
+Embrace the automated validation and initialization that happens under the hood during instantiation.
+* Use static factory methods (`@classmethod`) where logic or defaults are required for instantiation.
+
+exclusively for custom type instantiation, data transformation, and validation.
 * Non-default constructors should follow the naming convention `from_*` (e.g., `from_vector`)
-* Do not override or write custom `__init__` methods. Embrace the automated validation and initialization that happens under the hood during instantiation.
 * Do not define default parameter values in the class definition; instead, add them to the constructors (usually as a constructor paramter default).
 * Use validation logic in constructors when parameters may be complicated or constructor is handling input validation.
 
@@ -173,7 +199,7 @@ The following are design principles of DDD:
 
 ##### Structural Architecture & Isolation
 
-* Partition the system using a Layered Architecture to completely isolate the domain model and business logic into a single, cohesive layer.
+* Partition the system using a Layered Architecture to completely isolate the domain model and business logic into a single, cohesive layer. 
 * A layer may depend in some part on the layers beneath it, but never above; each layer provides a set of building blocks that higher layers can use.
 * Eliminate all dependencies within the domain layer on infrastructure, user interfaces, or application logic.
 * Decompose the code into cohesive Modules (packages) that reflect high-level domain concepts, ensuring low coupling between different parts of the system.
