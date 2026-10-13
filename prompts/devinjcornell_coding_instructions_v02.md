@@ -59,7 +59,7 @@ Type hints are important for both static analyzers and runtime consumers (e.g., 
 
 This is how type hints should be written:
 
-* Use modern typing features using `from __future__ import annotations`.
+* Use modern typing features using `from __future__ import annotations` if supporting Python versions earlier than 3.11.
 * Avoid using strings for type hint names (e.g., `list['MyType']` vs `list[MyType]`) - if these are needed, the application design is probably weak.
 * Use `Self` to reference a type's own type, not the name of the class in strings or anything else.
 * Use operator syntax for type hints. E.g., `|` instead of `Union`, etc.
@@ -131,7 +131,7 @@ Universal Rules (Dataclasses & Pydantic Models):
 
 * Explicit Default Initialization: Do not assign field defaults or default factories directly in class definitions. The default constructor must require every field explicitly. Default arguments belong only in static factory signatures.
 * Factory Naming Convention: Non-default static factories must use the @classmethod decorator and adhere to the from_* prefix (e.g., from_raw_payload(), from_coordinates()).
-* Keep __init__ and __post_init__ Pure: Avoid custom processing or transformation logic in __post_init__. If an object requires multi-step derivation or conditional setup, handle it inside a dedicated from_* factory before calling the constructor.
+* Keep __init__ Pure: Avoid custom processing or transformation logic in __post_init__. If an object requires multi-step derivation or conditional setup, handle it inside a dedicated `from_*` factory before calling the constructor.
 * If any type in a compositionally nested data structure requires logic in a non-default constructor, the non-default constructors will need to be chained to all subtypes.
 
 Pydantic Boundary Types:
