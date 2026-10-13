@@ -15,28 +15,72 @@ This provides strategies, styles, and architectural instructions that Devin J. C
 
 ## Styles and Conventions
 
-### Docstrings and Annotations
+### Docstrings
 
 * Use modern Google-style docstrings for 2026. Every class, function, and method should have a docstring describing what it does.
 * Modern python includes type hints, so you do not need to specify argument types in modern Python docstrings.
 
-### Use of Exceptions
+### General Philosophy
+
+These are some core principles:
+
+* **Type Safety FTW**: use custom types with strong encapsulation for managing internal state and especially at system boundaries. Use static type analyzers and every class/function/attribute should have accurate type hints.
+* **Fail Fast**: Your application should support a very specific set of inputs, and you should force it to fail as early as possible when those inputs do not match expectations.
+* **Zen of Python**: generally follow [PEP 20 - The Zen of Python](https://peps.python.org/pep-0020/).
+
+
+#### Fail Fast
+
+The fail fast principle is important especially because it is sometimes at odds with popular practices in Python.
+
+
+Small examples of fail fast principle:
+
+* In Python, dictionaries are used for maintaing both large collections of objects (e.g., `{"a":1, "b":2, "d":12}`) or enumerable attributes of a particular object (e.g., `{"title": "My Title", "author": "Devin J. Cornell"}`). In the latter case, never use `get` over `[]` unless there is a very good reason a key would be missing, even if it is more compact or elegant. Using `get` could obfuscate small issues such as the change in the structure of the input data and the user would never know.
+* Never use a catch-all exception catcher like `except Exception` - it may be obfuscating unexpected exceptions that disrupt the integrity of your application.
+* Use data gaurds to assert that inputs fit within the domain of your application, and fail early if/when they do not.
+* Use strong typing to gaurd against errors without the need for explicit condition checking.
+
+
+#### Zen of Python
+
+From **[PEP 20 - The Zen of Python](https://peps.python.org/pep-0020/)**:
+
+Beautiful is better than ugly.
+Explicit is better than implicit.
+Simple is better than complex.
+Complex is better than complicated.
+Flat is better than nested.
+Sparse is better than dense.
+Readability counts.
+Special cases aren't special enough to break the rules.
+Although practicality beats purity.
+Errors should never pass silently.
+Unless explicitly silenced.
+In the face of ambiguity, refuse the temptation to guess.
+There should be one-- and preferably only one --obvious way to do it.
+Although that way may not be obvious at first unless you're Dutch.
+Now is better than never.
+Although never is often better than *right* now.
+If the implementation is hard to explain, it's a bad idea.
+If the implementation is easy to explain, it may be a good idea.
+Namespaces are one honking great idea -- let's do more of those!
+
+### Exceptions
 
 * Heavily utilize custom exceptions to provide detailed failure context.
 * Fail fast and hard - do not attempt to recover from issues with input data automatically.
 * When needed, use inheritance to give users flexibility in the way they handle exceptions.
 * Raise these exceptions at the lowest levels possible so they can be caught in higher-level code.
 
-For instance, use `mydict.get(key)` only when there is a good domain reason that a key does not exist. Use `mydict[key]` in most cases to add structural integrity to your program.
 
-## Architectural Guidelines
+## Types and Architectural Guidelines
 
 The dominant modeling philosophy should be domain-driven design, and the following topics discuss how to construct types and architectures that support that philosophy.
 
-
 There are several aspects of architectural guidelines discussed here:
 
-* Custom types
+* Defining custom types
 * Custom collection types
 * Architecture and design principles
 
