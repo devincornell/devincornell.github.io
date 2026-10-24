@@ -18,7 +18,7 @@ This provides strategies, styles, and architectural instructions that Devin J. C
 ### Docstrings and Annotations
 
 * Use modern Google-style docstrings for 2026. Every class, function, and method should have a docstring describing what it does.
-* Modern python includes type hints, so you do not need to specify argument types in modern Python docstrings.
+* Modern Python includes type hints, so you do not need to specify argument types in modern Python docstrings.
 
 ### Use of Exceptions
 
@@ -27,11 +27,11 @@ This provides strategies, styles, and architectural instructions that Devin J. C
 * When needed, use inheritance to give users flexibility in the way they handle exceptions.
 * Raise these exceptions at the lowest levels possible so they can be caught in higher-level code.
 
-For instance, use `mydict.get(key)` only when there is a good domain reason that a key does not exist. Use `mydict[key]` in most cases to add structural integrity to your program.
+For instance, use `mydict.get(key)` only when there is a good domain reason that a key may not exist. Use `mydict[key]` in most cases to add structural integrity to your program.
 
 ## Architectural Guidelines
 
-There are several aspects of architectural guidelines discussed here:
+Several aspects of architectural guidelines are discussed here:
 
 * Custom types
 * Custom collection types
@@ -74,9 +74,9 @@ class Point(BaseModel):
 
 ##### Semantic Typing
 
-Semantic typing with `NewType` should be used for primatives wherever relevant.
+Semantic typing with `NewType` should be used for primitives wherever relevant.
 
-Note that `Annotated` itself does not provide type safety, but you should use `NewType` alongside `Annotated` for primatives:
+Note that `Annotated` itself does not provide type safety, but you should use `NewType` alongside `Annotated` for primitives:
 
 * If the given type is to be used as part of a core domain concept, define semantic type privately (e.g., `_MyNewType = NewType('_MyNewType', int)`) and then use `MyNewType = Annotated[_MyNewType, Field(..)]` to include description, examples, and any other validation logic.
 * If you have strong distinction between application layer and a core domain model, use something like `UserId = NewType('UserId', int)` in the domain model and then `ValidatedUserId = Annotated[UserId, Field(gt=0)]` in the application layer.
@@ -87,7 +87,7 @@ Note that `Annotated` itself does not provide type safety, but you should use `N
 
 ##### Protocols
 
-* Always use `typing.Protocol` where relevant - particularly for strategy patterns or APIs that accepts complex types or type definitions.
+* Always use `typing.Protocol` where relevant - particularly for strategy patterns or APIs that accept complex types or type definitions.
 * Use `@runtime_checkable` only on API boundaries or other high-stakes interfaces; otherwise, trust static analyzers.
 
 #### Instantiation
@@ -101,7 +101,7 @@ In most cases, the default constructor should force the user to provide all attr
 * **Default values**: place these in non-default constructors, as they are not essential to the definition of a type.
 * **Parsing logic**: some parsing logic comes with general type safety.
 * Validation logic that is specific to some instantiation method
-* Performant
+* Performance optimizations
 
 
 * Leave default pydantic `__init__` constructors purely for creating the container.
@@ -117,7 +117,7 @@ Embrace the automated validation and initialization that happens under the hood 
 
 exclusively for custom type instantiation, data transformation, and validation.
 * Non-default constructors should follow the naming convention `from_*` (e.g., `from_vector`)
-* Do not define default parameter values in the class definition; instead, add them to the constructors (usually as a constructor paramter default).
+* Do not define default parameter values in the class definition; instead, add them to the constructors (usually as a constructor parameter default).
 * Use validation logic in constructors when parameters may be complicated or constructor is handling input validation.
 
 #### Immutability
@@ -129,7 +129,7 @@ exclusively for custom type instantiation, data transformation, and validation.
 
 #### Validation
 
-Because instnaces are treated as immutable, it is usually sufficient to validate data inside nondefault constructors.
+Because instances are treated as immutable, it is usually sufficient to validate data inside nondefault constructors.
 
 In cases where there are multiple constructors and every instance must definitionally conform to the constraint, it can be added to the definition itself as a declarative constraint.
 
@@ -140,19 +140,19 @@ In cases where there are multiple constructors and every instance must definitio
 
 ##### Serialization
 
-* Use `model_dump`/`model_dump_json` or `model_validate`/`model_validate_json` wherever possible (sepecially if you only need to set an `alias` set in the `Field`).
+* Use `model_dump`/`model_dump_json` or `model_validate`/`model_validate_json` wherever possible (especially if you only need to set an `alias` in the `Field`).
 * When possible, re-use `model_dump`/`model_dump_json` or `model_validate`/`model_validate_json` as part of the custom serializers/deserializers.
-* If complex serialization/deserialization is required, preempively create both serialization (`to_*`) and deserialization (`from_`) methods.
+* If complex serialization/deserialization is required, preemptively create both serialization (`to_*`) and deserialization (`from_`) methods.
 * In multi-level or recursive compositional data structures, chain custom subtype serialization/deserialization methods (`model_dump` and `model_validate` already do this).
 * Use `computed_field` when you want to add attributes to the serialized object that are computed from existing properties.
-* Use `AliasChoices` when deserializating data with an inconsistent fromat, but do not overdo it.
+* Use `AliasChoices` when deserializing data with an inconsistent format, but do not overdo it.
 
 ### Custom Collection Types
 
 If you need functions or validations that operate on collections of specific types (including custom types or primitive semantic types), create custom collection types with `RootModel`.
 
 * In most cases, you should define the type using syntax like `class PointList(list[Point])` instead of using a `root` attribute.
-* In cases where definitional constraints/validation is required for the collection, use `RootClass.model_validator`.
+* In cases where definitional constraints/validation are required for the collection, use `RootClass.model_validator`.
 
 ```python
 from typing import Annotated, NewType
@@ -193,7 +193,7 @@ class UniqueNamesList(RootModel[list[PointName]]):
 
 #### Domain-driven Design
 
-Generally attempt to adhere to the engineering principles and philosophy of Doman-driven Design (DDD). There is one primary exception: when it is convenient, you may re-use Entities or Value Objects in multiple architectural layers to avoid creating duplicate objects that store almost exactly the same information. This can be especially helpful for types that are very complex with many attributes or definitional constraints. The use of compositional data structures can help reduce the risk of such an approach.
+Generally attempt to adhere to the engineering principles and philosophy of Domain-Driven Design (DDD). There is one primary exception: when it is convenient, you may re-use Entities or Value Objects in multiple architectural layers to avoid creating duplicate objects that store almost exactly the same information. This can be especially helpful for types that are very complex with many attributes or definitional constraints. The use of compositional data structures can help reduce the risk of such an approach.
 
 The following are design principles of DDD:
 
@@ -254,7 +254,7 @@ The following are design principles of DDD:
 ## Preferred Packages
 
 + Tabular Data
-    + When possible,  use lists/dicts of dataclasses or `pydantic` types over dataframes.
+    + When possible, use lists/dicts of dataclasses or `pydantic` types over dataframes.
     + When dataframes really are the right solution, use Polars instead of Pandas.
 + Paths
     + Use `pathlib` for every application involving tasks that it can actually solve.
@@ -271,7 +271,7 @@ The following are design principles of DDD:
     + Use `pydantic-settings` for environment management.
 + LLMs or Agents
     + Use `pydantic-ai` to make AI-powered tools.
-    + when advanced Google-specific tools (such as Web Search) are needed, use the `python.genai` package.
+    + When advanced Google-specific tools (such as Web Search) are needed, use the `google-genai` package.
 + SQL Databases
     + Use `sqlalchemy` Core patterns (ideally not ORM if it cannot be helped).
 + NoSQL Databases
